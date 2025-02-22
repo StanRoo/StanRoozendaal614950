@@ -1,0 +1,169 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@vitejs/plugin-vue": {
+      "name": "@vitejs/plugin-vue",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "vite"
+      ],
+      "effects": [],
+      "range": ">=1.8.0",
+      "nodes": [
+        "node_modules/@vitejs/plugin-vue"
+      ],
+      "fixAvailable": {
+        "name": "@vitejs/plugin-vue",
+        "version": "1.7.1",
+        "isSemVerMajor": true
+      }
+    },
+    "@vue/devtools-core": {
+      "name": "@vue/devtools-core",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite-hot-client"
+      ],
+      "effects": [
+        "vite-plugin-vue-devtools"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@vue/devtools-core"
+      ],
+      "fixAvailable": false
+    },
+    "esbuild": {
+      "name": "esbuild",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1102341,
+          "name": "esbuild",
+          "dependency": "esbuild",
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=0.24.2"
+        }
+      ],
+      "effects": [
+        "vite"
+      ],
+      "range": "<=0.24.2",
+      "nodes": [
+        "node_modules/esbuild"
+      ],
+      "fixAvailable": false
+    },
+    "vite": {
+      "name": "vite",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "esbuild"
+      ],
+      "effects": [
+        "@vitejs/plugin-vue",
+        "vite-hot-client",
+        "vite-plugin-inspect",
+        "vite-plugin-vue-devtools",
+        "vite-plugin-vue-inspector"
+      ],
+      "range": ">=0.11.0",
+      "nodes": [
+        "node_modules/vite"
+      ],
+      "fixAvailable": false
+    },
+    "vite-hot-client": {
+      "name": "vite-hot-client",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite"
+      ],
+      "effects": [
+        "@vue/devtools-core"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/vite-hot-client"
+      ],
+      "fixAvailable": false
+    },
+    "vite-plugin-inspect": {
+      "name": "vite-plugin-inspect",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/vite-plugin-inspect"
+      ],
+      "fixAvailable": true
+    },
+    "vite-plugin-vue-devtools": {
+      "name": "vite-plugin-vue-devtools",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@vue/devtools-core",
+        "vite",
+        "vite-plugin-inspect",
+        "vite-plugin-vue-inspector"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/vite-plugin-vue-devtools"
+      ],
+      "fixAvailable": false
+    },
+    "vite-plugin-vue-inspector": {
+      "name": "vite-plugin-vue-inspector",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "vite"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/vite-plugin-vue-inspector"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 8,
+      "high": 0,
+      "critical": 0,
+      "total": 8
+    },
+    "dependencies": {
+      "prod": 37,
+      "dev": 165,
+      "optional": 45,
+      "peer": 1,
+      "peerOptional": 0,
+      "total": 202
+    }
+  }
+}

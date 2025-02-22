@@ -1,0 +1,130 @@
+<template>
+  
+
+  <div class="login-container d-flex align-items-center justify-content-center vh-100">
+    <div class="card p-4 shadow-lg">
+      <div class="text-center mb-4">
+        <img src="@/assets/icons/CubocardLogo.png" alt="Logo" style="width: 80px;" />
+      </div>
+      <h2 class="text-center mb-4">Login</h2>
+      <form @submit.prevent="login">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input
+            type="text"
+            id="username"
+            class="form-control"
+            v-model="username"
+            placeholder="Enter your username"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            v-model="password"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe" />
+          <label class="form-check-label" for="rememberMe">Remember me</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <div class="text-center mt-3">
+          <router-link to="/forgotPassword" class="small text-primary">
+            Forgot password?
+          </router-link><br />
+          <router-link to="/createAccount" class="small text-primary">
+            Create an account
+          </router-link>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script>
+  import axios from "axios";
+
+  export default {
+    data() {
+      return {
+       username: "",
+       password: "",
+       errorMessage: ""
+     };
+    },
+    methods: {
+     async login() {
+        try {
+          const response = await axios.post("/login", {
+            username: this.username,
+            password: this.password
+         });
+
+          if (response.data.success) {
+           localStorage.setItem("token", response.data.token); 
+           this.$router.push("/home"); 
+          } else {
+            this.errorMessage = response.data.error || "Login failed.";
+          }
+        } catch (error) {
+         if (error.response) {
+           if (error.response.status === 400) {
+             this.errorMessage = "Username and password are required"; 
+           } else if (error.response.status === 401) {
+             this.errorMessage = "Invalid credentials"; 
+           } else {
+              this.errorMessage = "Login failed, please try again.";
+           }
+         } else {
+            this.errorMessage = "Network error, please try again.";
+         }
+        }
+      }
+    }
+  };
+</script>
+
+<style scoped>
+  html, body {
+   margin: 0;
+   padding: 0;
+   overflow-x: hidden;
+   width: 100%;
+  }
+
+  .login-container {
+   background-color: #f8f9fa;
+   height: 100vh;
+  }
+
+  .card {
+   width: 100%;
+   max-width: 400px;
+   border-radius: 12px;
+   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .card h2 {
+   font-weight: bold;
+  }
+
+  .form-control:focus {
+   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+
+  .error {
+   color: red;
+  }
+</style>

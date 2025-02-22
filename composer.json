@@ -1,0 +1,19 @@
+{
+    "name": "cubocard/site",
+    "description": "A dynamic marketplace for buying, selling, and trading Pokémon cards.",
+    "type": "project",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+        "firebase/php-jwt": "^6.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/",
+            "App\\Controllers\\": "src/Controllers/",
+            "App\\Services\\": "src/Services/",
+            "App\\Models\\": "src/Models/",
+            "App\\Repositories\\": "src/Repositories/"
+        }
+    }
+}
