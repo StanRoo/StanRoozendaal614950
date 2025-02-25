@@ -18,7 +18,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8000", // Forward API calls to PHP
+        target: "http://localhost:8000",
         changeOrigin: true,
         secure: false
       }

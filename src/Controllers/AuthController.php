@@ -18,7 +18,6 @@ class AuthController {
         }
 
         $data = json_decode(file_get_contents("php://input"), true);
-
         error_log("Login attempt received.");
 
         if (empty($data['username']) || empty($data['password'])) {
@@ -27,13 +26,12 @@ class AuthController {
             exit();
         }
 
-        $data = json_decode(file_get_contents("php://input"), true);
-        $username = $data['username'] ?? '';
-        $password = $data['password'] ?? '';
+        $username = $data['username'];
+        $password = $data['password'];
 
         $user = $this->userRepository->getUserByUsername($username);
 
-        if (!$user || !password_verify($password, $user['password'])) {
+        if (!$user || !password_verify($password, $user->getPassword())) {
             error_log("Login failed for username: $username");
             http_response_code(401);
             echo json_encode(["error" => "Invalid credentials"]);
@@ -41,11 +39,11 @@ class AuthController {
         }
 
         $payload = [
-            "user_id" => $user['id'],
-            "username" => $user['username'],
+            "user_id" => $user->getId(),
+            "username" => $user->getUsername(),
             "exp" => time() + (60 * 60) 
         ];
-        $jwt = JWT::encode($payload, JWT_SECRET, 'HS256');
+        $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
 
         echo json_encode([
             "success" => true,
@@ -53,4 +51,4 @@ class AuthController {
             "token" => $jwt
         ]);
     }
-} 
+}

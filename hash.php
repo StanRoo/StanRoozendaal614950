@@ -1,5 +1,5 @@
 <?php
-$plainTextPassword = "Welkom#01!"; // Replace with actual password
+$plainTextPassword = "Welkom#01!"; 
 $hashedPassword = password_hash($plainTextPassword, PASSWORD_DEFAULT);
 echo "Hashed Password: " . $hashedPassword;
 ?>

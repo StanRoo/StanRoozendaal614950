@@ -4,7 +4,7 @@ namespace App;
 use PDO;
 
 class Config {
-    public static string $JWT_SECRET = "CuboCardApiS3cr3tK3yJWT";
+    const JWT_SECRET = 'CuboCardApiS3cr3tK3yJWT';
 
     public static $DB_HOST = '127.0.0.1';
     public static $DB_NAME = 'cubocard';

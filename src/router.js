@@ -19,7 +19,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(), // ✅ Ensure correct router mode
+  history: createWebHistory(), 
   routes
 });
 
