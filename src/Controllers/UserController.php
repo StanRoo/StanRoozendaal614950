@@ -48,20 +48,55 @@ class UserController {
         }
     }
 
-    public function updateProfilePicture($userId, $profilePictureUrl) {
-        if (!$userId) {
-            http_response_code(403);
-            echo json_encode(["error" => "Unauthorized"]);
+    public function updateProfilePicture($userId) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(["error" => "Method not allowed"]);
             return;
         }
 
-        $success = $this->userRepository->updateProfilePicture($userId, $profilePictureUrl);
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        if ($success) {
-            echo json_encode(["success" => true, "message" => "Profile picture updated successfully"]);
+        if (!empty($data['profile_picture_url'])) { 
+            $success = $this->userRepository->updateProfilePicture($userId, $data['profile_picture_url']);
+
+            if ($success) {
+                echo json_encode(["success" => true, "profile_picture_url" => $data['profile_picture_url']]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["error" => "Failed to update profile picture"]);
+            }
+            return;
+        }
+
+        if (isset($_FILES['profile_picture'])) {
+            $targetDir = "uploads/";
+            $fileName = uniqid() . "_" . basename($_FILES["profile_picture"]["name"]);
+            $targetFilePath = $targetDir . $fileName;
+            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+            $allowedTypes = ["jpg", "jpeg", "png"];
+            if (!in_array($fileType, $allowedTypes)) {
+                http_response_code(400);
+                echo json_encode(["error" => "Only JPG, JPEG, and PNG files are allowed"]);
+                return;
+            }
+
+            if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $targetFilePath)) {
+                $success = $this->userRepository->updateProfilePicture($userId, $targetFilePath);
+                if ($success) {
+                    echo json_encode(["success" => true, "profile_picture_url" => $targetFilePath]);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(["error" => "Failed to update profile picture"]);
+                }
+            } else {
+                http_response_code(500);
+                echo json_encode(["error" => "Failed to upload file"]);
+            }
         } else {
-            http_response_code(500);
-            echo json_encode(["error" => "Database update failed"]);
+            http_response_code(400);
+            echo json_encode(["error" => "No file uploaded"]);
         }
     }
 }

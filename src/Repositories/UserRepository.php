@@ -24,15 +24,10 @@ class UserRepository {
         return array_map(fn($user) => new UserModel($user), $usersData);
     }
 
-    public function getUserById($userId): ?UserModel {
-        $stmt = $this->pdo->prepare("
-            SELECT id, username, email, profile_picture_url, bio, status, role, last_login, created_at
-            FROM users WHERE id = ?
-        ");
+    public function getUserById($userId) {
+        $stmt = $this->pdo->prepare("SELECT id, username, email, profile_picture_url, bio FROM users WHERE id = ?");
         $stmt->execute([$userId]);
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $userData ? new UserModel($userData) : null;
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getUserByUsername(string $username): ?UserModel {
@@ -85,12 +80,7 @@ class UserRepository {
         }
     }
 
-    public function updateProfilePicture(int $userId, string $profilePictureUrl): bool {
-        if (!$this->pdo) {
-            error_log("Database connection is missing in UserRepository.");
-            return false;
-        }
-
+    public function updateProfilePicture($userId, $profilePictureUrl): bool {
         $stmt = $this->pdo->prepare("UPDATE users SET profile_picture_url = ? WHERE id = ?");
         return $stmt->execute([$profilePictureUrl, $userId]);
     }
