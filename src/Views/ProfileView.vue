@@ -74,19 +74,19 @@ export default {
       defaultPictures: [
         "/uploads/Defaults/Bulbasaur_PFP.png",
         "/uploads/Defaults/Charmander_PFP.png",
+        "/uploads/Defaults/Squirtle_PFP.png",
         "/uploads/Defaults/Cubone_PFP.png",
+        "/uploads/Defaults/Pikachu_PFP.png",
         "/uploads/Defaults/Eevee_PFP.png",
         "/uploads/Defaults/Gengar_PFP.png",
         "/uploads/Defaults/Jigglypuff_PFP.png",
         "/uploads/Defaults/Magikarp_PFP.png",
         "/uploads/Defaults/Meowth_PFP.png",
         "/uploads/Defaults/Mew_PFP.png",
-        "/uploads/Defaults/Pikachu_PFP.png",
         "/uploads/Defaults/Psyduck_PFP.png",
         "/uploads/Defaults/Riolu_PFP.png",
         "/uploads/Defaults/Shinx_PFP.png",
         "/uploads/Defaults/Snorlax_PFP.png",
-        "/uploads/Defaults/Squirtle_PFP.png",
         "/uploads/Defaults/Umbreon_PFP.png"
       ],
       messagePicture: "",
@@ -128,32 +128,31 @@ export default {
       this.selectedFile = null;
     },
     async updateProfilePicture() {
-      try {
-          const token = localStorage.getItem("token");
-          let payload, headers;
+    try {
+      const token = localStorage.getItem("token");
+      let payload, headers;
 
-          if (this.selectedFile) {
-              payload = new FormData();
-              payload.append("profile_picture", this.selectedFile);
-              headers = {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "multipart/form-data"
-              };
-          } else {
-              payload = { profile_picture_url: this.user.profile_picture_url };
-              headers = {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json"
-              };
-          }
-
-          const response = await axios.post("/user/upload-profile-picture", payload, { headers });
-          this.user.profile_picture_url = response.data.profile_picture_url;
-          this.showMessage("Profile picture updated!", "success", "messagePicture");
-      } catch (error) {
-          this.handleError(error, "messagePicture");
+      if (this.selectedFile) {
+        payload = new FormData();
+        payload.append("profile_picture", this.selectedFile);
+        headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
+      } else {
+        payload = { profile_picture_url: this.user.profile_picture_url };
+        headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
       }
-    },
+
+      const response = await axios.post("/user/upload-profile-picture", payload, { headers });
+
+      const updatedUser = { ...this.user, profile_picture_url: response.data.profile_picture_url };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      this.showMessage("Profile picture updated!", "success", "messagePicture");
+
+      setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+      this.showMessage("Failed to update profile picture", "error", "messagePicture");
+    }
+  },
     async updateProfileInfo() {
       try {
         const token = localStorage.getItem("token");
@@ -243,6 +242,7 @@ export default {
     font-size: 14px;
     padding: 8px;
     border-radius: 5px;
+    margin-top: 10px;
   }
 
   @media (max-width: 768px) {

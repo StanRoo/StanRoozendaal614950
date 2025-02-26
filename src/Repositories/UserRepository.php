@@ -25,7 +25,7 @@ class UserRepository {
     }
 
     public function getUserById($userId) {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, profile_picture_url, bio FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, profile_picture_url, status, bio FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

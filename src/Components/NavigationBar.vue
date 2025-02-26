@@ -17,13 +17,7 @@ import Profile from '@/assets/icons/profile.png'
         <img class="item" :src="ShoppingCart" />
       </router-link>
       <router-link to="/profile" class="profile-container" active-class="active">
-        <img
-          v-if="profilePicture"
-          :src="profilePicture + '?t=' + new Date().getTime()"
-          alt="Profile"
-          class="profile-pic"
-        />
-        <img v-else src="@/assets/icons/profile.png" alt="Default Avatar" class="profile-pic" />
+        <img :src="user?.profile_picture_url || '/assets/icons/default.png'" class="profile-pic" alt="Profile Picture" />
       </router-link>
     </div>
   </nav>
@@ -31,7 +25,11 @@ import Profile from '@/assets/icons/profile.png'
 
 <script>
 export default {
-  props: ["profilePicture"],
+  data() {
+    return {
+      user: JSON.parse(localStorage.getItem("user")) || {}
+    };
+  }
 };
 </script>
 
