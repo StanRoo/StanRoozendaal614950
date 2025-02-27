@@ -24,17 +24,23 @@
           <h5 class="mt-3">Or Upload a Custom Picture:</h5>
           <input type="file" class="form-control" @change="previewFile" />
 
-          <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>
+          <div class="profile-actions">
+            <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>  
+          </div>
 
-          <p v-if="messagePicture" :class="messagePictureClass">{{ messagePicture }}</p>
+          <div class="profile-feedback">
+            <p v-if="messagePicture" :class="messagePictureClass">{{ messagePicture }}</p>
+          </div>
         </div>
       </div>
 
       <div class="card shadow-sm">
         <div class="card-body">
-          <h2 class="text-center">{{ user.username }}</h2>
-          <p class="text-muted text-center">{{ user.email }}</p>
-          <p><strong>Status:</strong> <span class="badge bg-info">{{ user.status }}</span></p>
+          <div class="user-info">
+            <h2 class="text-center">{{ user.username }}</h2>
+            <p class="text-muted text-center">{{ user.email }}</p>
+            <p><strong>Status:</strong> <span class="badge bg-info">{{ user.status }}</span></p>
+          </div>
 
           <form @submit.prevent="updateProfileInfo">
             <label class="form-label">Username</label>
@@ -46,9 +52,13 @@
             <label class="form-label">Bio</label>
             <textarea class="form-control" v-model="user.bio"></textarea>
 
-            <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
-
-            <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
+            <div class="profile-actions">
+              <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
+            </div>
+          
+            <div class="profile-feedback">
+              <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
+            </div>
           </form>
         </div>
       </div>
@@ -148,7 +158,7 @@ export default {
 
       this.showMessage("Profile picture updated!", "success", "messagePicture");
 
-      setTimeout(() => window.location.reload(), 500);
+      setTimeout(() => window.location.reload(), 3000);
     } catch (error) {
       this.showMessage("Failed to update profile picture", "error", "messagePicture");
     }
@@ -203,10 +213,25 @@ export default {
   .card {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 20px;
+    height: 100%;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .user-info {
+    padding: 20px;
+    text-align: center;
   }
 
   .profile-picture {
+    align-self: center;
     width: 100px;
     height: 100px;
     object-fit: cover;
@@ -234,7 +259,19 @@ export default {
   }
 
   .selected {
-    border: 2px solid yellow;
+    border: 2px solid #3366af;
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: auto;
+    text-align: center;
+  }
+
+  .profile-feedback {
+    min-height: 20px;
   }
 
   .alert {
