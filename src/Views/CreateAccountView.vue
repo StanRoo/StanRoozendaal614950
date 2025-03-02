@@ -1,6 +1,9 @@
 <template>
     <div class="create-account-container vh-100 d-flex align-items-center justify-content-center">
       <div class="card p-4 shadow-lg">
+        <div class="text-center mb-4">
+          <img src="@/assets/icons/CubocardLogo.png" alt="Logo" style="width: 80px;" />
+        </div>
         <h2 class="text-center mb-4">Create an Account</h2>
         <form @submit.prevent="handleCreateAccount">
           <div class="mb-3">
@@ -28,7 +31,8 @@
           </div>
 
           <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label for="password" class="form-label">Password </label>
+            <p class="password-userinfo">(must contain min. 8 characters, upper- lowercase letter, number, special character)</p>
             <input
               type="password"
               id="password"
@@ -159,6 +163,13 @@ export default {
     width: 100%;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .password-userinfo {
+    font-weight: lighter;
+    font-size: small;
+    font-style: italic;
+    margin-top: 0px;
   }
 
   .error-message {
