@@ -120,17 +120,16 @@ export default {
 
       try {
 
-        const response = await axios.post("http://localhost:8000/api/register", {
+        const response = await axios.post("/register", {
           username: this.username,
           email: this.email,
           password: this.password,
         });
 
         if (response.status === 201 || response.data.message === "Account created successfully!") {
-          this.successMessage = "Account created successfully! Redirecting...";
-          
+          this.successMessage = "Account created successfully! Redirecting...";     
           setTimeout(() => {
-            this.$router.push("/login");
+            this.$router.push("/");
           }, 2000);
           return;
         } 
@@ -139,7 +138,6 @@ export default {
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
           this.errorMessage = error.response.data.message;
-          console.log("⚠️ Server Returned Error:", this.errorMessage);
         } else {
           this.errorMessage = "An error occurred. Please try again.";
         }
