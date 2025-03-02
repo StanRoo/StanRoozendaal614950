@@ -11,6 +11,10 @@ $authController = new AuthController();
 $userController = new UserController();
 
 switch (true) {
+    case $requestUri === '/api/register' && $requestMethod === 'POST':
+        $authController->register();
+        break;
+
     case $requestUri === '/api/login' && $requestMethod === 'POST':
         $authController->login();
         break;

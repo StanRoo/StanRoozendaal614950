@@ -41,6 +41,17 @@ class UserRepository {
         return $userData ? new UserModel($userData) : null;
     }
 
+    public function getUserByEmail($email) {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function createUser($username, $email, $password, $bio) {
+        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password, bio) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([$username, $email, $password, $bio]);
+    }
+
     public function updateUser(int $userId, array $userData): bool {
         if (!$this->pdo) {
             error_log("Database connection is missing in UserRepository.");

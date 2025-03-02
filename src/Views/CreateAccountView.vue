@@ -51,46 +51,104 @@
             />
           </div>
   
-          <button type="submit" class="btn btn-primary w-100">Create Account</button>
+          <button class="btn btn-primary w-100" @click="handleCreateAccount" :disabled="isSubmitting">
+            {{ isSubmitting ? "Creating Account..." : "Create Account" }}
+          </button>
+
           <div class="text-center mt-3">
             <router-link to="/" class="small">Back to Login</router-link>
           </div>
         </form>
+
+        <div class="user-feedback">
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+          <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+        </div>
+        
       </div>
     </div>
 </template>
   
 <script>
-  export default {
-    name: "CreateAccount",
-    data() {
-      return {
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      };
-    },
-    methods: {
-      async handleCreateAccount() {
-        if (this.password !== this.confirmPassword) {
-          alert("Passwords do not match!");
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      errorMessage: "",
+      successMessage: "",
+      isSubmitting: false,
+    };
+  },
+  methods: {
+    async handleCreateAccount() {
+      if (this.isSubmitting) return;
+      this.isSubmitting = true;
+      this.errorMessage = "";
+      this.successMessage = "";
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.email)) {
+        this.errorMessage = "Invalid email format. Please enter a valid email.";
+        this.isSubmitting = false;
+        return;
+      }
+
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!usernameRegex.test(this.username)) {
+        this.errorMessage = "Username can only contain letters, numbers, and underscores, and must be 3-20 characters long.";
+        this.isSubmitting = false;
+        return;
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(this.password)) {
+        this.errorMessage = "Password must be at least 8 characters and contain an uppercase letter, a lowercase letter, a number, and a special character.";
+        this.isSubmitting = false;
+        return;
+      }
+
+      if (this.password !== this.confirmPassword) {
+        this.errorMessage = "Passwords do not match!";
+        this.isSubmitting = false;
+        return;
+      }
+
+      try {
+
+        const response = await axios.post("http://localhost:8000/api/register", {
+          username: this.username,
+          email: this.email,
+          password: this.password,
+        });
+
+        if (response.status === 201 || response.data.message === "Account created successfully!") {
+          this.successMessage = "Account created successfully! Redirecting...";
+          
+          setTimeout(() => {
+            this.$router.push("/login");
+          }, 2000);
           return;
+        } 
+
+        this.errorMessage = response.data.message || "Failed to create account.";
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          this.errorMessage = error.response.data.message;
+          console.log("⚠️ Server Returned Error:", this.errorMessage);
+        } else {
+          this.errorMessage = "An error occurred. Please try again.";
         }
-  
-        try {
-          alert(`Account created for ${this.username}!`);
-          this.username = "";
-          this.email = "";
-          this.password = "";
-          this.confirmPassword = "";
-        } catch (error) {
-          console.error("Error creating account:", error);
-          alert("Failed to create account. Please try again.");
-        }
-      },
+      } finally {
+        this.isSubmitting = false;
+      }
     },
-  };
+  },
+};
 </script>
   
 <style scoped>
@@ -103,6 +161,16 @@
     width: 100%;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .error-message {
+    color: red;
+    margin-top: 10px;
+  }
+
+  .success-message {
+    color: green;
+    margin-top: 10px;
   }
 
 </style>
