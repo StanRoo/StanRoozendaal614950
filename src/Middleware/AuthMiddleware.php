@@ -9,23 +9,27 @@ use App\Config;
 class AuthMiddleware {
     public static function verifyToken() {
         $headers = apache_request_headers();
-        $authHeader = $headers['Authorization'] ?? '';
 
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+
+        if (!isset($headers['Authorization'])) {
             http_response_code(401);
-            echo json_encode(["error" => "Unauthorized: No token provided"]);
-            exit();
+            echo json_encode(["message" => "Unauthorized: Missing token"]);
+            exit;
         }
-
-        $jwt = str_replace('Bearer ', '', $authHeader);
-
+    
+        $token = str_replace("Bearer ", "", $headers['Authorization']);
+        
         try {
-            $decoded = JWT::decode($jwt, new Key(Config::JWT_SECRET, 'HS256'));
-            return (array) $decoded; 
-        } catch (\Exception $e) {
+            $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+            $decodedArray = (array) $decoded;
+    
+            error_log(print_r($decodedArray, true));
+    
+            return $decodedArray;
+        } catch (Exception $e) {
             http_response_code(401);
-            echo json_encode(["error" => "Unauthorized: Invalid token"]);
-            exit();
+            echo json_encode(["message" => "Unauthorized: Invalid token"]);
+            exit;
         }
     }
 }

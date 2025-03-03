@@ -13,11 +13,12 @@ import Profile from '@/assets/icons/profile.png'
     </div>
 
     <div class="nav-right">
+      <router-link v-if="user?.role === 'admin'" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
       <router-link to="/shoppingcart" class="icon-link" active-class="active">
         <img class="item" :src="ShoppingCart" />
       </router-link>
       <router-link to="/profile" class="profile-container" active-class="active">
-        <img :src="user?.profile_picture_url || '/assets/icons/default.png'" class="profile-pic" alt="Profile Picture" />
+        <img :src="user?.profile_picture_url || '@/assets/icons/profile.png'" class="profile-pic" alt="Profile Picture" />
       </router-link>
     </div>
   </nav>
@@ -27,7 +28,7 @@ import Profile from '@/assets/icons/profile.png'
 export default {
   data() {
     return {
-      user: JSON.parse(localStorage.getItem("user")) || {}
+      user: JSON.parse(localStorage.getItem('user'))
     };
   }
 };
@@ -77,6 +78,21 @@ export default {
   display: flex;
   align-items: center;
   height: 100%;
+}
+
+.nav-right .nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  height: 100%; 
+  transition: background 0.3s;
+}
+
+.nav-right .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .nav-right .active {

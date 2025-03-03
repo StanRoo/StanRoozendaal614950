@@ -42,6 +42,7 @@
   .banner {
    width: 100%;
    left: 0;
+   margin-top: -40px;
   }
 
   h1 {

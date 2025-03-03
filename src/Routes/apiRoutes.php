@@ -24,6 +24,11 @@ switch (true) {
         $userController->getUser($decodedUser['user_id']);
         break;
 
+    case $requestUri === '/api/users' && $requestMethod === 'GET':
+        $decodedUser = AuthMiddleware::verifyToken();
+        $userController->getAllUsers();
+        break;
+
     case $requestUri === '/api/user' && $requestMethod === 'PUT':
         $decodedUser = AuthMiddleware::verifyToken(); 
         $userController->updateUser($decodedUser['user_id']);

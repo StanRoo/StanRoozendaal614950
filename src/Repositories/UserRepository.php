@@ -14,14 +14,10 @@ class UserRepository {
         $this->pdo = Config::getPDO();
     }
 
-    public function getAllUsers(): array {
-        $stmt = $this->pdo->query("
-            SELECT id, username, email, role, status, profile_picture_url, bio, created_at, last_login
-            FROM users
-        ");
-        $usersData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn($user) => new UserModel($user), $usersData);
+    public function getAllUsers() {
+        $stmt = $this->pdo->prepare("SELECT id, username, email, role, profile_picture_url, status, bio, last_login, created_at, updated_at FROM users");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getUserById($userId) {
@@ -32,7 +28,7 @@ class UserRepository {
 
     public function getUserByUsername(string $username): ?UserModel {
         $stmt = $this->pdo->prepare("
-            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at
+            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at
             FROM users WHERE username = ?
         ");
         $stmt->execute([$username]);

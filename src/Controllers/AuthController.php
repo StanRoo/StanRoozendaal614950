@@ -38,17 +38,29 @@ class AuthController {
             return;
         }
 
+        $userData = [
+                "id" => $user->getId(),
+                "username" => $user->getUsername(),
+                'email' => $user->getEmail(),
+                'bio' => $user->getBio(),
+                'status' => $user->getStatus(),
+                "role" => $user->getRole(),
+                'profile_picture_url' => $user->getProfilePictureUrl(),
+                'created_at' => $user->getCreatedAt(),
+                'updated_at' => $user->getUpdatedAt(),
+        ];
+
         $payload = [
-            "user_id" => $user->getId(),
-            "username" => $user->getUsername(),
+            'user' => $userData,
+            "iat" => time(),
             "exp" => time() + (60 * 60) 
         ];
         $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
 
         echo json_encode([
-            "success" => true,
             "message" => "Login successful",
-            "token" => $jwt
+            "token" => $jwt,
+            'user' => $userData
         ]);
     }
 

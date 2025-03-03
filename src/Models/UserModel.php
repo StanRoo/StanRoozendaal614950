@@ -9,10 +9,10 @@ class UserModel {
     public string $password;
     public string $role;
     public string $status;
-    public ?string $profilePictureUrl;
+    public ?string $profile_picture_url;
     public ?string $bio;
-    public ?string $createdAt;
-    public ?string $updatedAt;
+    public ?string $created_at;
+    public ?string $updated_at;
     public ?string $lastLogin;
 
     public function __construct(array $data) {
@@ -22,10 +22,10 @@ class UserModel {
         $this->password = $data['password'] ?? '';
         $this->role = $data['role'] ?? 'user'; 
         $this->status = $data['status'] ?? 'active'; 
-        $this->profilePictureUrl = $data['profile_picture_url'] ?? null;
+        $this->profile_picture_url = $data['profile_picture_url'] ?? null;
         $this->bio = $data['bio'] ?? null;
-        $this->createdAt = $data['created_at'] ?? null;
-        $this->updatedAt = $data['updated_at'] ?? null;
+        $this->created_at = $data['created_at'] ?? null;
+        $this->updated_at = $data['updated_at'] ?? null;
         $this->lastLogin = $data['last_login'] ?? null;
     }
 
@@ -59,5 +59,17 @@ class UserModel {
 
     public function getRole(): string {
         return $this->role;
+    }
+
+    public function getCreatedAt(): string {
+        return $this->created_at;
+    }
+
+    public function getUpdatedAt(): string {
+        return $this->updated_at;
+    }
+
+    public function getLastLogin(): string {
+        return $this->lastLogin;
     }
 }

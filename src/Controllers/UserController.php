@@ -28,6 +28,19 @@ class UserController {
         echo json_encode(["success" => true, "user" => $user]);
     }
 
+    public function getAllUsers() {
+        $decodedUser = AuthMiddleware::verifyToken();
+    
+        if (!isset($decodedUser['user']['role']) || $decodedUser['user']['role'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(["message" => "Access denied. Admins only."]);
+            exit;
+        }
+    
+        $users = $this->userRepository->getAllUsers();
+        echo json_encode(["users" => $users]);
+    }
+
     public function updateUser($userId) {
         $rawData = file_get_contents("php://input");
         $data = json_decode($rawData, true);

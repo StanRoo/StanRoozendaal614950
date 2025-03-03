@@ -66,33 +66,37 @@
     },
     methods: {
      async login() {
-        try {
-          const response = await axios.post("/login", {
-            username: this.username,
-            password: this.password
-         });
+      this.errorMessage = "";
+      this.successMessage = "";
 
-          if (response.data.success) {
-           localStorage.setItem("token", response.data.token); 
-           this.$router.push("/home"); 
-          } else {
-            this.errorMessage = response.data.error || "Login failed.";
-          }
-        } catch (error) {
-         if (error.response) {
-           if (error.response.status === 400) {
-             this.errorMessage = "Username and password are required"; 
-           } else if (error.response.status === 401) {
-             this.errorMessage = "Invalid credentials"; 
-           } else {
-              this.errorMessage = "Login failed, please try again.";
-           }
-         } else {
-            this.errorMessage = "Network error, please try again.";
-         }
+      try {
+        const response = await axios.post("/login", {
+          username: this.username,
+          password: this.password,
+        });
+
+        if (response.status === 200 && response.data.token && response.data.user) {
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          localStorage.setItem("role", response.data.user.role);
+          localStorage.setItem("token", response.data.token);
+
+          setTimeout(() => {
+            this.$router.push("/home");
+          }, 2000);
+        } else {
+          this.errorMessage = "Login failed. Invalid response from server.";
+        }
+      } catch (error) {
+        if (error.response) {
+          this.errorMessage = error.response.data?.message || "Login failed.";
+        } else if (error.request) {
+          this.errorMessage = "Network error. Please check your connection.";
+        } else {
+          this.errorMessage = "An unexpected error occurred.";
         }
       }
     }
+  }
   };
 </script>
 

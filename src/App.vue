@@ -53,7 +53,7 @@
   }
 
   main {
-    padding-top: 30px; 
+    padding-top: 50px; 
   }
 
   footer {
