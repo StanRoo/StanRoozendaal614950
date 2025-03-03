@@ -31,7 +31,7 @@ class UserController {
     public function getAllUsers() {
         $decodedUser = AuthMiddleware::verifyToken();
     
-        if (!isset($decodedUser['user']['role']) || $decodedUser['user']['role'] !== 'admin') {
+        if (!isset($decodedUser->user->role) || $decodedUser->user->role !== 'admin') {
             http_response_code(403);
             echo json_encode(["message" => "Access denied. Admins only."]);
             exit;

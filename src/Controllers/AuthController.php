@@ -51,6 +51,7 @@ class AuthController {
         ];
 
         $payload = [
+            'user_id' => $user->getId(),
             'user' => $userData,
             "iat" => time(),
             "exp" => time() + (60 * 60) 
