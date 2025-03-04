@@ -82,7 +82,7 @@
 
           setTimeout(() => {
             this.$router.push("/home");
-          }, 2000);
+          }, 1000);
         } else {
           this.errorMessage = "Login failed. Invalid response from server.";
         }

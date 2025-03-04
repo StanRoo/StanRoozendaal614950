@@ -158,7 +158,7 @@ export default {
 
       this.showMessage("Profile picture updated!", "success", "messagePicture");
 
-      setTimeout(() => window.location.reload(), 3000);
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       this.showMessage("Failed to update profile picture", "error", "messagePicture");
     }
@@ -183,7 +183,7 @@ export default {
     showMessage(message, type, field) {
       this[field] = message;
       this[field + "Class"] = type === "success" ? "alert alert-success" : "alert alert-danger";
-      setTimeout(() => (this[field] = ""), 3000);
+      setTimeout(() => (this[field] = ""), 1000);
     },
     handleError(error, field) {
       this[field] = error.response?.data?.error || "An error occurred.";
