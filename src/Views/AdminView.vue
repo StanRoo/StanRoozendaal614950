@@ -55,7 +55,7 @@
 
 <script>
 import axios from "axios";
-import defaultProfilePicture from '@/assets/icons/profile.png'; // Import the default image
+import defaultProfilePicture from '@/assets/icons/profile.png';
 
 export default {
   data() {
@@ -63,7 +63,7 @@ export default {
       users: [],
       errorMessage: "",
       successMessage: "",
-      defaultProfilePicture, // Use it here
+      defaultProfilePicture,
     };
   },
   async created() {

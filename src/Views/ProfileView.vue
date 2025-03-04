@@ -68,7 +68,7 @@
 
 <script>
 import axios from "axios";
-import defaultAvatar from "@/assets/icons/profile.png"; // Import default profile picture
+import defaultAvatar from "@/assets/icons/profile.png";
 
 export default {
   data() {
@@ -81,7 +81,7 @@ export default {
       },
       selectedFile: null,
       previewImage: null,
-      defaultAvatar, // Now it's available for use in the template
+      defaultAvatar,
       defaultPictures: [
         "/uploads/Defaults/Bulbasaur_PFP.png",
         "/uploads/Defaults/Charmander_PFP.png",
