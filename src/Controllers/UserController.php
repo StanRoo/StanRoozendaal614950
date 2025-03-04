@@ -30,8 +30,10 @@ class UserController {
 
     public function getAllUsers() {
         $decodedUser = AuthMiddleware::verifyToken();
+
+        error_log("🔍 Decoded JWT User: " . print_r($decodedUser, true));
     
-        if (!isset($decodedUser->user->role) || $decodedUser->user->role !== 'admin') {
+        if (!isset($decodedUser['user']->role) || $decodedUser['user']->role !== 'admin') {
             http_response_code(403);
             echo json_encode(["message" => "Access denied. Admins only."]);
             exit;
@@ -42,23 +44,35 @@ class UserController {
     }
 
     public function updateUser($userId) {
+        $decodedUser = AuthMiddleware::verifyToken();
+    
         $rawData = file_get_contents("php://input");
         $data = json_decode($rawData, true);
-
+    
         if (!$data || !is_array($data)) {
             http_response_code(400);
             echo json_encode(["error" => "Invalid request data"]);
             return;
         }
-
-        $success = $this->userRepository->updateUser($userId, $data);
-
-        if ($success) {
-            echo json_encode(["success" => true, "message" => "User updated successfully"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["error" => "Failed to update user"]);
+    
+        if ($decodedUser['user']->role === 'admin') {
+            if (isset($data['role']) || isset($data['status'])) {
+                $this->userRepository->updateUser($userId, $data);
+                echo json_encode(["success" => true, "message" => "User updated successfully"]);
+                return;
+            }
+        } elseif ($decodedUser['user']->id == $userId) {
+            unset($data['role']);
+            unset($data['status']);
+    
+            $this->userRepository->updateUser($userId, $data);
+            echo json_encode(["success" => true, "message" => "Profile updated successfully"]);
+            return;
         }
+    
+        // 🚨 If neither admin nor correct user, deny access
+        http_response_code(403);
+        echo json_encode(["error" => "Unauthorized"]);
     }
 
     public function updateProfilePicture($userId) {
@@ -111,5 +125,18 @@ class UserController {
             http_response_code(400);
             echo json_encode(["error" => "No file uploaded"]);
         }
+    }
+
+    public function deleteUser($id) {
+        $decodedUser = AuthMiddleware::verifyToken();
+    
+        if (!isset($decodedUser['user']->role) || $decodedUser['user']->role !== 'admin') {
+            http_response_code(403);
+            echo json_encode(["message" => "Access denied. Admins only."]);
+            exit;
+        }
+    
+        $this->userRepository->deleteUser($id);
+        echo json_encode(["message" => "User deleted successfully!"]);
     }
 }

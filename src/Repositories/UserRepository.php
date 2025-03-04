@@ -48,47 +48,34 @@ class UserRepository {
         return $stmt->execute([$username, $email, $password, $bio]);
     }
 
-    public function updateUser(int $userId, array $userData): bool {
-        if (!$this->pdo) {
-            error_log("Database connection is missing in UserRepository.");
-            return false;
-        }
-
+    public function updateUser($userId, $data) {
         $fields = [];
-        $values = [];
-
-        foreach ($userData as $key => $value) {
-            $fields[] = "$key = ?";
-            $values[] = $value;
+        $params = [];
+    
+        foreach ($data as $key => $value) {
+            $fields[] = "$key = :$key";
+            $params[$key] = $value;
         }
-
+    
         if (empty($fields)) {
-            error_log("No valid fields to update for user ID: $userId");
             return false;
         }
-
-        $values[] = $userId;
-        $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = ?";
-
-        try {
-            $stmt = $this->pdo->prepare($sql);
-            $success = $stmt->execute($values);
-
-            if ($success) {
-                error_log("User ID $userId updated successfully.");
-                return true;
-            } else {
-                error_log("Database update failed for user ID: $userId");
-                return false;
-            }
-        } catch (PDOException $e) {
-            error_log("SQL Error: " . $e->getMessage());
-            return false;
-        }
+    
+        $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $params['id'] = $userId;
+    
+        return $stmt->execute($params);
     }
 
     public function updateProfilePicture($userId, $profilePictureUrl): bool {
         $stmt = $this->pdo->prepare("UPDATE users SET profile_picture_url = ? WHERE id = ?");
         return $stmt->execute([$profilePictureUrl, $userId]);
+    }
+
+    public function deleteUser($userId) {
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }
