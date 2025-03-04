@@ -17,9 +17,19 @@ import Profile from '@/assets/icons/profile.png'
       <router-link to="/shoppingcart" class="icon-link" active-class="active">
         <img class="item" :src="ShoppingCart" />
       </router-link>
-      <router-link to="/profile" class="profile-container" active-class="active">
-        <img :src="user?.profile_picture_url || '@/assets/icons/profile.png'" class="profile-pic" alt="Profile Picture" />
-      </router-link>
+
+      <div class="profile-dropdown profile-container nav-link" active-class="active">
+        <img
+          :src="user?.profile_picture_url || Profile"
+          class="profile-pic"
+          alt="Profile Picture"
+          @click="toggleDropdown"
+        />
+        <div v-if="dropdownVisible" class="dropdown-menu">
+          <router-link to="/profile" class="dropdown-item" @click="toggleDropdown">My Profile</router-link>
+          <button @click="logout" class="dropdown-item">Logout</button>
+        </div>
+      </div>
     </div>
   </nav>
 </template>
@@ -28,8 +38,20 @@ import Profile from '@/assets/icons/profile.png'
 export default {
   data() {
     return {
-      user: JSON.parse(localStorage.getItem('user'))
+      user: JSON.parse(localStorage.getItem('user')),
+      dropdownVisible: false,
     };
+  },
+  methods: {
+    toggleDropdown() {
+      this.dropdownVisible = !this.dropdownVisible;
+    },
+    logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      this.$router.push("/");
+    }
   }
 };
 </script>
@@ -41,7 +63,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   background: #3366af;
-  height: 60px; 
+  height: 60px;
   padding: 0;
   width: 100%;
   box-sizing: border-box;
@@ -61,7 +83,7 @@ export default {
   padding: 0 20px;
   display: flex;
   align-items: center;
-  height: 100%; 
+  height: 100%;
   transition: background 0.3s;
 }
 
@@ -87,7 +109,7 @@ export default {
   padding: 0 20px;
   display: flex;
   align-items: center;
-  height: 100%; 
+  height: 100%;
   transition: background 0.3s;
 }
 
@@ -113,6 +135,10 @@ export default {
   background: rgba(255, 255, 255, 0.2);
 }
 
+.profile-dropdown {
+  position: relative;
+}
+
 .profile-container {
   display: flex;
   align-items: center;
@@ -127,11 +153,42 @@ export default {
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid white;
+  cursor: pointer;
   transition: 0.3s;
 }
 
 .profile-pic:hover {
   transform: scale(1.1);
+}
+
+.dropdown-menu {
+  color: white;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #3366af;
+  border-radius: 5px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.dropdown-item {
+  color: white;
+  padding: 8px 12px;
+  background: #3366af;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.dropdown-item:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .logoImage {
