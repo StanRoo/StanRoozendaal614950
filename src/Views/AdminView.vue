@@ -14,13 +14,14 @@
           <th>Bio</th>
           <th>Created At</th>
           <th>Updated At</th>
+          <th>Delete</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
           <td>{{ user.id }}</td>
           <td>
-            <img :src="user.profile_picture_url || '@/assets/icons/profile.png'" class="profile-pic" alt="Profile" />
+            <img :src="user.profile_picture_url || defaultProfilePicture" class="profile-pic" alt="Profile" />
           </td>
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
@@ -54,6 +55,7 @@
 
 <script>
 import axios from "axios";
+import defaultProfilePicture from '@/assets/icons/profile.png'; // Import the default image
 
 export default {
   data() {
@@ -61,6 +63,7 @@ export default {
       users: [],
       errorMessage: "",
       successMessage: "",
+      defaultProfilePicture, // Use it here
     };
   },
   async created() {
@@ -119,7 +122,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .admin-panel {
   padding: 20px;
   text-align: center;

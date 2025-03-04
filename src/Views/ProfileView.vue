@@ -68,6 +68,7 @@
 
 <script>
 import axios from "axios";
+import defaultAvatar from "@/assets/icons/profile.png"; // Import default profile picture
 
 export default {
   data() {
@@ -80,7 +81,7 @@ export default {
       },
       selectedFile: null,
       previewImage: null,
-      defaultAvatar: "/assets/icons/profile.png",
+      defaultAvatar, // Now it's available for use in the template
       defaultPictures: [
         "/uploads/Defaults/Bulbasaur_PFP.png",
         "/uploads/Defaults/Charmander_PFP.png",
@@ -138,31 +139,31 @@ export default {
       this.selectedFile = null;
     },
     async updateProfilePicture() {
-    try {
-      const token = localStorage.getItem("token");
-      let payload, headers;
+      try {
+        const token = localStorage.getItem("token");
+        let payload, headers;
 
-      if (this.selectedFile) {
-        payload = new FormData();
-        payload.append("profile_picture", this.selectedFile);
-        headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
-      } else {
-        payload = { profile_picture_url: this.user.profile_picture_url };
-        headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+        if (this.selectedFile) {
+          payload = new FormData();
+          payload.append("profile_picture", this.selectedFile);
+          headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
+        } else {
+          payload = { profile_picture_url: this.user.profile_picture_url };
+          headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+        }
+
+        const response = await axios.post("/user/upload-profile-picture", payload, { headers });
+
+        const updatedUser = { ...this.user, profile_picture_url: response.data.profile_picture_url };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        this.showMessage("Profile picture updated!", "success", "messagePicture");
+
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (error) {
+        this.showMessage("Failed to update profile picture", "error", "messagePicture");
       }
-
-      const response = await axios.post("/user/upload-profile-picture", payload, { headers });
-
-      const updatedUser = { ...this.user, profile_picture_url: response.data.profile_picture_url };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      this.showMessage("Profile picture updated!", "success", "messagePicture");
-
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
-      this.showMessage("Failed to update profile picture", "error", "messagePicture");
-    }
-  },
+    },
     async updateProfileInfo() {
       try {
         const token = localStorage.getItem("token");
