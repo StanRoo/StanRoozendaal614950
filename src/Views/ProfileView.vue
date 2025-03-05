@@ -155,11 +155,12 @@ export default {
         const response = await axios.post("/user/upload-profile-picture", payload, { headers });
 
         const updatedUser = { ...this.user, profile_picture_url: response.data.profile_picture_url };
+
         localStorage.setItem("user", JSON.stringify(updatedUser));
 
-        this.showMessage("Profile picture updated!", "success", "messagePicture");
+        this.$emit("profileUpdated", updatedUser.profile_picture_url);
 
-        setTimeout(() => window.location.reload(), 1000);
+        this.showMessage("Profile picture updated!", "success", "messagePicture");
       } catch (error) {
         this.showMessage("Failed to update profile picture", "error", "messagePicture");
       }

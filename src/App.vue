@@ -1,5 +1,13 @@
 <script setup>
-  import NavigationBar from '@/Components/NavigationBar.vue';
+import { ref } from 'vue';
+import NavigationBar from '@/Components/NavigationBar.vue';
+
+const profilePicture = ref(localStorage.getItem("profile_picture") || null);
+
+function updateProfilePicture(newPicture) {
+  profilePicture.value = newPicture;
+  localStorage.setItem("profile_picture", newPicture); 
+}
 </script>
 
 <template>
@@ -19,27 +27,27 @@
 </template>
 
 <script>
-  export default {
-    name: "App",
-    computed: {
-      showHeaderAndFooter() {
-        const hiddenRoutes = ["Login", "ForgotPassword", "CreateAccount"];
-        return !hiddenRoutes.includes(this.$route.name);
-      },
+export default {
+  name: "App",
+  computed: {
+    showHeaderAndFooter() {
+      const hiddenRoutes = ["Login", "ForgotPassword", "CreateAccount"];
+      return !hiddenRoutes.includes(this.$route.name);
     },
-    data() {
-      return {
-        profilePicture: localStorage.getItem("profile_picture") || null
-      };
-    },
-    methods: {
-      updateProfilePicture(newPicture) {
-        this.profilePicture = newPicture;
-        localStorage.setItem("profile_picture", newPicture); 
-      }
-    },
-    components: { NavigationBar }
-  };
+  },
+  data() {
+    return {
+      profilePicture: localStorage.getItem("profile_picture") || null
+    };
+  },
+  methods: {
+    updateProfilePicture(newPicture) {
+      this.profilePicture = newPicture;
+      localStorage.setItem("profile_picture", newPicture); 
+    }
+  },
+  components: { NavigationBar }
+};
 </script>
 
 <style>

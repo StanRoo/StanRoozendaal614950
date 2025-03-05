@@ -20,7 +20,7 @@ import Profile from '@/assets/icons/profile.png'
 
       <div class="profile-dropdown profile-container nav-link" active-class="active">
         <img
-          :src="user?.profile_picture_url || Profile"
+          :src="profilePicture || user?.profile_picture_url || Profile" 
           class="profile-pic"
           alt="Profile Picture"
           @click="toggleDropdown"
@@ -36,6 +36,9 @@ import Profile from '@/assets/icons/profile.png'
 
 <script>
 export default {
+  props: {
+    profilePicture: String,
+  },
   data() {
     return {
       user: JSON.parse(localStorage.getItem('user')),
