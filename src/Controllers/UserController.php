@@ -70,7 +70,6 @@ class UserController {
             return;
         }
     
-        // 🚨 If neither admin nor correct user, deny access
         http_response_code(403);
         echo json_encode(["error" => "Unauthorized"]);
     }

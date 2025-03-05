@@ -1,7 +1,6 @@
 <script setup>
 import CuboCard from '@/assets/icons/CubocardLogo.png'
 import ShoppingCart from '@/assets/icons/shoppingcart.png'
-import Profile from '@/assets/icons/profile.png'
 </script>
 
 <template>
@@ -20,7 +19,7 @@ import Profile from '@/assets/icons/profile.png'
 
       <div class="profile-dropdown profile-container nav-link" active-class="active">
         <img
-          :src="profilePicture || user?.profile_picture_url || Profile" 
+          :src="profilePicture || user?.profile_picture_url" 
           class="profile-pic"
           alt="Profile Picture"
           @click="toggleDropdown"
@@ -50,10 +49,8 @@ export default {
       this.dropdownVisible = !this.dropdownVisible;
     },
     logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
-      this.$router.push("/");
+      localStorage.clear();
+      window.location.reload();
     }
   }
 };

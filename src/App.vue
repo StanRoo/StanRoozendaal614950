@@ -35,12 +35,34 @@ export default {
       return !hiddenRoutes.includes(this.$route.name);
     },
   },
+  created() {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      this.$router.push('/');
+    } else {
+      this.validateToken(token);
+    }
+  },
   data() {
     return {
       profilePicture: localStorage.getItem("profile_picture") || null
     };
   },
   methods: {
+    validateToken(token) {
+      const decoded = this.decodeToken(token);
+
+      if (decoded && decoded.exp > Date.now() / 1000) {
+
+      } else {
+        localStorage.removeItem('token');
+        this.$router.push('/');
+      }
+    },
+    decodeToken(token) {
+      return jwt_decode(token);
+    },
     updateProfilePicture(newPicture) {
       this.profilePicture = newPicture;
       localStorage.setItem("profile_picture", newPicture); 

@@ -78,6 +78,7 @@ class AuthController {
         $email = $data['email'];
         $password = $data['password'];
         $defaultBio = "I love Pokémon :)";
+        $defaultProfilePictureUrl = "/images/profile.png";
     
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             http_response_code(400);
@@ -105,7 +106,7 @@ class AuthController {
             exit;
         }
     
-        $newUser = $this->userRepository->createUser($username, $email, $hashedPassword, $defaultBio);
+        $newUser = $this->userRepository->createUser($username, $email, $hashedPassword, $defaultBio, $defaultProfilePictureUrl);
     
         if (!$newUser) {
             http_response_code(500);

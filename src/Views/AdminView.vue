@@ -21,7 +21,7 @@
         <tr v-for="user in users" :key="user.id">
           <td>{{ user.id }}</td>
           <td>
-            <img :src="user.profile_picture_url || defaultProfilePicture" class="profile-pic" alt="Profile" />
+            <img :src="user.profile_picture_url" class="profile-pic" alt="Profile" />
           </td>
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
@@ -55,7 +55,6 @@
 
 <script>
 import axios from "axios";
-import defaultProfilePicture from '@/assets/icons/profile.png';
 
 export default {
   data() {
@@ -63,7 +62,6 @@ export default {
       users: [],
       errorMessage: "",
       successMessage: "",
-      defaultProfilePicture,
     };
   },
   async created() {

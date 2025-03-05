@@ -43,9 +43,9 @@ class UserRepository {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createUser($username, $email, $password, $bio) {
-        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password, bio) VALUES (?, ?, ?, ?)");
-        return $stmt->execute([$username, $email, $password, $bio]);
+    public function createUser($username, $email, $password, $bio, $profilePictureUrl) {
+        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password, bio, profile_picture_url) VALUES (?, ?, ?, ?, ?)");
+        return $stmt->execute([$username, $email, $password, $bio, $profilePictureUrl]);
     }
 
     public function updateUser($userId, $data) {

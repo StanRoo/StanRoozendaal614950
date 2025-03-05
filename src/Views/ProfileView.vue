@@ -4,7 +4,7 @@
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <img
-            :src="previewImage || user.profile_picture_url || defaultAvatar"
+            :src="previewImage || user.profile_picture_url"
             alt="Profile Picture"
             class="rounded-circle profile-picture"
           />
@@ -68,7 +68,6 @@
 
 <script>
 import axios from "axios";
-import defaultAvatar from "@/assets/icons/profile.png";
 
 export default {
   data() {
@@ -81,7 +80,6 @@ export default {
       },
       selectedFile: null,
       previewImage: null,
-      defaultAvatar,
       defaultPictures: [
         "/uploads/Defaults/Bulbasaur_PFP.png",
         "/uploads/Defaults/Charmander_PFP.png",
