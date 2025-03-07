@@ -54,14 +54,20 @@ export default {
       const decoded = this.decodeToken(token);
 
       if (decoded && decoded.exp > Date.now() / 1000) {
-
+        console.log("Token is valid");
       } else {
-        localStorage.removeItem('token');
-        this.$router.push('/');
+        console.log("Token expired or invalid. Logging out...");
+        localStorage.removeItem("token");
+        this.$router.push("/");
       }
     },
     decodeToken(token) {
-      return jwt_decode(token);
+      try {
+        return jwtDecode(token);
+      } catch (error) {
+        console.error("Invalid token:", error);
+        return null;
+      }
     },
     updateProfilePicture(newPicture) {
       this.profilePicture = newPicture;
