@@ -3,139 +3,149 @@
 namespace App\Controllers;
 
 use App\Middleware\AuthMiddleware;
-use App\Repositories\UserRepository;
-use App\Config;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use PDO;
+use App\Services\UserService;
+use App\Utils\Validator;
 
 class UserController {
-    private $userRepository;
+    private $userService;
+    private $authMiddleware;
 
     public function __construct() {
-        $this->userRepository = new UserRepository();
+        $this->userService = new UserService();
+        $this->authMiddleware = new AuthMiddleware();
     }
 
     public function getUser($userId) {
-        $user = $this->userRepository->getUserById($userId);
+        $user = $this->userService->getUserById($userId);
 
         if (!$user) {
-            http_response_code(404);
-            echo json_encode(["error" => "User not found"]);
-            return;
+            Response::error(404, "User not found.");
+            exit();
         }
 
-        echo json_encode(["success" => true, "user" => $user]);
+        echo json_encode([
+            "user" => [
+                "id" => $user->getId(),
+                "username" => $user->getUsername(),
+                "email" => $user->getEmail(),
+                "profile_picture_url" => $user->getProfilePictureUrl(),
+                "bio" => $user->getBio(),
+                "status" => $user->getStatus(),
+                "created_at" => $user->getCreatedAt(),
+                "updated_at" => $user->getUpdatedAt(),
+            ]
+        ]);
     }
 
     public function getAllUsers() {
-        $decodedUser = AuthMiddleware::verifyToken();
+        $decodedUser = $this->authMiddleware->verifyToken();
 
-        error_log("🔍 Decoded JWT User: " . print_r($decodedUser, true));
-    
-        if (!isset($decodedUser['user']->role) || $decodedUser['user']->role !== 'admin') {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
             http_response_code(403);
             echo json_encode(["message" => "Access denied. Admins only."]);
-            exit;
+            return;
         }
-    
-        $users = $this->userRepository->getAllUsers();
+
+        $users = $this->userService->getAllUsers($decodedUser);
         echo json_encode(["users" => $users]);
     }
 
     public function updateUser($userId) {
-        $decodedUser = AuthMiddleware::verifyToken();
-    
-        $rawData = file_get_contents("php://input");
-        $data = json_decode($rawData, true);
-    
+        $decodedUser = $this->authMiddleware->verifyToken();
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
         if (!$data || !is_array($data)) {
             http_response_code(400);
             echo json_encode(["error" => "Invalid request data"]);
             return;
         }
-    
-        if ($decodedUser['user']->role === 'admin') {
-            if (isset($data['role']) || isset($data['status'])) {
-                $this->userRepository->updateUser($userId, $data);
-                echo json_encode(["success" => true, "message" => "User updated successfully"]);
-                return;
-            }
-        } elseif ($decodedUser['user']->id == $userId) {
-            unset($data['role']);
-            unset($data['status']);
-    
-            $this->userRepository->updateUser($userId, $data);
-            echo json_encode(["success" => true, "message" => "Profile updated successfully"]);
-            return;
-        }
-    
-        http_response_code(403);
-        echo json_encode(["error" => "Unauthorized"]);
-    }
 
-    public function updateProfilePicture($userId) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(["error" => "Method not allowed"]);
+        $result = $this->userService->updateUser($userId, $data, $decodedUser);
+
+        if ($result === null) {
+            http_response_code(403);
+            echo json_encode(["error" => "Unauthorized or forbidden"]);
             return;
         }
 
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if (!empty($data['profile_picture_url'])) { 
-            $success = $this->userRepository->updateProfilePicture($userId, $data['profile_picture_url']);
-
-            if ($success) {
-                echo json_encode(["success" => true, "profile_picture_url" => $data['profile_picture_url']]);
-            } else {
-                http_response_code(500);
-                echo json_encode(["error" => "Failed to update profile picture"]);
-            }
-            return;
-        }
-
-        if (isset($_FILES['profile_picture'])) {
-            $targetDir = "uploads/";
-            $fileName = uniqid() . "_" . basename($_FILES["profile_picture"]["name"]);
-            $targetFilePath = $targetDir . $fileName;
-            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
-
-            $allowedTypes = ["jpg", "jpeg", "png"];
-            if (!in_array($fileType, $allowedTypes)) {
-                http_response_code(400);
-                echo json_encode(["error" => "Only JPG, JPEG, and PNG files are allowed"]);
-                return;
-            }
-
-            if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $targetFilePath)) {
-                $success = $this->userRepository->updateProfilePicture($userId, $targetFilePath);
-                if ($success) {
-                    echo json_encode(["success" => true, "profile_picture_url" => $targetFilePath]);
-                } else {
-                    http_response_code(500);
-                    echo json_encode(["error" => "Failed to update profile picture"]);
-                }
-            } else {
-                http_response_code(500);
-                echo json_encode(["error" => "Failed to upload file"]);
-            }
-        } else {
-            http_response_code(400);
-            echo json_encode(["error" => "No file uploaded"]);
-        }
+        echo json_encode(["success" => true, "message" => "User updated successfully"]);
     }
 
     public function deleteUser($id) {
-        $decodedUser = AuthMiddleware::verifyToken();
-    
-        if (!isset($decodedUser['user']->role) || $decodedUser['user']->role !== 'admin') {
+        $decodedUser = $this->authMiddleware->verifyToken();
+
+        $result = $this->userService->deleteUser($id, $decodedUser);
+
+        if ($result === null) {
             http_response_code(403);
             echo json_encode(["message" => "Access denied. Admins only."]);
-            exit;
+            return;
         }
-    
-        $this->userRepository->deleteUser($id);
+
         echo json_encode(["message" => "User deleted successfully!"]);
     }
+
+    public function createAccount() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!$data || !is_array($data)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Invalid request data"]);
+            return;
+        }
+
+        $usernameValidation = Validator::validateUsername($data['username']);
+        if ($usernameValidation !== true) {
+            echo json_encode(["error" => $usernameValidation]);
+            return;
+        }
+
+        $emailValidation = Validator::validateEmail($data['email']);
+        if ($emailValidation !== true) {
+            echo json_encode(["error" => $emailValidation]);
+            return;
+        }
+
+        $passwordValidation = Validator::validatePassword($data['password']);
+        if ($passwordValidation !== true) {
+            echo json_encode(["error" => $passwordValidation]);
+            return;
+        }
+
+        if ($data['password'] !== $data['confirmPassword']) {
+            echo json_encode(["error" => "Passwords do not match!"]);
+            return;
+        }
+
+        $result = $this->userService->createAccount($data);
+
+        if ($result) {
+            echo json_encode(["message" => "Account created successfully!"]);
+        } else {
+            echo json_encode(["error" => "Failed to create account. Please try again."]);
+        }
+    }
+
+    public function updateProfilePicture($userId) {
+        $decodedUser = $this->authMiddleware->verifyToken();
+    
+        $data = json_decode(file_get_contents("php://input"), true);
+    
+        if ($decodedUser->id !== $userId) {
+            http_response_code(403);
+            echo json_encode(["error" => "Unauthorized"]);
+            return;
+        }
+    
+        $file = $_FILES['profile_picture'] ?? null;
+        $result = $this->userService->updateProfilePicture($userId, $data, $file);
+    
+        if ($result) {
+            echo json_encode(["success" => true, "message" => "Profile picture updated successfully"]);
+        } else {
+            echo json_encode(["error" => "Failed to update profile picture"]);
+        }
+    }
+    
 }

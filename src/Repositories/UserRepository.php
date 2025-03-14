@@ -14,16 +14,20 @@ class UserRepository {
         $this->pdo = Config::getPDO();
     }
 
-    public function getAllUsers() {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, role, profile_picture_url, status, bio, last_login, created_at, updated_at FROM users");
+    public function getAllUsers(): array {
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at FROM users");
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        return array_map(fn($user) => new UserModel($user), $users);
     }
 
-    public function getUserById($userId) {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, profile_picture_url, status, bio FROM users WHERE id = ?");
+    public function getUserById($userId): ?UserModel {
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login FROM users WHERE id = ?");
         $stmt->execute([$userId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $userData ? new UserModel($userData) : null;
     }
 
     public function getUserByUsername(string $username): ?UserModel {
@@ -33,38 +37,40 @@ class UserRepository {
         ");
         $stmt->execute([$username]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        
         return $userData ? new UserModel($userData) : null;
     }
 
-    public function getUserByEmail($email) {
+    public function getUserByEmail($email): ?UserModel {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->execute([$email]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $userData ? new UserModel($userData) : null;
     }
 
-    public function createUser($username, $email, $password, $bio, $profilePictureUrl) {
+    public function createUser($username, $email, $password, $bio, $profilePictureUrl): bool {
         $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password, bio, profile_picture_url) VALUES (?, ?, ?, ?, ?)");
         return $stmt->execute([$username, $email, $password, $bio, $profilePictureUrl]);
     }
 
-    public function updateUser($userId, $data) {
+    public function updateUser($userId, $data): bool {
         $fields = [];
         $params = [];
-    
+
         foreach ($data as $key => $value) {
             $fields[] = "$key = :$key";
             $params[$key] = $value;
         }
-    
+
         if (empty($fields)) {
             return false;
         }
-    
+
         $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $params['id'] = $userId;
-    
+
         return $stmt->execute($params);
     }
 
@@ -73,7 +79,7 @@ class UserRepository {
         return $stmt->execute([$profilePictureUrl, $userId]);
     }
 
-    public function deleteUser($userId) {
+    public function deleteUser($userId): bool {
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
         $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
         return $stmt->execute();

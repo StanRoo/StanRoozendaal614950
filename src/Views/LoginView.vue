@@ -80,6 +80,7 @@
           localStorage.setItem("role", response.data.user.role);
           localStorage.setItem("token", response.data.token);
 
+          console.log(localStorage.getItem("user"));
           setTimeout(() => {
             this.$router.push("/home");
           }, 1000);

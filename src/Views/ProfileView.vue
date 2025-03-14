@@ -1,6 +1,7 @@
 <template>
   <div class="container profile-container">
     <div class="profile-grid">
+      <!-- Profile Picture Section -->
       <div class="card shadow-sm">
         <div class="card-body text-center">
           <img
@@ -8,7 +9,6 @@
             alt="Profile Picture"
             class="rounded-circle profile-picture"
           />
-
           <h5 class="mt-3">Choose a Default Profile Picture:</h5>
           <div class="default-pictures">
             <img
@@ -25,7 +25,7 @@
           <input type="file" class="form-control" @change="previewFile" />
 
           <div class="profile-actions">
-            <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>  
+            <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>
           </div>
 
           <div class="profile-feedback">
@@ -34,6 +34,7 @@
         </div>
       </div>
 
+      <!-- Profile Info Section -->
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="user-info">
@@ -55,7 +56,7 @@
             <div class="profile-actions">
               <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
             </div>
-          
+
             <div class="profile-feedback">
               <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
             </div>
@@ -67,17 +68,13 @@
 </template>
 
 <script>
+import { useUserStore } from '@/Store/UserStore';
 import axios from "axios";
 
 export default {
   data() {
     return {
-      user: {
-        username: "",
-        email: "",
-        profile_picture_url: "",
-        bio: "",
-      },
+      user: { ...useUserStore().user },
       selectedFile: null,
       previewImage: null,
       defaultPictures: [
@@ -104,95 +101,107 @@ export default {
       messageInfoClass: "",
     };
   },
+  computed: {
+    profilePicture() {
+      return this.user.profile_picture_url || '/images/profile.png';
+    }
+  },
   async created() {
     this.fetchUserProfile();
   },
   methods: {
     async fetchUserProfile() {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return this.redirectToLogin();
+      const token = localStorage.getItem("token");
+      if (!token) return this.redirectToLogin();
 
+      try {
         const response = await axios.get("/user", {
           headers: { Authorization: `Bearer ${token}` }
         });
-
         this.user = response.data.user;
       } catch (error) {
         this.handleError(error, "messageInfo");
       }
     },
+
     previewFile(event) {
       const file = event.target.files[0];
-      if (file) {
+      if (file && file.type.startsWith("image/")) {
         this.selectedFile = file;
         const reader = new FileReader();
         reader.onload = (e) => (this.previewImage = e.target.result);
         reader.readAsDataURL(file);
       }
     },
+
     selectProfilePicture(pic) {
       this.user.profile_picture_url = pic;
       this.previewImage = pic;
       this.selectedFile = null;
     },
+
     async updateProfilePicture() {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+
+      let payload;
+
+      if (this.selectedFile) {
+        payload = new FormData();
+        payload.append("profile_picture", this.selectedFile);
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        payload = { profile_picture_url: this.user.profile_picture_url };
+        headers["Content-Type"] = "application/json";
+      }
+
       try {
-        const token = localStorage.getItem("token");
-        let payload, headers;
-
-        if (this.selectedFile) {
-          payload = new FormData();
-          payload.append("profile_picture", this.selectedFile);
-          headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
-        } else {
-          payload = { profile_picture_url: this.user.profile_picture_url };
-          headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
-        }
-
         const response = await axios.post("/user/upload-profile-picture", payload, { headers });
-
-        const updatedUser = { ...this.user, profile_picture_url: response.data.profile_picture_url };
-
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-
-        this.$emit("profileUpdated", updatedUser.profile_picture_url);
-
-        this.showMessage("Profile picture updated!", "success", "messagePicture");
+        if (response.status === 200) {
+          const updatedProfilePicture = this.previewImage || this.user.profile_picture_url;
+          useUserStore().updateProfilePicture(updatedProfilePicture);
+          this.$emit("profileUpdated", updatedProfilePicture);
+          this.showMessage("Profile picture updated successfully!", "success", "messagePicture");
+        } else {
+          this.showMessage("Failed to update profile picture", "error", "messagePicture");
+        }
       } catch (error) {
         this.showMessage("Failed to update profile picture", "error", "messagePicture");
       }
     },
-    async updateProfileInfo() {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return this.redirectToLogin();
 
+    async updateProfileInfo() {
+      const token = localStorage.getItem("token");
+      if (!token) return this.redirectToLogin();
+
+      try {
         const response = await axios.put("/user", this.user, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           }
         });
-
         this.showMessage("Profile updated successfully!", "success", "messageInfo");
       } catch (error) {
         this.handleError(error, "messageInfo");
       }
     },
+
     showMessage(message, type, field) {
       this[field] = message;
       this[field + "Class"] = type === "success" ? "alert alert-success" : "alert alert-danger";
       setTimeout(() => (this[field] = ""), 1000);
     },
+
     handleError(error, field) {
       this[field] = error.response?.data?.error || "An error occurred.";
       this[field + "Class"] = "alert alert-danger";
       if (error.response?.status === 401) this.redirectToLogin();
     },
+
     redirectToLogin() {
       console.error("No token found! Redirecting to login.");
-      this.$router.push("/login");
+      this.$router.push("/");
     }
   }
 };
@@ -277,14 +286,5 @@ export default {
   .alert {
     text-align: center;
     font-size: 14px;
-    padding: 8px;
-    border-radius: 5px;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 768px) {
-    .profile-grid {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

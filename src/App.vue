@@ -1,12 +1,18 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { useUserStore } from '@/Store/UserStore'; 
 import NavigationBar from '@/Components/NavigationBar.vue';
 
-const profilePicture = ref(localStorage.getItem("profile_picture") || null);
+const userStore = useUserStore();
+const profilePicture = ref(userStore.user.profile_picture_url || null);
+
+watch(() => userStore.user.profile_picture_url, (newPicture) => {
+  profilePicture.value = newPicture;
+});
 
 function updateProfilePicture(newPicture) {
+  userStore.updateProfilePicture(newPicture);
   profilePicture.value = newPicture;
-  localStorage.setItem("profile_picture", newPicture); 
 }
 </script>
 
@@ -44,11 +50,6 @@ export default {
       this.validateToken(token);
     }
   },
-  data() {
-    return {
-      profilePicture: localStorage.getItem("profile_picture") || null
-    };
-  },
   methods: {
     validateToken(token) {
       const decoded = this.decodeToken(token);
@@ -68,10 +69,6 @@ export default {
         console.error("Invalid token:", error);
         return null;
       }
-    },
-    updateProfilePicture(newPicture) {
-      this.profilePicture = newPicture;
-      localStorage.setItem("profile_picture", newPicture); 
     }
   },
   components: { NavigationBar }

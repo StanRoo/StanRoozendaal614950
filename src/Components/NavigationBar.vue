@@ -1,25 +1,83 @@
 <script setup>
-import CuboCard from '@/assets/icons/CubocardLogo.png'
-import ShoppingCart from '@/assets/icons/shoppingcart.png'
+import { computed, ref, onMounted, watch } from 'vue';
+import { useUserStore } from '@/Store/UserStore';
+import CuboCard from '@/assets/icons/CubocardLogo.png';
+import ShoppingCart from '@/assets/icons/shoppingcart.png';
+
+const userStore = useUserStore();
+const baseUrl = "http://localhost:8000/";
+
+const user = computed(() => userStore.user);
+const isAdmin = computed(() => userStore.user?.role === 'admin');
+const dropdownVisible = ref(false);
+const profilePicture = ref('/images/profile.png'); // Default image
+
+// Function to get profile picture URL correctly
+const getProfilePicture = () => {
+  if (userStore.user?.profile_picture_url) {
+    let picUrl = userStore.user.profile_picture_url.startsWith("http")
+      ? userStore.user.profile_picture_url
+      : `${baseUrl}${userStore.user.profile_picture_url}`; // Fix template literal
+
+    console.log("Updated profile picture URL:", picUrl); // Debugging
+    return picUrl;
+  }
+  return "/images/profile.png";
+};
+
+// Watch for profile picture changes and update it
+watch(() => userStore.user?.profile_picture_url, (newVal) => {
+  console.log("Profile picture changed:", newVal); // Debugging
+  profilePicture.value = getProfilePicture();
+}, { immediate: true });
+
+const toggleDropdown = () => {
+  dropdownVisible.value = !dropdownVisible.value;
+};
+
+const logout = () => {
+  userStore.logout();
+  window.location.reload();
+};
+
+// Event listener for profile updates
+const updateProfilePictureHandler = (newProfilePic) => {
+  console.log("Profile picture updated via event:", newProfilePic); // Debugging
+  userStore.user.profile_picture_url = newProfilePic;
+  profilePicture.value = getProfilePicture(); // Update immediately
+};
+
+onMounted(() => {
+  window.addEventListener('profileUpdated', (event) => {
+    if (event.detail) {
+      updateProfilePictureHandler(event.detail);
+    }
+  });
+
+  console.log("Initial profile picture:", profilePicture.value); // Debugging
+});
 </script>
 
 <template>
   <nav class="navbar sticky-top">
     <div class="nav-left">
-      <router-link to="/home" class="nav-link logo"><img class="logoImage" :src="CuboCard" /></router-link>
+      <router-link to="/home" class="nav-link logo">
+        <img class="logoImage" :src="CuboCard" />
+      </router-link>
       <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
       <router-link to="/cards" class="nav-link" active-class="active">Cards</router-link>
     </div>
 
     <div class="nav-right">
-      <router-link v-if="user?.role === 'admin'" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
+      <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
+
       <router-link to="/shoppingcart" class="icon-link" active-class="active">
         <img class="item" :src="ShoppingCart" />
       </router-link>
 
       <div class="profile-dropdown profile-container nav-link" active-class="active">
         <img
-          :src="profilePicture || user?.profile_picture_url" 
+          :src="profilePicture"
           class="profile-pic"
           alt="Profile Picture"
           @click="toggleDropdown"
@@ -32,29 +90,6 @@ import ShoppingCart from '@/assets/icons/shoppingcart.png'
     </div>
   </nav>
 </template>
-
-<script>
-export default {
-  props: {
-    profilePicture: String,
-  },
-  data() {
-    return {
-      user: JSON.parse(localStorage.getItem('user')),
-      dropdownVisible: false,
-    };
-  },
-  methods: {
-    toggleDropdown() {
-      this.dropdownVisible = !this.dropdownVisible;
-    },
-    logout() {
-      localStorage.clear();
-      window.location.reload();
-    }
-  }
-};
-</script>
 
 <style scoped>
 .navbar {

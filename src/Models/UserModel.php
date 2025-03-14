@@ -29,7 +29,7 @@ class UserModel {
         $this->lastLogin = $data['last_login'] ?? null;
     }
 
-    public function getId(): int {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -45,11 +45,11 @@ class UserModel {
         return $this->password;
     }
 
-    public function getProfilePictureUrl(): string {
+    public function getProfilePictureUrl(): ?string {
         return $this->profile_picture_url;
     }
 
-    public function getBio(): string {
+    public function getBio(): ?string {
         return $this->bio;
     }
 
@@ -61,15 +61,15 @@ class UserModel {
         return $this->role;
     }
 
-    public function getCreatedAt(): string {
+    public function getCreatedAt(): ?string {
         return $this->created_at;
     }
 
-    public function getUpdatedAt(): string {
+    public function getUpdatedAt(): ?string {
         return $this->updated_at;
     }
 
-    public function getLastLogin(): string {
+    public function getLastLogin(): ?string {
         return $this->lastLogin;
     }
 }

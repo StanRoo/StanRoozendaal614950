@@ -1,119 +1,52 @@
 <?php
+
 namespace App\Controllers;
 
-use App\Config;
-use Firebase\JWT\JWT;
-use App\Repositories\UserRepository;
+use App\Middleware\AuthMiddleware;
+use App\Services\AuthService;
+use App\Utils\Response;
 
 class AuthController {
-    private $userRepository;
-    
+    private $authService;
+
     public function __construct() {
-        $this->userRepository = new UserRepository();
+        $this->authService = new AuthService();
     }
 
     public function login() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start(); 
-        }
-
         $data = json_decode(file_get_contents("php://input"), true);
-        error_log("Login attempt received.");
 
         if (empty($data['username']) || empty($data['password'])) {
-            http_response_code(400); 
-            echo json_encode(["error" => "Username and password are required"]);
-            exit();
+            Response::error(400, "Username and password are required.");
+            return;
         }
 
         $username = $data['username'];
         $password = $data['password'];
 
-        $user = $this->userRepository->getUserByUsername($username);
+        $result = $this->authService->login($username, $password);
 
-        if (!$user || !password_verify($password, $user->getPassword())) {
-            error_log("Login failed for username: $username");
-            http_response_code(401);
-            echo json_encode(["error" => "Invalid credentials"]);
-            return;
+        if (isset($result['error'])) {
+            Response::error(401, $result['message']);
+        } else {
+            echo json_encode($result);
         }
-
-        $userData = [
-                "id" => $user->getId(),
-                "username" => $user->getUsername(),
-                'email' => $user->getEmail(),
-                'bio' => $user->getBio(),
-                'status' => $user->getStatus(),
-                "role" => $user->getRole(),
-                'profile_picture_url' => $user->getProfilePictureUrl(),
-                'created_at' => $user->getCreatedAt(),
-                'updated_at' => $user->getUpdatedAt(),
-        ];
-
-        $payload = [
-            'user_id' => $user->getId(),
-            'user' => $userData,
-            "iat" => time(),
-            "exp" => time() + (60 * 60) 
-        ];
-        $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
-
-        echo json_encode([
-            "message" => "Login successful",
-            "token" => $jwt,
-            'user' => $userData
-        ]);
     }
 
     public function register() {
         $data = json_decode(file_get_contents("php://input"), true);
-    
+
         if (!isset($data['username'], $data['email'], $data['password'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "Missing required fields"]);
-            exit;
+            Response::error(400, "Missing required fields");
+            return;
         }
-    
-        $username = $data['username'];
-        $email = $data['email'];
-        $password = $data['password'];
-        $defaultBio = "I love Pokémon :)";
-        $defaultProfilePictureUrl = "/images/profile.png";
-    
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Invalid email format. Please enter a valid email."]);
-            exit;
+
+        $result = $this->authService->register($data);
+
+        if (isset($result['error'])) {
+            Response::error(400, $result['message']);
+        } else {
+            echo json_encode(["message" => "Account created successfully!"]);
         }
-    
-        if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Invalid username. It can only contain letters, numbers, and underscores, and must be 3-20 characters long."]);
-            exit;
-        }
-    
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Invalid password. It must be at least 8 characters and contain an uppercase letter, a lowercase letter, a number, and a special character."]);
-            exit;
-        }
-    
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-    
-        if ($this->userRepository->getUserByEmail($email)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Email is already registered"]);
-            exit;
-        }
-    
-        $newUser = $this->userRepository->createUser($username, $email, $hashedPassword, $defaultBio, $defaultProfilePictureUrl);
-    
-        if (!$newUser) {
-            http_response_code(500);
-            echo json_encode(["message" => "Failed to create account"]);
-            exit;
-        }
-    
-        echo json_encode(["message" => "Account created successfully!"]);
     }
 }

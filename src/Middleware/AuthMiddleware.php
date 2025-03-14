@@ -2,29 +2,54 @@
 
 namespace App\Middleware;
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use App\Config;
+use App\Utils\TokenHelper;
+use App\Utils\Response;
+use App\Repositories\UserRepository;
 
 class AuthMiddleware {
-    public static function verifyToken() {
-        $headers = apache_request_headers();
-        $authHeader = $headers['Authorization'] ?? '';
+    private $userRepository;
 
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            http_response_code(401);
-            echo json_encode(["error" => "Unauthorized: No token provided"]);
-            exit();
+    public function __construct() {
+        $this->userRepository = new UserRepository();
+    }
+
+    public function verifyToken() {
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? '';
+        
+        if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            Response::error(401, "Unauthorized: No token provided.");
+            return null;
+        }
+    
+        $token = $matches[1];
+        $decoded = TokenHelper::decodeToken($token);
+    
+        if (!$decoded || !isset($decoded->user_id)) {
+            Response::error(401, "Unauthorized: Invalid token.");
+            return null;
         }
 
-        $jwt = str_replace('Bearer ', '', $authHeader);
+        $user = $this->userRepository->getUserById($decoded->user_id);
 
-        try {
-            $decoded = JWT::decode($jwt, new Key(Config::JWT_SECRET, 'HS256'));
-            return (array) $decoded; 
-        } catch (\Exception $e) {
-            http_response_code(401);
-            echo json_encode(["error" => "Unauthorized: Invalid token"]);
+        if (!$user) {
+            Response::error(401, "Unauthorized: User not found.");
+            return null;
+        }
+
+        $_SESSION['user'] = [
+            "id" => $user->getId(),
+            "username" => $user->getUsername(),
+            "role" => $user->getRole()
+        ];
+    
+        return $user;
+    }
+    
+
+    public function requireAdmin() {
+        if ($_SESSION['user']['role'] !== 'admin') {
+            Response::error(403, "Forbidden: Admin access required.");
             exit();
         }
     }

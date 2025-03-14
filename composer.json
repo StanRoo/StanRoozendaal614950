@@ -13,7 +13,8 @@
             "App\\Controllers\\": "src/Controllers/",
             "App\\Services\\": "src/Services/",
             "App\\Models\\": "src/Models/",
-            "App\\Repositories\\": "src/Repositories/"
+            "App\\Repositories\\": "src/Repositories/",
+            "App\\Utils\\": "src/Utils/"
         }
     },
     "config": {
