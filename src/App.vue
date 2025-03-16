@@ -23,7 +23,8 @@ onMounted(() => {
   userStore.restoreSession();
 
   watchEffect(() => {
-    if (!userStore.isAuthenticated) {
+    const publicRoutes = ["Login", "ForgotPassword", "CreateAccount"]; 
+    if (!userStore.isAuthenticated && !publicRoutes.includes(route.name)) {
       router.push("/");
     }
   });

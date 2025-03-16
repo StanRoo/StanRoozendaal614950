@@ -54,7 +54,6 @@
 <script>
 import axios from "axios";
 import { useUserStore } from '@/Store/UserStore';
-import { useRouter } from 'vue-router';
 
 export default {
   data() {
