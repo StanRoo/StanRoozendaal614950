@@ -8,4 +8,8 @@ class Response {
         echo json_encode(["message" => $message, "data" => $data]);
         exit();
     }
+
+    public static function error($status, $message) {
+        self::json($status, $message);
+    }
 }

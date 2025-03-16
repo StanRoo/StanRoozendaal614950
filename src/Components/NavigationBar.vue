@@ -1,35 +1,24 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue';
-import { useUserStore } from '@/Store/UserStore';
-import CuboCard from '@/assets/icons/CubocardLogo.png';
-import ShoppingCart from '@/assets/icons/shoppingcart.png';
+import { computed, ref } from "vue";
+import { useUserStore } from "@/Store/UserStore";
+import CuboCard from "@/assets/icons/CubocardLogo.png";
+import ShoppingCart from "@/assets/icons/shoppingcart.png";
 
 const userStore = useUserStore();
 const baseUrl = "http://localhost:8000/";
 
 const user = computed(() => userStore.user);
-const isAdmin = computed(() => userStore.user?.role === 'admin');
+const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisible = ref(false);
-const profilePicture = ref('/images/profile.png'); // Default image
 
-// Function to get profile picture URL correctly
-const getProfilePicture = () => {
+const profilePicture = computed(() => {
   if (userStore.user?.profile_picture_url) {
-    let picUrl = userStore.user.profile_picture_url.startsWith("http")
+    return userStore.user.profile_picture_url.startsWith("http")
       ? userStore.user.profile_picture_url
-      : `${baseUrl}${userStore.user.profile_picture_url}`; // Fix template literal
-
-    console.log("Updated profile picture URL:", picUrl); // Debugging
-    return picUrl;
+      : `${baseUrl}${userStore.user.profile_picture_url}`;
   }
   return "/images/profile.png";
-};
-
-// Watch for profile picture changes and update it
-watch(() => userStore.user?.profile_picture_url, (newVal) => {
-  console.log("Profile picture changed:", newVal); // Debugging
-  profilePicture.value = getProfilePicture();
-}, { immediate: true });
+});
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -37,25 +26,8 @@ const toggleDropdown = () => {
 
 const logout = () => {
   userStore.logout();
-  window.location.reload();
+  window.location.href = "/";
 };
-
-// Event listener for profile updates
-const updateProfilePictureHandler = (newProfilePic) => {
-  console.log("Profile picture updated via event:", newProfilePic); // Debugging
-  userStore.user.profile_picture_url = newProfilePic;
-  profilePicture.value = getProfilePicture(); // Update immediately
-};
-
-onMounted(() => {
-  window.addEventListener('profileUpdated', (event) => {
-    if (event.detail) {
-      updateProfilePictureHandler(event.detail);
-    }
-  });
-
-  console.log("Initial profile picture:", profilePicture.value); // Debugging
-});
 </script>
 
 <template>
@@ -83,7 +55,9 @@ onMounted(() => {
           @click="toggleDropdown"
         />
         <div v-if="dropdownVisible" class="dropdown-menu">
-          <router-link to="/profile" class="dropdown-item" @click="toggleDropdown">My Profile</router-link>
+          <router-link to="/profile" class="dropdown-item" @click="toggleDropdown">
+            My Profile
+          </router-link>
           <button @click="logout" class="dropdown-item">Logout</button>
         </div>
       </div>

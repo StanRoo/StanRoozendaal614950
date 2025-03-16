@@ -1,29 +1,43 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { useUserStore } from '@/Store/UserStore'; 
-import NavigationBar from '@/Components/NavigationBar.vue';
+import { ref, computed, watchEffect, onMounted } from "vue";
+import { useUserStore } from "@/Store/UserStore";
+import { useRoute, useRouter } from "vue-router";
+import NavigationBar from "@/Components/NavigationBar.vue";
 
 const userStore = useUserStore();
-const profilePicture = ref(userStore.user.profile_picture_url || null);
+const route = useRoute();
+const router = useRouter();
 
-watch(() => userStore.user.profile_picture_url, (newPicture) => {
-  profilePicture.value = newPicture;
-});
+const profilePicture = computed(() => userStore.user?.profile_picture_url || "/images/profile.png");
 
 function updateProfilePicture(newPicture) {
   userStore.updateProfilePicture(newPicture);
-  profilePicture.value = newPicture;
 }
+
+const showHeaderAndFooter = computed(() => {
+  const hiddenRoutes = ["Login", "ForgotPassword", "CreateAccount"];
+  return !hiddenRoutes.includes(route.name);
+});
+
+onMounted(() => {
+  userStore.restoreSession();
+
+  watchEffect(() => {
+    if (!userStore.isAuthenticated) {
+      router.push("/");
+    }
+  });
+});
 </script>
 
 <template>
   <div id="app">
     <header v-if="showHeaderAndFooter">
-      <NavigationBar :profilePicture="profilePicture"/>
+      <NavigationBar :profilePicture="profilePicture" />
     </header>
 
     <main>
-      <RouterView @profileUpdated="updateProfilePicture"/>
+      <RouterView @profileUpdated="updateProfilePicture" />
     </main>
 
     <footer v-if="showHeaderAndFooter">
@@ -32,70 +46,27 @@ function updateProfilePicture(newPicture) {
   </div>
 </template>
 
-<script>
-export default {
-  name: "App",
-  computed: {
-    showHeaderAndFooter() {
-      const hiddenRoutes = ["Login", "ForgotPassword", "CreateAccount"];
-      return !hiddenRoutes.includes(this.$route.name);
-    },
-  },
-  created() {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      this.$router.push('/');
-    } else {
-      this.validateToken(token);
-    }
-  },
-  methods: {
-    validateToken(token) {
-      const decoded = this.decodeToken(token);
-
-      if (decoded && decoded.exp > Date.now() / 1000) {
-        console.log("Token is valid");
-      } else {
-        console.log("Token expired or invalid. Logging out...");
-        localStorage.removeItem("token");
-        this.$router.push("/");
-      }
-    },
-    decodeToken(token) {
-      try {
-        return jwtDecode(token);
-      } catch (error) {
-        console.error("Invalid token:", error);
-        return null;
-      }
-    }
-  },
-  components: { NavigationBar }
-};
-</script>
-
 <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
+html, body {
+  height: 100%;
+  margin: 0;
+}
 
-  header {
-    background-color: #f8f9fa;
-  }
+header {
+  background-color: #f8f9fa;
+}
 
-  main {
-    padding-top: 50px; 
-  }
+main {
+  padding-top: 50px; 
+}
 
-  footer {
-    margin-top: auto;
-    background-color: #3366af;
-    width: 100%;
-    height: 40px;
-    text-align: center;
-    color: white;
-    line-height: 2.5;
-  }
+footer {
+  margin-top: auto;
+  background-color: #3366af;
+  width: 100%;
+  height: 40px;
+  text-align: center;
+  color: white;
+  line-height: 2.5;
+}
 </style>

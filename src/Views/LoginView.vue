@@ -1,6 +1,4 @@
 <template>
-  
-
   <div class="login-container d-flex align-items-center justify-content-center vh-100">
     <div class="card p-4 shadow-lg">
       <div class="text-center mb-4">
@@ -54,21 +52,23 @@
 </template>
 
 <script>
-  import axios from "axios";
+import axios from "axios";
+import { useUserStore } from '@/Store/UserStore';
+import { useRouter } from 'vue-router';
 
-  export default {
-    data() {
-      return {
-       username: "",
-       password: "",
-       errorMessage: ""
-     };
-    },
-    methods: {
-     async login() {
+export default {
+  data() {
+    return {
+      username: "",
+      password: "",
+      rememberMe: false,
+      errorMessage: "",
+    };
+  },
+
+  methods: {
+    async login() {
       this.errorMessage = "";
-      this.successMessage = "";
-
       try {
         const response = await axios.post("/login", {
           username: this.username,
@@ -76,14 +76,18 @@
         });
 
         if (response.status === 200 && response.data.token && response.data.user) {
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-          localStorage.setItem("role", response.data.user.role);
-          localStorage.setItem("token", response.data.token);
+          const userStore = useUserStore();
+          userStore.setToken(response.data.token);
+          userStore.setUser(response.data.user);
 
-          console.log(localStorage.getItem("user"));
-          setTimeout(() => {
-            this.$router.push("/home");
-          }, 1000);
+          if (this.rememberMe) {
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+          } else {
+            sessionStorage.setItem("token", response.data.token);
+            sessionStorage.setItem("user", JSON.stringify(response.data.user));
+          }
+          this.$router.push("/home");
         } else {
           this.errorMessage = "Login failed. Invalid response from server.";
         }
@@ -98,38 +102,38 @@
       }
     }
   }
-  };
+};
 </script>
 
 <style scoped>
-  html, body {
-   margin: 0;
-   padding: 0;
-   overflow-x: hidden;
-   width: 100%;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
 
-  .login-container {
-   background-color: #f8f9fa;
-   height: 100vh;
-  }
+.login-container {
+  background-color: #f8f9fa;
+  height: 100vh;
+}
 
-  .card {
-   width: 100%;
-   max-width: 400px;
-   border-radius: 12px;
-   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
+.card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
-  .card h2 {
-   font-weight: bold;
-  }
+.card h2 {
+  font-weight: bold;
+}
 
-  .form-control:focus {
-   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-  }
+.form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
 
-  .error {
-   color: red;
-  }
+.error {
+  color: red;
+}
 </style>
