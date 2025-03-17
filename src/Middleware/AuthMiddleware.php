@@ -3,7 +3,7 @@
 namespace App\Middleware;
 
 use App\Utils\TokenHelper;
-use App\Utils\Response;
+use App\Utils\ErrorHandler;
 use App\Repositories\UserRepository;
 
 class AuthMiddleware {
@@ -14,43 +14,42 @@ class AuthMiddleware {
     }
 
     public function verifyToken() {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? '';
-        
-        if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-            Response::error(401, "Unauthorized: No token provided.");
-            return null;
-        }
-    
-        $token = $matches[1];
-        $decoded = TokenHelper::decodeToken($token);
-    
-        if (!$decoded || !isset($decoded->user_id)) {
-            Response::error(401, "Unauthorized: Invalid token.");
-            return null;
-        }
+        try {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? '';
 
-        $user = $this->userRepository->getUserById($decoded->user_id);
+            if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+                ErrorHandler::respondWithError(401, "Unauthorized: No token provided.");
+            }
 
-        if (!$user) {
-            Response::error(401, "Unauthorized: User not found.");
-            return null;
+            $token = $matches[1];
+            $decoded = TokenHelper::decodeToken($token);
+
+            if (!$decoded || !isset($decoded->user_id)) {
+                ErrorHandler::respondWithError(401, "Unauthorized: Invalid token.");
+            }
+
+            $user = $this->userRepository->getUserById($decoded->user_id);
+
+            if (!$user) {
+                ErrorHandler::respondWithError(401, "Unauthorized: User not found.");
+            }
+
+            $_SESSION['user'] = [
+                "id" => $user->getId(),
+                "username" => $user->getUsername(),
+                "role" => $user->getRole()
+            ];
+
+            return $user;
+        } catch (\Throwable $e) {
+            ErrorHandler::handleException($e);
         }
-
-        $_SESSION['user'] = [
-            "id" => $user->getId(),
-            "username" => $user->getUsername(),
-            "role" => $user->getRole()
-        ];
-    
-        return $user;
     }
-    
 
     public function requireAdmin() {
         if ($_SESSION['user']['role'] !== 'admin') {
-            Response::error(403, "Forbidden: Admin access required.");
-            exit();
+            ErrorHandler::respondWithError(403, "Forbidden: Admin access required.");
         }
     }
 }

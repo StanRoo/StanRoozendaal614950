@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Middleware\AuthMiddleware;
 use App\Services\UserService;
-use App\Utils\Validator;
+use App\Utils\ErrorHandler;
 
 class UserController {
     private $userService;
@@ -19,8 +19,7 @@ class UserController {
         $user = $this->userService->getUserById($userId);
 
         if (!$user) {
-            Response::error(404, "User not found.");
-            exit();
+            ErrorHandler::respondWithError(404, "User not found.");
         }
 
         echo json_encode([
@@ -41,9 +40,7 @@ class UserController {
         $decodedUser = $this->authMiddleware->verifyToken();
 
         if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            http_response_code(403);
-            echo json_encode(["message" => "Access denied. Admins only."]);
-            return;
+            ErrorHandler::respondWithError(403, "Access denied. Admins only.");
         }
 
         $users = $this->userService->getAllUsers($decodedUser);
@@ -56,17 +53,13 @@ class UserController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data || !is_array($data)) {
-            http_response_code(400);
-            echo json_encode(["error" => "Invalid request data"]);
-            return;
+            ErrorHandler::respondWithError(400, "Invalid request data");
         }
 
         $result = $this->userService->updateUser($userId, $data, $decodedUser);
 
         if ($result === null) {
-            http_response_code(403);
-            echo json_encode(["error" => "Unauthorized or forbidden"]);
-            return;
+            ErrorHandler::respondWithError(403, "Unauthorized or forbidden");
         }
 
         echo json_encode(["success" => true, "message" => "User updated successfully"]);
@@ -78,9 +71,7 @@ class UserController {
         $result = $this->userService->deleteUser($id, $decodedUser);
 
         if ($result === null) {
-            http_response_code(403);
-            echo json_encode(["message" => "Access denied. Admins only."]);
-            return;
+            ErrorHandler::respondWithError(403, "Access denied. Admins only.");
         }
 
         echo json_encode(["message" => "User deleted successfully!"]);
@@ -90,32 +81,26 @@ class UserController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data || !is_array($data)) {
-            http_response_code(400);
-            echo json_encode(["error" => "Invalid request data"]);
-            return;
+            ErrorHandler::respondWithError(400, "Invalid request data");
         }
 
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            echo json_encode(["error" => $usernameValidation]);
-            return;
+            ErrorHandler::respondWithError(400, $usernameValidation);
         }
 
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            echo json_encode(["error" => $emailValidation]);
-            return;
+            ErrorHandler::respondWithError(400, $emailValidation);
         }
 
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            echo json_encode(["error" => $passwordValidation]);
-            return;
+            ErrorHandler::respondWithError(400, $passwordValidation);
         }
 
         if ($data['password'] !== $data['confirmPassword']) {
-            echo json_encode(["error" => "Passwords do not match!"]);
-            return;
+            ErrorHandler::respondWithError(400, "Passwords do not match!");
         }
 
         $result = $this->userService->createAccount($data);
@@ -123,7 +108,7 @@ class UserController {
         if ($result) {
             echo json_encode(["message" => "Account created successfully!"]);
         } else {
-            echo json_encode(["error" => "Failed to create account. Please try again."]);
+            ErrorHandler::respondWithError(500, "Failed to create account. Please try again.");
         }
     }
 
@@ -133,9 +118,7 @@ class UserController {
         $data = json_decode(file_get_contents("php://input"), true);
     
         if ($decodedUser->id !== $userId) {
-            http_response_code(403);
-            echo json_encode(["error" => "Unauthorized"]);
-            return;
+            ErrorHandler::respondWithError(403, "Unauthorized");
         }
     
         $file = $_FILES['profile_picture'] ?? null;
@@ -144,8 +127,7 @@ class UserController {
         if ($result) {
             echo json_encode(["success" => true, "message" => "Profile picture updated successfully"]);
         } else {
-            echo json_encode(["error" => "Failed to update profile picture"]);
+            ErrorHandler::respondWithError(500, "Failed to update profile picture");
         }
     }
-    
 }

@@ -70,6 +70,7 @@
 <script>
 import { useUserStore } from '@/Store/UserStore';
 import axios from "axios";
+import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -116,11 +117,11 @@ export default {
 
       try {
         const response = await axios.get("/user", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         this.user = response.data.user;
       } catch (error) {
-        this.handleError(error, "messageInfo");
+        this.messageInfo = handleApiError(error);
       }
     },
 
@@ -163,27 +164,24 @@ export default {
           this.$emit("profileUpdated", updatedProfilePicture);
           this.showMessage("Profile picture updated successfully!", "success", "messagePicture");
         } else {
-          this.showMessage("Failed to update profile picture", "error", "messagePicture");
+          this.showMessage("Unexpected response. Please try again.", "error", "messagePicture");
         }
       } catch (error) {
-        this.showMessage("Failed to update profile picture", "error", "messagePicture");
+        this.showMessage(handleApiError(error), "error", "messagePicture");
       }
     },
 
-    async updateProfileInfo() {
+    async fetchUserProfile() {
       const token = localStorage.getItem("token");
       if (!token) return this.redirectToLogin();
 
       try {
-        const response = await axios.put("/user", this.user, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
+        const response = await axios.get("/user", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        this.showMessage("Profile updated successfully!", "success", "messageInfo");
+        this.user = response.data.user;
       } catch (error) {
-        this.handleError(error, "messageInfo");
+        this.messageInfo = handleApiError(error);
       }
     },
 

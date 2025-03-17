@@ -5,6 +5,7 @@
         <img src="@/assets/icons/CubocardLogo.png" alt="Logo" style="width: 80px;" />
       </div>
       <h2 class="text-center mb-4">Login</h2>
+
       <form @submit.prevent="login">
         <div class="mb-3">
           <label for="username" class="form-label">Username</label>
@@ -36,7 +37,10 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100">Login</button>
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+        <div v-if="errorMessage" class="error-container">
+          <p class="error">{{ errorMessage }}</p>
+        </div>
 
         <div class="text-center mt-3">
           <router-link to="/forgotPassword" class="small text-primary">
@@ -54,6 +58,7 @@
 <script>
 import axios from "axios";
 import { useUserStore } from '@/Store/UserStore';
+import { handleApiError } from '@/Utils/errorHandler';
 
 export default {
   data() {
@@ -86,18 +91,13 @@ export default {
             sessionStorage.setItem("token", response.data.token);
             sessionStorage.setItem("user", JSON.stringify(response.data.user));
           }
+
           this.$router.push("/home");
         } else {
           this.errorMessage = "Login failed. Invalid response from server.";
         }
       } catch (error) {
-        if (error.response) {
-          this.errorMessage = error.response.data?.message || "Login failed.";
-        } else if (error.request) {
-          this.errorMessage = "Network error. Please check your connection.";
-        } else {
-          this.errorMessage = "An unexpected error occurred.";
-        }
+        this.errorMessage = handleApiError(error);
       }
     }
   }
@@ -132,7 +132,13 @@ html, body {
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
+.error-container {
+  text-align: center;
+  margin-top: 10px;
+}
+
 .error {
   color: red;
+  font-size: 0.9rem;
 }
 </style>

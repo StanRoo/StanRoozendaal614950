@@ -55,6 +55,7 @@
 
 <script>
 import axios from "axios";
+import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -77,7 +78,7 @@ export default {
         this.users = response.data.users;
       } catch (error) {
         console.error("Failed to fetch users:", error);
-        this.errorMessage = "Failed to load user data.";
+        this.errorMessage = handleApiError(error);
       }
     },
 
@@ -95,7 +96,7 @@ export default {
         console.log("User updated:", response.data);
       } catch (error) {
         console.error("Error updating user:", error);
-        this.errorMessage = "Failed to update user.";
+        this.errorMessage = handleApiError(error);
       }
     },
 
@@ -112,7 +113,7 @@ export default {
         this.users = this.users.filter(user => user.id !== userId);
       } catch (error) {
         console.error("Error deleting user:", error);
-        this.errorMessage = "Failed to delete user.";
+        this.errorMessage = handleApiError(error);
       }
     },
   },

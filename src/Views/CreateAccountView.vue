@@ -74,6 +74,7 @@
 
 <script>
 import axios from "axios";
+import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -112,11 +113,7 @@ export default {
 
         this.errorMessage = response.data.message || "Failed to create account.";
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.errorMessage = error.response.data.message;
-        } else {
-          this.errorMessage = "An error occurred. Please try again.";
-        }
+        this.errorMessage = handleApiError(error);
       } finally {
         this.isSubmitting = false;
       }

@@ -2,9 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Middleware\AuthMiddleware;
 use App\Services\AuthService;
-use App\Utils\Response;
+use App\Utils\ErrorHandler;
 
 class AuthController {
     private $authService;
@@ -14,39 +13,45 @@ class AuthController {
     }
 
     public function login() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        try {
+            $data = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($data['username']) || empty($data['password'])) {
-            Response::error(400, "Username and password are required.");
-            return;
-        }
+            if (empty($data['username']) || empty($data['password'])) {
+                ErrorHandler::respondWithError(400, "Username and password are required.");
+            }
 
-        $username = $data['username'];
-        $password = $data['password'];
+            $username = $data['username'];
+            $password = $data['password'];
 
-        $result = $this->authService->login($username, $password);
+            $result = $this->authService->login($username, $password);
 
-        if (isset($result['error'])) {
-            Response::error(401, $result['message']);
-        } else {
-            echo json_encode($result);
+            if (isset($result['error'])) {
+                ErrorHandler::respondWithError(401, $result['message']);
+            } else {
+                echo json_encode($result);
+            }
+        } catch (\Throwable $e) {
+            ErrorHandler::handleException($e);
         }
     }
 
     public function register() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        try {
+            $data = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($data['username'], $data['email'], $data['password'])) {
-            Response::error(400, "Missing required fields");
-            return;
-        }
+            if (!isset($data['username'], $data['email'], $data['password'])) {
+                ErrorHandler::respondWithError(400, "Missing required fields");
+            }
 
-        $result = $this->authService->register($data);
+            $result = $this->authService->register($data);
 
-        if (isset($result['error'])) {
-            Response::error(400, $result['message']);
-        } else {
-            echo json_encode(["message" => "Account created successfully!"]);
+            if (isset($result['error'])) {
+                ErrorHandler::respondWithError(400, $result['message']);
+            } else {
+                echo json_encode(["message" => "Account created successfully!"]);
+            }
+        } catch (\Throwable $e) {
+            ErrorHandler::handleException($e);
         }
     }
 }

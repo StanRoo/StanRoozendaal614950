@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
-use App\Utils\Response;
+use App\Utils\ErrorHandler;
 use Firebase\JWT\JWT;
 use App\Config;
 use App\Utils\Validator;
@@ -19,7 +19,7 @@ class AuthService {
         $user = $this->userRepository->getUserByUsername($username);
 
         if (!$user || !password_verify($password, $user->getPassword())) {
-            return ['error' => true, 'message' => 'Invalid credentials'];
+            ErrorHandler::respondWithError(401, 'Invalid credentials');
         }
 
         $userData = [
@@ -52,29 +52,29 @@ class AuthService {
     public function register($data) {
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            return ['error' => true, 'message' => $usernameValidation];
+            ErrorHandler::respondWithError(400, $usernameValidation);
         }
 
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            return ['error' => true, 'message' => $emailValidation];
+            ErrorHandler::respondWithError(400, $emailValidation);
         }
 
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            return ['error' => true, 'message' => $passwordValidation];
+            ErrorHandler::respondWithError(400, $passwordValidation);
         }
 
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
 
         if ($this->userRepository->getUserByEmail($data['email'])) {
-            return ['error' => true, 'message' => 'Email is already registered.'];
+            ErrorHandler::respondWithError(400, 'Email is already registered.');
         }
 
         $newUser = $this->userRepository->createUser($data['username'], $data['email'], $hashedPassword, "I love Pokémon :)", "/images/profile.png");
 
         if (!$newUser) {
-            return ['error' => true, 'message' => 'Failed to create account.'];
+            ErrorHandler::respondWithError(500, 'Failed to create account.');
         }
 
         return ['error' => false, 'message' => 'Account created successfully!'];
