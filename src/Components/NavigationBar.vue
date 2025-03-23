@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useUserStore } from "@/Store/UserStore";
 import CuboCard from "@/assets/icons/CubocardLogo.png";
-import ShoppingCart from "@/assets/icons/shoppingcart.png";
+import CoinIcon from "@/assets/icons/coin.png";
 
 const userStore = useUserStore();
 const baseUrl = "http://localhost:8000/";
@@ -10,6 +10,7 @@ const baseUrl = "http://localhost:8000/";
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisible = ref(false);
+const userBalance = computed(() => userStore.user?.balance ?? 0);
 
 const profilePicture = computed(() => {
   const url = userStore.user?.profile_picture_url;
@@ -49,8 +50,9 @@ const logout = () => {
     <div class="nav-right">
       <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
 
-      <router-link to="/shoppingcart" class="icon-link" active-class="active">
-        <img class="item" :src="ShoppingCart" />
+      <router-link to="/balance" class="user-balance">
+        <img :src="CoinIcon" class="currency-icon" alt="Coin Icon" />
+        <span>{{ userBalance.toFixed(2) }}</span>
       </router-link>
 
       <div class="profile-dropdown profile-container nav-link" active-class="active">
@@ -216,5 +218,25 @@ const logout = () => {
   padding: 0;
   max-width: 35px;
   height: 30px;
+}
+
+.user-balance {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: white;
+  text-decoration: none;
+}
+
+.currency-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 </style>

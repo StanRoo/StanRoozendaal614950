@@ -4,7 +4,7 @@
 <template>
   <header>
     <div class="wrapper">
-      <h1>Shopping Cart</h1>
+      <h1>Balance</h1>
     </div>
   </header>
 </template>

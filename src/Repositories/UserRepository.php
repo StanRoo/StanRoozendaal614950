@@ -14,7 +14,7 @@ class UserRepository {
     }
 
     public function getAllUsers(): array {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at FROM users");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, balance FROM users");
         $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -22,7 +22,7 @@ class UserRepository {
     }
 
     public function getUserById($userId): ?UserModel {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login, balance FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -31,7 +31,7 @@ class UserRepository {
 
     public function getUserByUsername(string $username): ?UserModel {
         $stmt = $this->pdo->prepare("
-            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at
+            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at, balance
             FROM users WHERE username = ?
         ");
         $stmt->execute([$username]);
@@ -42,7 +42,7 @@ class UserRepository {
 
     public function getUserByEmail($email): ?UserModel {
         $stmt = $this->pdo->prepare("
-            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at
+            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at, balance
             FROM users WHERE email = ?
         ");
         $stmt->execute([$email]);
@@ -51,12 +51,12 @@ class UserRepository {
         return $userData ? new UserModel($userData) : null;
     }
 
-    public function createUser($username, $email, $password, $bio, $profilePictureUrl): ?UserModel {
+    public function createUser($username, $email, $password, $bio, $profilePictureUrl, $balance): ?UserModel {
         $stmt = $this->pdo->prepare("
-            INSERT INTO users (username, email, password, bio, profile_picture_url) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, email, password, bio, profile_picture_url, balance) 
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        if ($stmt->execute([$username, $email, $password, $bio, $profilePictureUrl])) {
+        if ($stmt->execute([$username, $email, $password, $bio, $profilePictureUrl, $balance])) {
             return $this->getUserById($this->pdo->lastInsertId());
         }
         return null;

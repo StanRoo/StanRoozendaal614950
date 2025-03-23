@@ -80,13 +80,15 @@ class UserService {
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $defaultBio = "I love Pokémon!";
         $defaultProfilePictureUrl = "/images/profile.png";
+        $defaultBalance = 1000.20;
 
         return $this->userRepository->createUser(
             $data['username'],
             $data['email'],
             $hashedPassword,
             $defaultBio,
-            $defaultProfilePictureUrl
+            $defaultProfilePictureUrl,
+            $defaultBalance
         );
     }
 }

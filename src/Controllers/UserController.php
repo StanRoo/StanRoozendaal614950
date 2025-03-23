@@ -33,6 +33,7 @@ class UserController {
                 "status" => $user->getStatus(),
                 "created_at" => $user->getCreatedAt(),
                 "updated_at" => $user->getUpdatedAt(),
+                "balance" => $user->getBalance(),
             ]
         ]);
     }

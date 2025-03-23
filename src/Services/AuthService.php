@@ -30,7 +30,8 @@ class AuthService {
             "profile_picture_url" => $user->getProfilePictureUrl(),
             'bio' => $user->getBio(),
             "created_at" => $user->getCreatedAt(),
-            "updated_at" => $user->getUpdatedAt()
+            "updated_at" => $user->getUpdatedAt(),
+            "balance" => $user->getBalance(),
         ];
 
         $payload = [
