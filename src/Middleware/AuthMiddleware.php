@@ -5,14 +5,17 @@ namespace App\Middleware;
 use App\Utils\TokenHelper;
 use App\Utils\ErrorHandler;
 use App\Repositories\UserRepository;
+use App\Config;
 
 class AuthMiddleware {
     private $userRepository;
 
-    public function __construct() {
-        $this->userRepository = new UserRepository();
+    // Constructor to receive the UserRepository via Dependency Injection
+    public function __construct(UserRepository $userRepository) {
+        $this->userRepository = $userRepository;
     }
 
+    // Verify the token and return the authenticated user
     public function verifyToken() {
         try {
             $headers = getallheaders();
@@ -35,6 +38,7 @@ class AuthMiddleware {
                 ErrorHandler::respondWithError(401, "Unauthorized: User not found.");
             }
 
+            // Set user details to session (optional, can be managed elsewhere if preferred)
             $_SESSION['user'] = [
                 "id" => $user->getId(),
                 "username" => $user->getUsername(),
@@ -47,8 +51,10 @@ class AuthMiddleware {
         }
     }
 
+    // Ensure that the user has an admin role
     public function requireAdmin() {
-        if ($_SESSION['user']['role'] !== 'admin') {
+        // Check if the user is logged in and has an admin role
+        if (empty($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
             ErrorHandler::respondWithError(403, "Forbidden: Admin access required.");
         }
     }

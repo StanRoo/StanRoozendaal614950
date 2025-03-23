@@ -14,6 +14,7 @@ class UserModel {
     public ?string $created_at;
     public ?string $updated_at;
     public ?string $lastLogin;
+    public float $balance;
 
     public function __construct(array $data) {
         $this->id = $data['id'] ?? null;
@@ -27,6 +28,11 @@ class UserModel {
         $this->created_at = $data['created_at'] ?? null;
         $this->updated_at = $data['updated_at'] ?? null;
         $this->lastLogin = $data['last_login'] ?? null;
+        $this->balance = $data['balance'] ?? 1000.00;
+    }
+
+    public function toArray() {
+        return get_object_vars($this);
     }
 
     public function getId(): ?int {
@@ -71,5 +77,9 @@ class UserModel {
 
     public function getLastLogin(): ?string {
         return $this->lastLogin;
+    }
+
+    public function getBalance(): float {
+        return $this->balance;
     }
 }

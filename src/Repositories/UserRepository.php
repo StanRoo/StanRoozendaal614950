@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Config;
 use App\Models\UserModel;
 use PDO;
 use PDOException;
@@ -10,8 +9,8 @@ use PDOException;
 class UserRepository {
     private $pdo;
 
-    public function __construct() {
-        $this->pdo = Config::getPDO();
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
     }
 
     public function getAllUsers(): array {
@@ -42,16 +41,25 @@ class UserRepository {
     }
 
     public function getUserByEmail($email): ?UserModel {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt = $this->pdo->prepare("
+            SELECT id, username, email, password, profile_picture_url, bio, status, role, last_login, created_at, updated_at
+            FROM users WHERE email = ?
+        ");
         $stmt->execute([$email]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return $userData ? new UserModel($userData) : null;
     }
 
-    public function createUser($username, $email, $password, $bio, $profilePictureUrl): bool {
-        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password, bio, profile_picture_url) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$username, $email, $password, $bio, $profilePictureUrl]);
+    public function createUser($username, $email, $password, $bio, $profilePictureUrl): ?UserModel {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users (username, email, password, bio, profile_picture_url) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        if ($stmt->execute([$username, $email, $password, $bio, $profilePictureUrl])) {
+            return $this->getUserById($this->pdo->lastInsertId());
+        }
+        return null;
     }
 
     public function updateUser($userId, $data): bool {

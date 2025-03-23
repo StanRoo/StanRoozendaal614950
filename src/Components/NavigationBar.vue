@@ -12,12 +12,18 @@ const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisible = ref(false);
 
 const profilePicture = computed(() => {
-  if (userStore.user?.profile_picture_url) {
-    return userStore.user.profile_picture_url.startsWith("http")
-      ? userStore.user.profile_picture_url
-      : `${baseUrl}${userStore.user.profile_picture_url}`;
+  const url = userStore.user?.profile_picture_url;
+  if (!url) return "/images/profile.png";
+
+  if (url.startsWith("data:image")) {
+    return url;
   }
-  return "/images/profile.png";
+
+  if (!url.startsWith("http")) {
+    return `${baseUrl}${url}`;
+  }
+
+  return url;
 });
 
 const toggleDropdown = () => {

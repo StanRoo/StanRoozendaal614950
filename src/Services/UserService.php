@@ -4,29 +4,24 @@ namespace App\Services;
 
 use App\Repositories\UserRepository;
 use App\Middleware\AuthMiddleware;
+use App\Utils\Validator;
+use App\Utils\ErrorHandler;
 
 class UserService {
     private $userRepository;
 
-    public function __construct() {
-        $this->userRepository = new UserRepository();
+    public function __construct(UserRepository $userRepository) {
+        $this->userRepository = $userRepository;
     }
 
     public function getUserById($userId) {
-        $user = $this->userRepository->getUserById($userId);
-        
-        if (!$user) {
-            return null;
-        }
-
-        return $user;
+        return $this->userRepository->getUserById($userId) ?? null;
     }
 
     public function getAllUsers($decodedUser) {
         if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            return null;
+            return ErrorHandler::respondWithError(403, "Unauthorized: Admin access required.");
         }
-
         return $this->userRepository->getAllUsers();
     }
 
@@ -45,9 +40,8 @@ class UserService {
 
     public function deleteUser($userId, $decodedUser) {
         if ($decodedUser->role !== 'admin') {
-            return null;
+            return ErrorHandler::respondWithError(403, "Unauthorized: Admin access required.");
         }
-
         return $this->userRepository->deleteUser($userId);
     }
 
@@ -71,11 +65,18 @@ class UserService {
                 return $this->userRepository->updateProfilePicture($userId, $targetFilePath);
             }
         }
-
         return null;
     }
 
     public function createAccount($data) {
+        $usernameValidation = Validator::validateUsername($data['username']);
+        $emailValidation = Validator::validateEmail($data['email']);
+        $passwordValidation = Validator::validatePassword($data['password']);
+
+        if ($usernameValidation !== true) return ErrorHandler::respondWithError(400, $usernameValidation);
+        if ($emailValidation !== true) return ErrorHandler::respondWithError(400, $emailValidation);
+        if ($passwordValidation !== true) return ErrorHandler::respondWithError(400, $passwordValidation);
+
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $defaultBio = "I love Pokémon!";
         $defaultProfilePictureUrl = "/images/profile.png";

@@ -8,8 +8,8 @@ use App\Utils\ErrorHandler;
 class AuthController {
     private $authService;
 
-    public function __construct() {
-        $this->authService = new AuthService();
+    public function __construct(AuthService $authService) {
+        $this->authService = $authService;
     }
 
     public function login() {

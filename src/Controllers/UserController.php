@@ -5,14 +5,15 @@ namespace App\Controllers;
 use App\Middleware\AuthMiddleware;
 use App\Services\UserService;
 use App\Utils\ErrorHandler;
+use App\Utils\Validator;
 
 class UserController {
     private $userService;
     private $authMiddleware;
 
-    public function __construct() {
-        $this->userService = new UserService();
-        $this->authMiddleware = new AuthMiddleware();
+    public function __construct(UserService $userService, AuthMiddleware $authMiddleware) {
+        $this->userService = $userService;
+        $this->authMiddleware = $authMiddleware;
     }
 
     public function getUser($userId) {

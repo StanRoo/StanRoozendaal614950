@@ -144,7 +144,6 @@ export default {
     async updateProfilePicture() {
       const token = localStorage.getItem("token");
       const headers = { Authorization: `Bearer ${token}` };
-
       let payload;
 
       if (this.selectedFile) {
@@ -171,17 +170,21 @@ export default {
       }
     },
 
-    async fetchUserProfile() {
+    async updateProfileInfo() {
       const token = localStorage.getItem("token");
       if (!token) return this.redirectToLogin();
-
+ 
       try {
-        const response = await axios.get("/user", {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await axios.put("/user", this.user, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
         });
-        this.user = response.data.user;
+ 
+        this.showMessage("Profile updated successfully!", "success", "messageInfo");
       } catch (error) {
-        this.messageInfo = handleApiError(error);
+        this.handleError(error, "messageInfo");
       }
     },
 

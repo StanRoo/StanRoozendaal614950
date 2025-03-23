@@ -11,8 +11,8 @@ use App\Utils\Validator;
 class AuthService {
     private $userRepository;
 
-    public function __construct() {
-        $this->userRepository = new UserRepository();
+    public function __construct(UserRepository $userRepository) {
+        $this->userRepository = $userRepository;
     }
 
     public function login($username, $password) {
