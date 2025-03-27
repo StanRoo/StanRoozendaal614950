@@ -4,7 +4,7 @@
 <template>
 <header>
   <div class="wrapper">
-    <h1>List of all the cards</h1>
+    <h1>Marketplace</h1>
   </div>
 </header>
 

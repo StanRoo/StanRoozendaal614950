@@ -1,7 +1,9 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
 import HomeView from '@/Views/HomeView.vue'
-import CardsView from '@/Views/CardsView.vue'
+import InventoryView from '@/Views/InventoryView.vue'
+import MarketplaceView from '@/Views/MarketplaceView.vue'
+import CreateCardView from '@/Views/CreateCardView.vue'
 import BalanceView from '@/Views/BalanceView.vue'
 import ProfileView from '@/Views/ProfileView.vue'
 import LoginView from '@/Views/LoginView.vue'
@@ -14,7 +16,9 @@ const routes = [
   { path: '/forgotPassword', name: 'ForgotPassword', component: ForgotPasswordView },
   { path: '/createAccount', name: 'CreateAccount', component: CreateAccountView },
   { path: '/home', name: 'Home', component: HomeView },
-  { path: '/cards', name: 'Cards', component: CardsView },
+  { path: '/inventory', name: 'Inventory', component: InventoryView },
+  { path: '/marketplace', name: 'Marketplace', component: MarketplaceView },
+  { path: '/createCard', name: 'CreateCard', component: CreateCardView },
   { path: '/balance', name: 'Balance', component: BalanceView },
   { path: '/profile', name: 'Profile', component: ProfileView },
   {

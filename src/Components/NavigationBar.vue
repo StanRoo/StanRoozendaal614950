@@ -44,16 +44,18 @@ const logout = () => {
         <img class="logoImage" :src="CuboCard" />
       </router-link>
       <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
-      <router-link to="/cards" class="nav-link" active-class="active">Cards</router-link>
+      <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
+      <router-link to="/marketplace" class="nav-link" active-class="active">Marketplace</router-link>
+      <router-link to="/createCard" class="nav-link" active-class="active">Create Card</router-link>
     </div>
 
     <div class="nav-right">
-      <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
-
       <router-link to="/balance" class="user-balance">
         <img :src="CoinIcon" class="currency-icon" alt="Coin Icon" />
         <span>{{ userBalance.toFixed(2) }}</span>
       </router-link>
+
+      <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
 
       <div class="profile-dropdown profile-container nav-link" active-class="active">
         <img
