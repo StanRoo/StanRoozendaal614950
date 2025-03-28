@@ -113,7 +113,7 @@
               <div v-if="applyGlow" class="glow-effect"></div>
               <div v-if="applyShine" class="shine-effect"></div>
 
-              <h4 :class="{ 'text-effect': selectedRarity === 'legendary' }" :style="{ color: typeColors.text }">
+              <h4 :style="{ fontFamily: rarityFonts.fontFamily, fontSize: rarityFonts.fontSize, fontWeight: rarityFonts.fontWeight, color: typeColors.text }">
                 {{ cardName }}
               </h4>
 
@@ -243,6 +243,9 @@
       position: "relative",
       border: `4px solid ${typeColors.value.border}`,
       borderRadius: "15px",
+      fontFamily: '"Kanit", sans-serif',
+      fontWeight: "500",
+      fontStyle: "normal",
       transition: "all 0.3s ease-in-out",
       boxShadow: `0 0 20px 5px ${typeColors.value.glow}`,
       overflow: "hidden",
@@ -250,7 +253,7 @@
 
     const rarityStyles = {
       common: {
-        background: `white`,
+        background: "white",
       },
       rare: {
         background: `linear-gradient(to bottom, ${typeColors.value.glow} 0%, rgba(255,255,255,0.1) 100%)`,
@@ -299,6 +302,15 @@ const shimmerStyle = computed(() => {
   return {
     '--shimmer-background': shimmerGradient.value, // Dynamically apply shimmer gradient
   };
+});
+
+const rarityFonts = computed(() => {
+  return {
+    common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.4rem", fontWeight: "400" },
+    rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.4rem", fontWeight: "500" },
+    epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.6rem", fontWeight: "600" },
+    legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.8rem", fontWeight: "bold" }
+  }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.2rem", fontWeight: "500" };
 });
   </script>
   
@@ -558,12 +570,6 @@ p {
   100% {
     background-position: 200% 0; /* End the shimmer off-screen to the right */
   }
-}
-
-.text-effect {
-  font-family: "Kanit", sans-serif;
-  font-weight: 500;
-  font-style: normal;
 }
 
 .legendary-card {
