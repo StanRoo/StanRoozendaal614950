@@ -4,15 +4,12 @@
       <h1>Create Your Own Card</h1>
       <p>Choose a rarity, fill in the details, and preview your card!</p>
     </header>
-    <!-- Step 2: Customize Your Card -->
     <section class="card-customization">
       <div class="customization-wrapper">
-        <!-- Left Side: Card Details -->
         <div class="left-side">
           <div class="details-card">
             <h3>Card Details</h3>
 
-            <!-- Rarity Selection -->
             <label>Rarity</label>
             <div class="rarity-options">
               <div
@@ -49,7 +46,6 @@
               </div>
             </div>
 
-            <!-- Other Card Details -->
             <label>Card Name</label>
             <input v-model="cardName" type="text" placeholder="Enter card name" class="input-small" />
 
@@ -79,7 +75,6 @@
             <label>Card Image</label>
             <input type="file" @change="uploadImage" class="input-small" />
 
-            <!-- Card Stats -->
             <label>Card Stats</label>
             <div class="stats-input">
               <div class="stat-input">
@@ -102,11 +97,9 @@
           </div>
         </div>
 
-        <!-- Middle: Card Preview -->
         <div class="middle">
           <div class="preview-card">
             <h3>Card Preview</h3>
-            <!-- Card Preview -->
             <div class="preview-card-content" :style="cardStyle" :class="{ 'legendary-card': selectedRarity === 'legendary' }">
               <!-- Effects -->
               <div v-if="selectedRarity === 'legendary' || selectedRarity === 'epic'" class="shimmer-overlay" :style="shimmerStyle"></div>
@@ -135,7 +128,6 @@
           </div>
         </div>
 
-        <!-- Right Side: Materials and Next Button -->
         <div class="right-side">
           <div class="material-card">
             <h3>Materials Required</h3>
@@ -159,12 +151,12 @@
   
   const userStore = useUserStore();
   const baseUrl = "http://localhost:8000/";
-  const step = ref(1); // Step tracker
+  const step = ref(1);
   const selectedRarity = ref('common');
   const cardName = ref('');
   const cardType = ref('Normal');
   const cardImage = ref(null);
-  const hp = ref(10); // Added HP stat
+  const hp = ref(10);
   const attack = ref(10);
   const defense = ref(10);
   const speed = ref(10);
@@ -172,20 +164,8 @@
   const applyShine = ref(false);
 
   const selectRarity = (rarity) => {
-  selectedRarity.value = rarity;
-
-  // Reset effects
-  applyGlow.value = false;
-  applyShine.value = false;
-
-  if (rarity === 'rare') {
-    /*applyGlow.value = true;*/
-  } else if (rarity === 'epic') {
-
-  } else if (rarity === 'legendary') {
-    /*applyGlow.value = true;*/
-  }
-};
+    selectedRarity.value = rarity;
+  };
   
   const userMaterials = computed(() => userStore.user?.materials ?? {});
   const requiredMaterials = computed(() => [
@@ -208,7 +188,6 @@
   
   const finalizeCreation = () => {
     if (enoughMaterials.value) {
-      // Proceed with creating the card logic
       console.log("Card Created!", {
         cardName: cardName.value,
         cardType: cardType.value,
@@ -218,17 +197,8 @@
         speed: speed.value,
       });
   
-      // Deduct materials from user (to be handled in backend)
       userStore.deductMaterials(requiredMaterials.value);
-  
-      // Redirect to another page (e.g., user's card collection)
-      // router.push('/cards');
     }
-  };
-  
-  const goToMarketplace = () => {
-    // Redirect to the marketplace page
-    router.push('/marketplace');
   };
   
   const uploadImage = (event) => {
@@ -259,10 +229,10 @@
         background: `linear-gradient(to bottom, ${typeColors.value.glow} 0%, rgba(255,255,255,0.1) 100%)`,
       },
       epic: {
-        
+        // Epic styles
       },
       legendary: { 
-        
+        // Legendary styles
       },
     };
 
@@ -300,7 +270,7 @@ const shimmerGradient = computed(() => {
 
 const shimmerStyle = computed(() => {
   return {
-    '--shimmer-background': shimmerGradient.value, // Dynamically apply shimmer gradient
+    '--shimmer-background': shimmerGradient.value,
   };
 });
 
@@ -338,7 +308,7 @@ p {
 
 .card-customization {
   display: flex;
-  gap: 30px; /* Increased gap between columns */
+  gap: 30px;
 }
 
 .customization-wrapper {
@@ -354,27 +324,27 @@ p {
 .middle {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Added gap between elements within each column */
-  height: 100%; /* Ensure each column takes the full height */
+  gap: 20px;
+  height: 100%;
 }
 
 .left-side {
-  width: 35%; /* Left side takes up 30% of the space */
-  padding-right: 20px; /* Added padding to right side of left column */
+  width: 35%;
+  padding-right: 20px;
 }
 
 .middle {
-  width: 40%; /* Middle (Preview) takes up 40% */
+  width: 40%;
   display: flex;
-  justify-content: flex-start; /* Align content at the top of the column */
+  justify-content: flex-start;
   align-items: center;
-  padding-left: 20px; /* Added padding to left side of middle column */
-  padding-right: 20px; /* Added padding to right side of middle column */
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .right-side {
-  width: 30%; /* Right side (Materials and Next) takes up 30% */
-  padding-left: 20px; /* Added padding to left side of right column */
+  width: 30%;
+  padding-left: 20px;
 }
 
 .material-card,
@@ -384,7 +354,7 @@ p {
   padding: 20px;
   border-radius: 10px;
   border: 1px solid #ccc;
-  margin-bottom: 20px; /* Added margin between the blocks */
+  margin-bottom: 20px;
 }
 
 .material-card h3,
@@ -411,7 +381,7 @@ p {
 
 .details-card .stats-input {
   display: flex;
-  gap: 15px; /* Increased gap between stat inputs */
+  gap: 15px;
 }
 
 .stat-input {
@@ -499,35 +469,32 @@ p {
 }
 
 .rarity-option label {
-  font-size: 0.9rem; /* Smaller font size */
+  font-size: 0.9rem;
   cursor: pointer;
   font-weight: bold;
 }
 
-/* Styling for different rarity labels (applied whether clicked or not) */
 .rarity-option.common label {
-  color: gray; /* Common rarity label is gray */
+  color: gray;
 }
 
 .rarity-option.rare label {
-  color: blue; /* Rare rarity label is green */
+  color: rgb(0, 60, 255);
 }
 
 .rarity-option.epic label {
-  color: purple; /* Epic rarity label is purple */
+  color: rgb(173, 0, 173);
 }
 
 .rarity-option.legendary label {
-  color: gold; /* Legendary rarity label is gold */
+  color: gold;
 }
 
-/* Optional: Add custom styles for the selected label */
 .rarity-option.selected label {
   font-weight: bold;
   text-decoration: underline;
 }
 
-/* === ⭐ Glow Effect (Rare, Legendary) === */
 .glow-effect {
   position: absolute;
   top: 50%;
@@ -555,7 +522,7 @@ p {
   width: 100%;
   height: 100%;
   background: var(--shimmer-background);
-  background-size: 200% 100%; /* Make sure background is large enough for animation */
+  background-size: 200% 100%;
   animation: shimmer 2.5s infinite linear !important;
   border-radius: 10px;
   pointer-events: none;
@@ -565,29 +532,29 @@ p {
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0; /* Start the shimmer off-screen */
+    background-position: -200% 0;
   }
   100% {
-    background-position: 200% 0; /* End the shimmer off-screen to the right */
+    background-position: 200% 0;
   }
 }
 
 .legendary-card {
-  animation: borderAnimation 2s infinite !important;  /* Add the border animation here */
+  animation: borderAnimation 2s infinite !important;
 }
 
 @keyframes borderAnimation {
   0% {
-    border-color: #ffd700; /* Gold color for Legendary */
-    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6); /* Gold glow */
+    border-color: #ffd700;
+    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
   }
   50% {
-    border-color: #ff6347; /* Change to a different color (like orange) */
-    box-shadow: 0 0 20px 10px rgba(255, 99, 71, 0.6); /* Orange glow */
+    border-color: #ff6347;
+    box-shadow: 0 0 20px 10px rgba(255, 99, 71, 0.6);
   }
   100% {
-    border-color: #ffd700; /* Back to Gold */
-    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6); /* Gold glow */
+    border-color: #ffd700;
+    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
   }
 }
 </style>
