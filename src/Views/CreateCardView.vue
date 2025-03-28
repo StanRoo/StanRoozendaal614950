@@ -6,6 +6,7 @@
     </header>
     <section class="card-customization">
       <div class="customization-wrapper">
+        <!--Left Side-->
         <div class="left-side">
           <div class="details-card">
             <h3>Card Details</h3>
@@ -79,24 +80,25 @@
             <div class="stats-input">
               <div class="stat-input">
                 <label>HP</label>
-                <input v-model="hp" type="number" placeholder="HP" class="input-small" />
+                <input v-model="hp" type="number" placeholder="HP" class="input-small" min="1" max="350" @input="validateStat('hp')" />
               </div>
               <div class="stat-input">
                 <label>Attack</label>
-                <input v-model="attack" type="number" placeholder="Attack" class="input-small" />
+                <input v-model="attack" type="number" placeholder="Attack" class="input-small" min="1" max="350" @input="validateStat('attack')" />
               </div>
               <div class="stat-input">
                 <label>Defense</label>
-                <input v-model="defense" type="number" placeholder="Defense" class="input-small" />
+                <input v-model="defense" type="number" placeholder="Defense" class="input-small" min="1" max="350" @input="validateStat('defense')" />
               </div>
               <div class="stat-input">
                 <label>Speed</label>
-                <input v-model="speed" type="number" placeholder="Speed" class="input-small" />
+                <input v-model="speed" type="number" placeholder="Speed" class="input-small" min="1" max="350" @input="validateStat('speed')" />
               </div>
             </div>
           </div>
         </div>
 
+        <!--Middle-->
         <div class="middle">
           <div class="preview-card">
             <h3>Card Preview</h3>
@@ -116,11 +118,11 @@
 
               <img :src="cardImage" alt="Card Image" class="card-image" />
 
-              <p :class="{ 'text-effect': selectedRarity === 'legendary' }" :style="{ color: typeColors.text }">
+              <p :style="{ color: typeColors.text }">
                 Attack: {{ attack }} | Defense: {{ defense }} | Speed: {{ speed }}
               </p>
 
-              <p :class="{ 'text-effect': selectedRarity === 'legendary' }" :style="{ color: typeColors.text }">
+              <p :style="{ color: typeColors.text }">
                 Type: {{ cardType }}
               </p>
 
@@ -128,16 +130,27 @@
           </div>
         </div>
 
+        <!--Right Side-->
         <div class="right-side">
-          <div class="material-card">
-            <h3>Materials Required</h3>
-            <div class="materials-list">
-              <div class="material-info" v-for="(material, index) in requiredMaterials" :key="index">
-                <p>{{ material.name }}: {{ userMaterials[material.name] }} / {{ material.amount }}</p>
-              </div>
-            </div>
+          <div class="info-card">
+            <h3>Important Information</h3>
+              <ul>
+                <li>Please enter an official Pokémon name.</li>
+                <li>Please use images of size <strong>300x300</strong> for optimum quality.</li>
+                <li>Please refrain from using offensive language. This will result in a ban.</li>
+                <li>Please refrain from offensive images. This will result in a ban.</li>
+              </ul>
           </div>
-          <button @click="nextStep" :disabled="!cardName || !cardType || !cardImage" class="next-button">Next</button>
+
+          <div class="balance-card">
+            <h3>Balance</h3>
+            <p>Available: {{ userBalance }} CuboCoins</p>
+            <p>Cost: {{ requiredBalance }} CuboCoins</p>
+            <p v-if="!enoughBalance" style="color: red;">Not enough balance!</p>
+          </div>
+          <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="next-button">
+            Next
+          </button>
         </div>
       </div>
     </section>
@@ -151,60 +164,46 @@
   
   const userStore = useUserStore();
   const baseUrl = "http://localhost:8000/";
-  const step = ref(1);
   const selectedRarity = ref('common');
-  const cardName = ref('');
+  const cardName = ref('[name]');
   const cardType = ref('Normal');
   const cardImage = ref(null);
   const hp = ref(10);
   const attack = ref(10);
   const defense = ref(10);
   const speed = ref(10);
-  const applyGlow = ref(false);
-  const applyShine = ref(false);
+  const userBalance = computed(() => userStore.user?.balance ?? 0);
+
+  const rarityCosts = {
+    common: 200, 
+    rare: 500, 
+    epic: 1000, 
+    legendary: 2000
+  };
+
+  const requiredBalance = computed(() => rarityCosts[selectedRarity.value]);
+  const enoughBalance = computed(() => userBalance.value >= requiredBalance.value);
 
   const selectRarity = (rarity) => {
     selectedRarity.value = rarity;
-  };
-  
-  const userMaterials = computed(() => userStore.user?.materials ?? {});
-  const requiredMaterials = computed(() => [
-    { name: 'Gym Scroll', amount: 10 },
-    { name: 'Great Ink', amount: 5 },
-    { name: 'Master Ink', amount: 2 },
-  ]);
-  
-  const enoughMaterials = computed(() => {
-    return requiredMaterials.value.every(
-      (material) => userMaterials.value[material.name] >= material.amount
-    );
-  });
-  
-  const nextStep = () => {
-    if (step.value < 4) {
-      step.value++;
-    }
-  };
-  
-  const finalizeCreation = () => {
-    if (enoughMaterials.value) {
-      console.log("Card Created!", {
-        cardName: cardName.value,
-        cardType: cardType.value,
-        hp: hp.value,
-        attack: attack.value,
-        defense: defense.value,
-        speed: speed.value,
-      });
-  
-      userStore.deductMaterials(requiredMaterials.value);
-    }
   };
   
   const uploadImage = (event) => {
     const file = event.target.files[0];
     if (file) {
       cardImage.value = URL.createObjectURL(file);
+    }
+  };
+
+  const validateStat = (stat) => {
+    if (stat === 'hp') {
+      hp.value = Math.max(1, Math.min(350, hp.value));
+    } else if (stat === 'attack') {
+      attack.value = Math.max(1, Math.min(350, attack.value));
+    } else if (stat === 'defense') {
+      defense.value = Math.max(1, Math.min(350, defense.value));
+    } else if (stat === 'speed') {
+      speed.value = Math.max(1, Math.min(350, speed.value));
     }
   };
   
@@ -239,52 +238,72 @@
     return { ...baseStyle, ...rarityStyles[selectedRarity.value] };
   });
 
-const typeColors = computed(() => {
-  const colors = {
-    Normal: { border: "#A8A77A", text: "#6D6D4E", glow: "rgba(168, 167, 122, 0.5)" },
-    Fire: { border: "#EE8130", text: "#9C531F", glow: "rgba(238, 129, 48, 0.5)" },
-    Water: { border: "#6390F0", text: "#445E9C", glow: "rgba(99, 144, 240, 0.5)" },
-    Electric: { border: "#F7D02C", text: "#A1871F", glow: "rgba(247, 208, 44, 0.5)" },
-    Grass: { border: "#7AC74C", text: "#4E8234", glow: "rgba(122, 199, 76, 0.5)" },
-    Ice: { border: "#96D9D6", text: "#638D8D", glow: "rgba(150, 217, 214, 0.5)" },
-    Fighting: { border: "#C22E28", text: "#7D1F1A", glow: "rgba(194, 46, 40, 0.5)" },
-    Poison: { border: "#A33EA1", text: "#682A68", glow: "rgba(163, 62, 161, 0.5)" },
-    Ground: { border: "#E2BF65", text: "#927D44", glow: "rgba(226, 191, 101, 0.5)" },
-    Flying: { border: "#A98FF3", text: "#6D5E9C", glow: "rgba(169, 143, 243, 0.5)" },
-    Psychic: { border: "#F95587", text: "#A13959", glow: "rgba(249, 85, 135, 0.5)" },
-    Bug: { border: "#A6B91A", text: "#6D7815", glow: "rgba(166, 185, 26, 0.5)" },
-    Rock: { border: "#B6A136", text: "#786824", glow: "rgba(182, 161, 54, 0.5)" },
-    Ghost: { border: "#735797", text: "#493963", glow: "rgba(115, 87, 151, 0.5)" },
-    Dragon: { border: "#6F35FC", text: "#4C00B0", glow: "rgba(111, 53, 252, 0.5)" },
-    Dark: { border: "#705746", text: "#49392F", glow: "rgba(112, 87, 70, 0.5)" },
-    Steel: { border: "#B7B7CE", text: "#787887", glow: "rgba(183, 183, 206, 0.5)" },
-    Fairy: { border: "#D685AD", text: "#9B6470", glow: "rgba(214, 133, 173, 0.5)" },
-    Stellar: { border: "#FFD700", text: "#B8860B", glow: "rgba(255, 215, 0, 0.5)" },
+  const typeColors = computed(() => {
+    const colors = {
+      Normal: { border: "#A8A77A", text: "#6D6D4E", glow: "rgba(168, 167, 122, 0.5)" },
+      Fire: { border: "#EE8130", text: "#9C531F", glow: "rgba(238, 129, 48, 0.5)" },
+      Water: { border: "#6390F0", text: "#445E9C", glow: "rgba(99, 144, 240, 0.5)" },
+      Electric: { border: "#F7D02C", text: "#A1871F", glow: "rgba(247, 208, 44, 0.5)" },
+      Grass: { border: "#7AC74C", text: "#4E8234", glow: "rgba(122, 199, 76, 0.5)" },
+      Ice: { border: "#96D9D6", text: "#638D8D", glow: "rgba(150, 217, 214, 0.5)" },
+      Fighting: { border: "#C22E28", text: "#7D1F1A", glow: "rgba(194, 46, 40, 0.5)" },
+      Poison: { border: "#A33EA1", text: "#682A68", glow: "rgba(163, 62, 161, 0.5)" },
+      Ground: { border: "#E2BF65", text: "#927D44", glow: "rgba(226, 191, 101, 0.5)" },
+      Flying: { border: "#7A98D1", text: "#4B6A9A", glow: "rgba(122, 152, 209, 0.5)" },
+      Psychic: { border: "#F95587", text: "#A13959", glow: "rgba(249, 85, 135, 0.5)" },
+      Bug: { border: "#A6B91A", text: "#6D7815", glow: "rgba(166, 185, 26, 0.5)" },
+      Rock: { border: "#B6A136", text: "#786824", glow: "rgba(182, 161, 54, 0.5)" },
+      Ghost: { border: "#735797", text: "#493963", glow: "rgba(115, 87, 151, 0.5)" },
+      Dragon: { border: "#6F35FC", text: "#4C00B0", glow: "rgba(111, 53, 252, 0.5)" },
+      Dark: { border: "#705746", text: "#49392F", glow: "rgba(112, 87, 70, 0.5)" },
+      Steel: { border: "#B7B7CE", text: "#787887", glow: "rgba(183, 183, 206, 0.5)" },
+      Fairy: { border: "#D685AD", text: "#9B6470", glow: "rgba(214, 133, 173, 0.5)" },
+      Stellar: { border: "#1E90FF", text: "#1C64C4", glow: "rgba(30, 144, 255, 0.5)" },
+    };
+    return colors[cardType.value] || colors["Normal"];
+  });
+
+  const shimmerGradient = computed(() => {
+    return `linear-gradient(110deg, ${typeColors.value.glow} 20%, ${typeColors.value.border} 40%, ${typeColors.value.glow} 80%)`;
+  });
+
+  const shimmerStyle = computed(() => {
+    return {
+      '--shimmer-background': shimmerGradient.value,
+    };
+  });
+
+  const rarityFonts = computed(() => {
+    return {
+      common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.4rem", fontWeight: "400" },
+      rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.4rem", fontWeight: "500" },
+      epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.6rem", fontWeight: "600" },
+      legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.8rem", fontWeight: "bold" }
+    }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.2rem", fontWeight: "500" };
+  });
+
+  const createCard = () => {
+    //finalizeCreation;
   };
-  return colors[cardType.value] || colors["Normal"];
-});
-
-const shimmerGradient = computed(() => {
-  return `linear-gradient(110deg, ${typeColors.value.glow} 20%, ${typeColors.value.border} 40%, ${typeColors.value.glow} 80%)`;
-});
-
-const shimmerStyle = computed(() => {
-  return {
-    '--shimmer-background': shimmerGradient.value,
-  };
-});
-
-const rarityFonts = computed(() => {
-  return {
-    common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.4rem", fontWeight: "400" },
-    rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.4rem", fontWeight: "500" },
-    epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.6rem", fontWeight: "600" },
-    legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.8rem", fontWeight: "bold" }
-  }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.2rem", fontWeight: "500" };
-});
-  </script>
   
-  <style scoped>
+  const finalizeCreation = () => {
+    if (enoughBalance.value) {
+      console.log("Card Created!", {
+        cardName: cardName.value,
+        cardType: cardType.value,
+        hp: hp.value,
+        attack: attack.value,
+        defense: defense.value,
+        speed: speed.value,
+      });
+      userStore.updateBalance(userBalance.value - requiredBalance.value);
+    } else {
+      console.log("Not enough balance to create this card.");
+    }
+  };
+</script>
+  
+<style scoped>
 .create-card-container {
   padding: 40px;
   display: flex;
@@ -302,7 +321,7 @@ h1 {
 }
 
 p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #666;
 }
 
@@ -328,26 +347,7 @@ p {
   height: 100%;
 }
 
-.left-side {
-  width: 35%;
-  padding-right: 20px;
-}
-
-.middle {
-  width: 40%;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-.right-side {
-  width: 30%;
-  padding-left: 20px;
-}
-
-.material-card,
+.balance-card,
 .details-card,
 .preview-card {
   width: 100%;
@@ -357,16 +357,17 @@ p {
   margin-bottom: 20px;
 }
 
-.material-card h3,
+.balance-card h3,
 .details-card h3,
 .preview-card h3 {
   font-size: 1.2rem;
   margin-bottom: 15px;
 }
 
-.materials-list {
-  display: flex;
-  flex-direction: column;
+/*Left Side*/
+.left-side {
+  width: 35%;
+  padding-right: 20px;
 }
 
 .details-card input,
@@ -384,72 +385,17 @@ p {
   gap: 15px;
 }
 
-.stat-input {
-  flex: 1;
-}
-
 .details-card label {
   display: block;
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-.preview-card-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 330px;
-  height: 500px;
-  padding: 15px;
-  text-align: center;
-  box-sizing: border-box;
-  margin: 0 auto;
-  border-radius: 10px;
-  overflow: hidden;
+.stat-input {
+  flex: 1;
 }
 
-.preview-card-content img {
-  width: 260px;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-
-.preview-card-content h4,
-.preview-card-content p {
-  margin: 5px 0;
-}
-
-.hp-display {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-style: italic;
-  font-size: 1.2rem;
-  font-weight: bold;
-  padding: 5px 10px;
-  border-radius: 5px;
-}
-
-.next-button {
-  padding: 15px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  margin-top: 20px;
-}
-
-.next-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
+/* Rarity Option Styling*/
 .rarity-options {
   display: flex;
   flex-direction: column;
@@ -495,6 +441,57 @@ p {
   text-decoration: underline;
 }
 
+/*Middle*/
+.middle {
+  width: 40%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.preview-card-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 330px;
+  height: 500px;
+  padding: 15px;
+  text-align: center;
+  box-sizing: border-box;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.preview-card-content img {
+  width: 260px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.preview-card-content h4,
+.preview-card-content p {
+  margin: 5px 0;
+}
+
+.hp-display {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-style: italic;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+/* Card effects*/
 .glow-effect {
   position: absolute;
   top: 50%;
@@ -556,5 +553,85 @@ p {
     border-color: #ffd700;
     box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
   }
+}
+
+/*Right Side*/
+.right-side {
+  width: 30%;
+  padding-left: 20px;
+}
+
+.info-card {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  text-align: left;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.info-card h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.info-card ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.info-card li {
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.info-card strong {
+  color: #222;
+}
+
+.balance-card {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+}
+
+.balance-card h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.balance-card p {
+  margin: 5px 0;
+}
+
+.balance-card p:nth-child(3) {
+  font-weight: bold;
+  color: #333;
+}
+
+.balance-card p:nth-child(4) {
+  font-weight: bold;
+  color: red;
+}
+
+.next-button {
+  padding: 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+.next-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 </style>
