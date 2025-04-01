@@ -75,6 +75,7 @@
 
             <label>Card Image</label>
             <input type="file" @change="uploadImage" class="input-small" />
+            <p v-if="fileError" style="color: red;">{{ fileError }}</p>
 
             <label>Card Stats</label>
             <div class="stats-input">
@@ -135,10 +136,11 @@
           <div class="info-card">
             <h3>Important Information</h3>
               <ul>
-                <li>Please enter an official Pokémon name.</li>
-                <li>Please use images of size <strong>300x300</strong> for optimum quality.</li>
+                <li>Please enter an Pokémon themed name.</li>
+                <li>Please use an image of an actual Pokémon. (custom images are allowed as long as it contains a Pokémon)</li>
+                <li>Images might be getting cropped, to refrain your custom image of being cropped please use size <strong>260x300</strong> or smaller.</li>
                 <li>Please refrain from using offensive language. This will result in a ban.</li>
-                <li>Please refrain from offensive images. This will result in a ban.</li>
+                <li>Please refrain from using offensive images. This will result in a ban.</li>
               </ul>
           </div>
 
@@ -168,6 +170,7 @@
   const cardName = ref('[name]');
   const cardType = ref('Normal');
   const cardImage = ref(null);
+  const fileError = ref(null);
   const hp = ref(10);
   const attack = ref(10);
   const defense = ref(10);
@@ -190,8 +193,40 @@
   
   const uploadImage = (event) => {
     const file = event.target.files[0];
+  
+    if (!file) {
+      return;
+    }
+
+    /*
+    if (!file.type.startsWith('image/')) {
+      fileError.value = 'Please select an image file.';
+      return;
+    }
+
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      fileError.value = 'The file is too large. Please select an image smaller than 2MB.';
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      if (img.width > 300 || img.height > 350) {
+        fileError.value = 'Please upload an image with dimensions 300x300.';
+      } else {
+        fileError.value = null;
+        cardImage.value = URL.createObjectURL(file);
+      }
+    };*/
+
     if (file) {
-      cardImage.value = URL.createObjectURL(file);
+      if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        cardImage.value = URL.createObjectURL(file);
+      } else {
+        fileError.value = 'Please upload an image of type .png, .jpeg or .jpg';
+        event.target.value = '';
+      }
     }
   };
 
@@ -305,10 +340,10 @@
   
 <style scoped>
 .create-card-container {
-  padding: 40px;
+  padding: 2vw;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 2vw;
 }
 
 header {
@@ -316,25 +351,25 @@ header {
 }
 
 h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 2vw;
+  margin-bottom: 1vw;
 }
 
 p {
-  font-size: 1rem;
+  font-size: 0.85vw;
   color: #666;
 }
 
 .card-customization {
   display: flex;
-  gap: 30px;
+  gap: 1.5vw;
 }
 
 .customization-wrapper {
   display: flex;
   width: 100%;
   justify-content: space-between;
-  max-width: 1200px;
+  max-width: 70vw;
   margin: 0 auto;
 }
 
@@ -343,7 +378,7 @@ p {
 .middle {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1vw;
   height: 100%;
 }
 
@@ -351,44 +386,45 @@ p {
 .details-card,
 .preview-card {
   width: 100%;
-  padding: 20px;
+  padding: 1vw;
   border-radius: 10px;
   border: 1px solid #ccc;
-  margin-bottom: 20px;
+  margin-bottom: 1vw;
 }
 
 .balance-card h3,
 .details-card h3,
 .preview-card h3 {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
+  font-size: 1vw;
+  margin-bottom: 1.5vw;
 }
 
 /*Left Side*/
 .left-side {
   width: 35%;
-  padding-right: 20px;
+  padding-right: 1vw;
 }
 
 .details-card input,
 .details-card select {
   width: 100%;
-  padding: 8px;
-  margin: 10px 0;
-  font-size: 1rem;
+  padding: 0.4vw;
+  margin: 0.5vw 0;
+  font-size: 0.85vw;
   border: 1px solid #ddd;
   border-radius: 5px;
 }
 
 .details-card .stats-input {
   display: flex;
-  gap: 15px;
+  gap: 1vw;
 }
 
 .details-card label {
   display: block;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-top: 0.4vw;
+  margin-bottom: 0.1vw;
 }
 
 .stat-input {
@@ -399,7 +435,7 @@ p {
 .rarity-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.2vw;
   align-items: flex-start;
 }
 
@@ -410,12 +446,11 @@ p {
 }
 
 .rarity-option input[type="radio"] {
-  margin-right: 10px;
-  vertical-align: middle;
+  margin-right: 0.5vw;
 }
 
 .rarity-option label {
-  font-size: 0.9rem;
+  font-size: 0.8vw;
   cursor: pointer;
   font-weight: bold;
 }
@@ -447,8 +482,8 @@ p {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 1.5vw;
+  padding-right: 1.5vw;
 }
 
 .preview-card-content {
@@ -457,9 +492,9 @@ p {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 330px;
-  height: 500px;
-  padding: 15px;
+  width: 18vw;
+  height: 27vw;
+  padding: 0.8vw;
   text-align: center;
   box-sizing: border-box;
   margin: 0 auto;
@@ -468,11 +503,11 @@ p {
 }
 
 .preview-card-content img {
-  width: 260px;
-  height: 300px;
+  width: 14vw;
+  height: 15vw;
   object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 0.5vw;
 }
 
 .preview-card-content h4,
@@ -482,10 +517,10 @@ p {
 
 .hp-display {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0.6vw;
+  right: 0.6vw;
   font-style: italic;
-  font-size: 1.2rem;
+  font-size: 1vw;
   font-weight: bold;
   padding: 5px 10px;
   border-radius: 5px;
@@ -558,7 +593,7 @@ p {
 /*Right Side*/
 .right-side {
   width: 30%;
-  padding-left: 20px;
+  padding-left: 1vw;
 }
 
 .info-card {
@@ -567,12 +602,12 @@ p {
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   text-align: left;
-  font-size: 14px;
-  margin-bottom: 20px;
+  font-size: 0.8vw;
+  margin-bottom: 0.6vw;
 }
 
 .info-card h3 {
-  font-size: 16px;
+  font-size: 1vw;
   font-weight: bold;
   margin-bottom: 10px;
   color: #333;
@@ -596,12 +631,12 @@ p {
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 16px;
+  font-size: 0.8vw;
 }
 
 .balance-card h3 {
   margin-bottom: 10px;
-  font-size: 18px;
+  font-size: 1vw;
   font-weight: bold;
 }
 
@@ -621,17 +656,110 @@ p {
 
 .next-button {
   padding: 15px;
-  background-color: #4CAF50;
+  background-color: #4992f8;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1.2rem;
-  margin-top: 20px;
+  font-size: 0.9vw;
+  margin-top: 15px;
 }
 
 .next-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .customization-wrapper {
+    flex-direction: column;
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .left-side, .middle {
+    width: 48%;
+    margin-bottom: 1.5vw;
+  }
+
+  .right-side {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 2vw;
+    width: 100%;
+    margin-top: 1.5vw;
+  }
+
+  .info-card, .balance-card {
+    width: 48%;
+  }
+
+  .next-button {
+    width: 100%;
+    margin-top: 2vw;
+  }
+}
+
+@media (max-width: 600px) {
+  .create-card-container {
+    padding: 4vw;
+  }
+
+  header h1 {
+    font-size: 4vw;
+  }
+
+  .card-customization {
+    flex-direction: column;
+  }
+
+  .customization-wrapper {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .left-side, 
+  .middle, 
+  .right-side {
+    width: 100%;
+    margin-bottom: 1vw;
+  }
+
+  .next-button {
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .details-card label, 
+  .details-card input, 
+  .details-card select {
+    font-size: 1rem;
+  }
+
+  .preview-card-content {
+    width: 80vw;
+    height: auto;
+  }
+
+  .preview-card-content img {
+    width: 70vw;
+    height: auto;
+  }
+
+  .info-card, 
+  .balance-card {
+    width: 100%;
+  }
+
+  .rarity-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .rarity-option {
+    flex: 1 0 48%;
+    margin-bottom: 1vw;
+  }
 }
 </style>
