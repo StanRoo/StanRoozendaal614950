@@ -51,6 +51,13 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    updateBalance(newBalance) {
+      if (this.user) {
+        this.user.balance = newBalance;
+        localStorage.setItem('user', JSON.stringify(this.user));
+      }
+    },
+
     restoreSession() {
       const storedUser = localStorage.getItem('user');
       const storedToken = localStorage.getItem('token');

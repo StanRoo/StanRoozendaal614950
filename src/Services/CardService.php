@@ -6,6 +6,7 @@ use App\Repositories\CardRepository;
 use App\Models\CardModel;
 use App\Utils\Validator;
 use App\Utils\ErrorHandler;
+use App\Utils\ImageUploader;
 use Exception;
 
 class CardService {
@@ -23,22 +24,33 @@ class CardService {
         return $this->cardRepository->getAll($userId);
     }
 
-    public function createCard($userId, $name, $rarity, $price, $image_url) {
-        if (Validator::validateCardName($name) !== true) {
-            return ErrorHandler::respondWithError(400, "Invalid card name.");
+    public function createCard($userId, $data, $image) {
+        if (empty($data['name']) || empty($data['type']) || empty($data['rarity'])) {
+            return ['success' => false, 'message' => 'Missing required fields'];
         }
-        if (Validator::validatePrice($price) !== true) {
-            return ErrorHandler::respondWithError(400, "Invalid price.");
+        $imagePath = ImageUploader::upload($image, 'cards');
+        if (!$imagePath) {
+            return ['success' => false, 'message' => 'Failed to upload image'];
         }
-
-        $card = new CardModel([
+        $cardData = [
             'user_id' => $userId,
-            'name' => $name,
-            'rarity' => $rarity,
-            'price' => $price,
-            'image_url' => $image_url
-        ]);
-        return $this->cardRepository->create($card);
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'hp' => $data['hp'] ?? 0,
+            'attack' => $data['attack'] ?? 0,
+            'defense' => $data['defense'] ?? 0,
+            'speed' => $data['speed'] ?? 0,
+            'image_url' => $imagePath,
+            'rarity' => $data['rarity'],
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        $createdCard = $this->cardRepository->create($cardData);
+        if ($createdCard) {
+            $cardModel = new CardModel($cardData);
+            return ['success' => true, 'message' => 'Card created successfully', 'data' => $cardModel->toArray()];
+        }
+        return ['success' => false, 'message' => 'Failed to create card'];
     }
 
     public function deleteCard($userId, $cardId) {

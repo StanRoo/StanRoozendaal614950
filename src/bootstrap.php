@@ -49,5 +49,5 @@ $authMiddleware = new AuthMiddleware($userRepository);
 // Initialize controllers with the corresponding services
 $authController = new AuthController($authService, $errorHandler);
 $userController = new UserController($userService, $authMiddleware, $errorHandler);
-$cardController = new CardController($cardService, $authMiddleware, $errorHandler);
+$cardController = new CardController($cardService, $userService, $authMiddleware, $errorHandler);
 $transactionController = new TransactionController($transactionService, $userService, $cardService, $authMiddleware, $errorHandler);

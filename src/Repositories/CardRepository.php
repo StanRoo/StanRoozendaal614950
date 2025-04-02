@@ -29,10 +29,15 @@ class CardRepository {
         return array_map(fn($row) => new CardModel($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    public function create(CardModel $card): ?CardModel {
-        $stmt = $this->pdo->prepare("INSERT INTO cards (user_id, name, rarity, price, image_url) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$card->user_id, $card->name, $card->rarity, $card->price, $card->image_url]);
-        return $this->getCardById($this->pdo->lastInsertId());
+    public function create($cardData) {
+        $query = "INSERT INTO cards (user_id, name, type, hp, attack, defense, speed, image_url, rarity, created_at, updated_at)
+                  VALUES (:user_id, :name, :type, :hp, :attack, :defense, :speed, :image_url, :rarity, :created_at, :updated_at)";
+        $stmt = $this->pdo->prepare($query);
+        if ($stmt->execute($cardData)) {
+            $cardData['id'] = $this->pdo->lastInsertId();
+            return new CardModel($cardData);
+        }
+        return false;
     }
 
     public function delete($id): bool {

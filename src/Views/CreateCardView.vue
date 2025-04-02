@@ -106,8 +106,6 @@
             <div class="preview-card-content" :style="cardStyle" :class="{ 'legendary-card': selectedRarity === 'legendary' }">
               <!-- Effects -->
               <div v-if="selectedRarity === 'legendary' || selectedRarity === 'epic'" class="shimmer-overlay" :style="shimmerStyle"></div>
-              <div v-if="applyGlow" class="glow-effect"></div>
-              <div v-if="applyShine" class="shine-effect"></div>
 
               <h4 :style="{ fontFamily: rarityFonts.fontFamily, fontSize: rarityFonts.fontSize, fontWeight: rarityFonts.fontWeight, color: typeColors.text }">
                 {{ cardName }}
@@ -148,11 +146,12 @@
             <h3>Balance</h3>
             <p>Available: {{ userBalance }} CuboCoins</p>
             <p>Cost: {{ requiredBalance }} CuboCoins</p>
-            <p v-if="!enoughBalance" style="color: red;">Not enough balance!</p>
+            <p v-if="!enoughBalance" style="color: red;">Insufficient CuboCoins.</p>
           </div>
-          <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="next-button">
-            Next
+          <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="create-button">
+            Create Card
           </button>
+          <p v-if="successMessage" class="succesmessage">{{ successMessage }}</p>
         </div>
       </div>
     </section>
@@ -161,11 +160,11 @@
 
   
   <script setup>
+  import axios from "axios";
   import { ref, computed } from 'vue';
   import { useUserStore } from '@/Store/UserStore';
   
   const userStore = useUserStore();
-  const baseUrl = "http://localhost:8000/";
   const selectedRarity = ref('common');
   const cardName = ref('[name]');
   const cardType = ref('Normal');
@@ -176,6 +175,7 @@
   const defense = ref(10);
   const speed = ref(10);
   const userBalance = computed(() => userStore.user?.balance ?? 0);
+  const successMessage = ref("");
 
   const rarityCosts = {
     common: 200, 
@@ -199,26 +199,21 @@
     }
 
     /*
-    if (!file.type.startsWith('image/')) {
-      fileError.value = 'Please select an image file.';
-      return;
-    }
-
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) {
-      fileError.value = 'The file is too large. Please select an image smaller than 2MB.';
-      return;
-    }
-
     const img = new Image();
     img.onload = () => {
       if (img.width > 300 || img.height > 350) {
-        fileError.value = 'Please upload an image with dimensions 300x300.';
+        fileError.value = 'Please upload an image with dimensions 300x350.';
       } else {
         fileError.value = null;
         cardImage.value = URL.createObjectURL(file);
       }
     };*/
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      fileError.value = 'The file is too large. Please select an image smaller than 5MB.';
+      return;
+    }
 
     if (file) {
       if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg') {
@@ -317,23 +312,42 @@
     }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.2rem", fontWeight: "500" };
   });
 
-  const createCard = () => {
-    //finalizeCreation;
-  };
-  
-  const finalizeCreation = () => {
-    if (enoughBalance.value) {
-      console.log("Card Created!", {
-        cardName: cardName.value,
-        cardType: cardType.value,
-        hp: hp.value,
-        attack: attack.value,
-        defense: defense.value,
-        speed: speed.value,
+  const createCard = async () => {
+    if (!enoughBalance.value) {
+      return;
+    }
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = fileInput.files[0];
+
+    const formData = new FormData();
+    formData.append('user_id', userStore.user.id);
+    formData.append('name', cardName.value);
+    formData.append('type', cardType.value);
+    formData.append('hp', hp.value);
+    formData.append('attack', attack.value);
+    formData.append('defense', defense.value);
+    formData.append('speed', speed.value);
+    formData.append('image', file); 
+    formData.append('rarity', selectedRarity.value);
+    formData.append('required_balance', requiredBalance.value);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return this.redirectToLogin();
+      const response = await axios.post('/cards', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
       });
-      userStore.updateBalance(userBalance.value - requiredBalance.value);
-    } else {
-      console.log("Not enough balance to create this card.");
+      const newBalance = userBalance.value - requiredBalance.value;
+      userStore.updateBalance(newBalance);
+      successMessage.value = "Card created successfully! It was added to your inventory.";
+      setTimeout(() => {
+            successMessage.value = "";
+        }, 5000);
+    } catch (error) {
+      console.error('Error creating card:', error.response?.data || error);
     }
   };
 </script>
@@ -654,7 +668,7 @@ p {
   color: red;
 }
 
-.next-button {
+.create-button {
   padding: 15px;
   background-color: #4992f8;
   color: white;
@@ -665,9 +679,14 @@ p {
   margin-top: 15px;
 }
 
-.next-button:disabled {
+.create-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.succesmessage {
+  text-align: center;
+  color: green;
 }
 
 @media (max-width: 1024px) {
@@ -695,7 +714,7 @@ p {
     width: 48%;
   }
 
-  .next-button {
+  .create-button {
     width: 100%;
     margin-top: 2vw;
   }

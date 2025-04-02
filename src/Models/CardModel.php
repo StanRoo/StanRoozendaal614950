@@ -6,23 +6,46 @@ class CardModel {
     public $id;
     public $user_id;
     public $name;
-    public $rarity;
-    public $price;
+    public $type;
+    public $hp;
+    public $attack;
+    public $defense;
+    public $speed;
     public $image_url;
+    public $rarity;
     public $created_at;
+    public $updated_at;
 
     public function __construct($data) {
         $this->id = $data['id'] ?? null;
         $this->user_id = $data['user_id'];
         $this->name = $data['name'];
-        $this->rarity = $data['rarity'];
-        $this->price = $data['price'];
+        $this->type = $data['type'];
+        $this->hp = $data['hp'];
+        $this->attack = $data['attack'];
+        $this->defense = $data['defense'];
+        $this->speed = $data['speed'];
         $this->image_url = $data['image_url'];
-        $this->created_at = $data['created_at'] ?? null;
+        $this->rarity = $data['rarity'];
+        $this->created_at = $data['created_at'] ?? date("Y-m-d H:i:s");
+        $this->updated_at = $data['updated_at'] ?? date("Y-m-d H:i:s");
     }
 
-    public function toArray() {
-        return get_object_vars($this);
+    public function toArray(): array {
+        return [
+            "id" => $this->id,
+            "user_id" => $this->user_id,
+            "name" => $this->name,
+            "type" => $this->type,
+            "hp" => $this->hp,
+            "attack" => $this->attack,
+            "defense" => $this->defense,
+            "speed" => $this->speed,
+            "image_url" => $this->image_url,
+            "rarity" => $this->rarity,
+            "created_at" => $this->created_at,
+            "updated_at" => $this->updated_at
+        ];
     }
 
     public function getId(): ?int {
@@ -37,19 +60,39 @@ class CardModel {
         return $this->name;
     }
 
-    public function getRarity(): string {
-        return $this->rarity;
+    public function getType(): string {
+        return $this->type;
     }
 
-    public function getPrice(): float {
-        return $this->price;
+    public function getHp(): int {
+        return $this->hp;
+    }
+
+    public function getAttack(): int {
+        return $this->attack;
+    }
+
+    public function getDefense(): int {
+        return $this->defense;
+    }
+
+    public function getSpeed(): int {
+        return $this->speed;
     }
 
     public function getImageUrl(): ?string {
         return $this->image_url;
     }
 
+    public function getRarity(): string {
+        return $this->rarity;
+    } 
+
     public function getCreatedAt(): ?string {
         return $this->created_at;
+    }
+
+    public function getUpdatedAt(): ?string {
+        return $this->updated_at;
     }
 }

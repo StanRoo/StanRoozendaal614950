@@ -92,4 +92,12 @@ class UserRepository {
         $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    public function updateBalance($userId, $newBalance): bool {
+        $sql = "UPDATE users SET balance = :balance WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':balance', $newBalance);
+        $stmt->bindParam(':id', $userId);
+        return $stmt->execute();
+    }
 }

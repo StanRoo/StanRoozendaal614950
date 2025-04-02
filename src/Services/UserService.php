@@ -91,4 +91,13 @@ class UserService {
             $defaultBalance
         );
     }
+
+    public function updateBalance($userId, $newBalance) {
+        $result = $this->userRepository->updateBalance($userId, $newBalance);
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
