@@ -10,6 +10,7 @@ import LoginView from '@/Views/LoginView.vue'
 import ForgotPasswordView from '@/Views/ForgotPasswordView.vue'
 import CreateAccountView from '@/Views/CreateAccountView.vue'
 import AdminView from '@/Views/AdminView.vue'
+import CardDetailPageView from '@/Views/CardDetailPageView.vue';
 
 const routes = [
   { path: '/', name: 'Login', component: LoginView },
@@ -21,6 +22,7 @@ const routes = [
   { path: '/createCard', name: 'CreateCard', component: CreateCardView },
   { path: '/balance', name: 'Balance', component: BalanceView },
   { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: '/card/:id', name: 'CardDetail', component: CardDetailPageView, props: true },
   {
     path: "/admin",
     component: AdminView,

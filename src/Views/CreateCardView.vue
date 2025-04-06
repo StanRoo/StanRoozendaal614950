@@ -1,9 +1,8 @@
 <template>
+  <header>
+    <img class="banner" :src="CreateCardBanner" alt="Create Card Banner"/>
+  </header>
   <div class="create-card-container">
-    <header>
-      <h1>Create Your Own Card</h1>
-      <p>Choose a rarity, fill in the details, and preview your card!</p>
-    </header>
     <section class="card-customization">
       <div class="customization-wrapper">
         <!--Left Side-->
@@ -117,14 +116,15 @@
 
               <img :src="cardImage" alt="Card Image" class="card-image" />
 
-              <p :style="{ color: typeColors.text }">
-                Attack: {{ attack }} | Defense: {{ defense }} | Speed: {{ speed }}
-              </p>
+              <div class="card-info">
+                <p :style="{ color: typeColors.text }">
+                  Attack: {{ attack }} | Defense: {{ defense }} | Speed: {{ speed }}
+                </p>
 
-              <p :style="{ color: typeColors.text }">
-                Type: {{ cardType }}
-              </p>
-
+                <p :style="{ color: typeColors.text }">
+                  Type: {{ cardType }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -163,6 +163,7 @@
   import axios from "axios";
   import { ref, computed } from 'vue';
   import { useUserStore } from '@/Store/UserStore';
+  import CreateCardBanner from '@/assets/images/Create_Card_Banner.png';
   
   const userStore = useUserStore();
   const selectedRarity = ref('common');
@@ -305,11 +306,11 @@
 
   const rarityFonts = computed(() => {
     return {
-      common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.4rem", fontWeight: "400" },
-      rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.4rem", fontWeight: "500" },
-      epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.6rem", fontWeight: "600" },
-      legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.8rem", fontWeight: "bold" }
-    }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.2rem", fontWeight: "500" };
+      common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.5vw", fontWeight: "400" },
+      rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.5vw", fontWeight: "500" },
+      epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.7vw", fontWeight: "600" },
+      legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.9vw", fontWeight: "bold" }
+    }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.5vw", fontWeight: "500" };
   });
 
   const createCard = async () => {
@@ -353,6 +354,11 @@
 </script>
   
 <style scoped>
+.banner {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .create-card-container {
   padding: 2vw;
   display: flex;
@@ -538,6 +544,11 @@ p {
   font-weight: bold;
   padding: 5px 10px;
   border-radius: 5px;
+}
+
+.card-info {
+  padding: 0;
+  margin: 0;
 }
 
 /* Card effects*/

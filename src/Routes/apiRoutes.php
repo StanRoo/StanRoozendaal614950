@@ -79,6 +79,12 @@ switch (true) {
         $cardController->getAllCards();
         break;
 
+    // Get all cards created by the authenticated user
+    case $requestUri === '/api/cards/user' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $cardController->getUserCards($decodedUser->id);
+        break;
+
     // Get a specific card by ID
     case preg_match('/\/api\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
         $cardId = $matches[1];

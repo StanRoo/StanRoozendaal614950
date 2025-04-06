@@ -17,11 +17,11 @@ class CardService {
     }
 
     public function getCardById($id) {
-        return $this->cardRepository->getById($id);
+        return $this->cardRepository->getCardById($id);
     }
 
-    public function getAllCards($userId = null) {
-        return $this->cardRepository->getAll($userId);
+    public function getUserCards($userId) {
+        return $this->cardRepository->getUserCards($userId);
     }
 
     public function createCard($userId, $data, $image) {

@@ -13,20 +13,16 @@ class CardRepository {
     }
 
     public function getCardById($id): ?CardModel {
-        $stmt = $this->pdo->prepare("SELECT id, user_id, name, rarity, price, image_url, created_at FROM cards WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM cards WHERE id = ?");
         $stmt->execute([$id]);
         $cardData = $stmt->fetch(PDO::FETCH_ASSOC);
         return $cardData ? new CardModel($cardData) : null;
     }
 
-    public function getAllCards($userId = null): array {
-        $sql = "SELECT id, user_id, name, rarity, price, image_url, created_at FROM cards";
-        if ($userId) {
-            $sql .= " WHERE user_id = ?";
-        }
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($userId ? [$userId] : []);
-        return array_map(fn($row) => new CardModel($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
+    public function getUserCards($userId) {
+        $stmt = $this->pdo->prepare("SELECT * FROM cards WHERE user_id = :user_id");
+        $stmt->execute(["user_id" => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function create($cardData) {

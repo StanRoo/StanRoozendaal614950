@@ -1,7 +1,9 @@
 <template>
-  <div class="admin-panel">
-    <h1>Admin Panel - User Management</h1>
+  <header>
+    <img class="banner" :src="AdminPanelBanner" alt="Admin Panel Banner"/>
+  </header>
 
+  <div class="admin-panel">
     <table>
       <thead>
         <tr>
@@ -56,10 +58,12 @@
 <script>
 import axios from "axios";
 import { handleApiError } from "@/Utils/errorHandler";
+import AdminPanelBanner from '@/assets/images/Admin_Panel_Banner.png';
 
 export default {
   data() {
     return {
+      AdminPanelBanner,
       users: [],
       errorMessage: "",
       successMessage: "",
@@ -121,6 +125,11 @@ export default {
 </script>
 
 <style scoped>
+.banner {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .admin-panel {
   padding: 20px;
   text-align: center;

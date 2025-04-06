@@ -1,25 +1,16 @@
-<script setup>
-</script>
-
 <template>
-<header>
-  <div class="wrapper">
-    <h1>Marketplace</h1>
-  </div>
-</header>
-
-<main>
-</main>
-</template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-header .wrapper {
-  display: flex;
-  place-items: flex-start;
-  flex-wrap: wrap;
-}
-</style>
+  <header>
+     <img class="banner" :src="MarketplaceBanner" alt="Inventory Banner"/>
+   </header>
+ </template>
+ 
+ <script setup>
+ import MarketplaceBanner from '@/assets/images/Marketplace_Banner.png';
+ </script>
+ 
+ <style scoped>
+ .banner {
+   width: 100%;
+   margin-top: 10px;
+ }
+ </style>

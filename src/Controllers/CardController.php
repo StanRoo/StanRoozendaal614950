@@ -57,17 +57,15 @@ class CardController {
         }
     }
 
-    public function getAllCards() {
-        try {
-            $cards = $this->cardService->getAllCards();
-            echo json_encode([
-                "success" => true,
-                "message" => "Cards fetched successfully!",
-                "cards" => $cards
-            ]);
-        } catch (\Exception $e) {
-            ErrorHandler::handleException($e);
+    public function getUserCards($userId) {
+        $decodedUser = $this->authMiddleware->verifyToken();
+    
+        if ($decodedUser->id != $userId) {
+            ErrorHandler::respondWithError(403, "Unauthorized access.");
         }
+    
+        $cards = $this->cardService->getUserCards($userId);
+        echo json_encode(["cards" => $cards]);
     }
 
     public function getCardById($cardId) {
