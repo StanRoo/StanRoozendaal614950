@@ -132,4 +132,28 @@ class UserController {
             ErrorHandler::respondWithError(500, "Failed to update profile picture");
         }
     }
+
+    public function getUserBalance() {
+        $decodedUser = $this->authMiddleware->verifyToken();
+    
+        $balance = $this->userService->getBalance($decodedUser->id);
+    
+        echo json_encode($balance);
+    }
+    
+    public function claimDailyCuboCoins() {
+        $decodedUser = $this->authMiddleware->verifyToken();
+    
+        $result = $this->userService->claimDailyReward($decodedUser->id);
+    
+        if ($result['success']) {
+            echo json_encode([
+                "success" => true,
+                "message" => $result['message'],
+                "balance" => $result['balance']
+            ]);
+        } else {
+            ErrorHandler::respondWithError(400, $result['message']);
+        }
+    }
 }

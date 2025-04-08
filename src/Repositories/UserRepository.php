@@ -22,7 +22,7 @@ class UserRepository {
     }
 
     public function getUserById($userId): ?UserModel {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login, balance FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login, balance, last_daily_claim FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -99,5 +99,17 @@ class UserRepository {
         $stmt->bindParam(':balance', $newBalance);
         $stmt->bindParam(':id', $userId);
         return $stmt->execute();
+    }
+
+    public function getLastClaimedTimestamp($userId): ?string {
+        $stmt = $this->pdo->prepare("SELECT last_daily_claim FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['last_daily_claim'] : null;
+    }
+
+    public function updateBalanceAndClaimTime($userId, $balance, $claimTime): bool {
+        $stmt = $this->pdo->prepare("UPDATE users SET balance = ?, last_daily_claim = ? WHERE id = ?");
+        return $stmt->execute([$balance, $claimTime, $userId]);
     }
 }

@@ -100,4 +100,71 @@ class UserService {
             return false;
         }
     }
+
+    public function getBalance($userId) {
+        $user = $this->userRepository->getUserById($userId);
+    
+        if (!$user) {
+            ErrorHandler::respondWithError(404, "User not found.");
+        }
+    
+        $balance = $user->getBalance();
+        $lastClaimed = $user->getLastClaimed();
+    
+        $claimedToday = false;
+        if ($lastClaimed) {
+            $today = new \DateTime();
+            $today->setTime(0, 0, 0);
+            $lastClaimedDate = new \DateTime($lastClaimed);
+            $lastClaimedDate->setTime(0, 0, 0);
+            $claimedToday = $lastClaimedDate->format('Y-m-d') === $today->format('Y-m-d');
+        }
+    
+        return [
+            'balance' => $balance,
+            'claimed_today' => $claimedToday
+        ];
+    }
+    
+    
+    public function claimDailyReward($userId) {
+        $user = $this->userRepository->getUserById($userId);
+    
+        if (!$user) {
+            return ["success" => false, "message" => "User not found."];
+        }
+    
+        $lastClaimed = $this->userRepository->getLastClaimedTimestamp($userId);
+    
+        $now = new \DateTime();
+        $now->setTime(0, 0, 0);
+        $canClaim = true;
+
+        if ($lastClaimed) {
+            $today = new \DateTime();
+            $today->setTime(0, 0, 0);
+            $lastClaimedDate = new \DateTime($lastClaimed);
+            $lastClaimedDate->setTime(0, 0, 0);
+            $canClaim = $lastClaimedDate->format('Y-m-d') !== $today->format('Y-m-d');
+        }
+    
+        if (!$canClaim) {
+            return ["success" => false, "message" => "Daily reward already claimed. Try again later."];
+        }
+    
+        $newBalance = $user->getBalance() + 500;
+        $updateResult = $this->userRepository->updateBalanceAndClaimTime($userId, $newBalance, $now->format('Y-m-d'));
+
+        if ($updateResult) {
+            return [
+                "success" => true,
+                "message" => "You've successfully claimed 500 CuboCoins!",
+                "balance" => $newBalance,
+                "claimed_today" => true,
+            ];
+        }
+    
+        return ["success" => false, "message" => "Failed to update balance. Please try again."];
+    }
+    
 }

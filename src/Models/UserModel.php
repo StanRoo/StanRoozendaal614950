@@ -15,6 +15,7 @@ class UserModel {
     public ?string $updated_at;
     public ?string $lastLogin;
     public float $balance;
+    public ?string $last_daily_claim;
 
     public function __construct(array $data) {
         $this->id = $data['id'] ?? null;
@@ -29,6 +30,7 @@ class UserModel {
         $this->updated_at = $data['updated_at'] ?? null;
         $this->lastLogin = $data['last_login'] ?? null;
         $this->balance = $data['balance'] ?? 1000.00;
+        $this->last_daily_claim = $data['last_daily_claim'] ?? null;
     }
 
     public function toArray() {
@@ -81,5 +83,9 @@ class UserModel {
 
     public function getBalance(): float {
         return $this->balance;
+    }
+
+    public function getLastClaimed(): ?string {
+        return $this->last_daily_claim;
     }
 }

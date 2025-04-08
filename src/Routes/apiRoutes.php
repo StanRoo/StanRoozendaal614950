@@ -30,6 +30,12 @@ switch (true) {
         $userController->getAllUsers($decodedUser);
         break;
 
+    // Get current user balance and last claim
+    case $requestUri === '/api/user/balance' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $userController->getUserBalance($decodedUser->id);
+        break;
+
     // Update user by ID (Admin)
     case preg_match('/\/api\/users\/(\d+)/', $requestUri, $matches) && $requestMethod === 'PUT':
         $decodedUser = $authMiddleware->verifyToken();
@@ -57,6 +63,12 @@ switch (true) {
     // Register new user
     case $requestUri === '/api/register' && $requestMethod === 'POST':
         $authController->register();
+        break;
+
+    // Claim daily reward
+    case $requestUri === '/api/user/claim-daily' && $requestMethod === 'POST':
+        $decodedUser = $authMiddleware->verifyToken();
+        $userController->claimDailyCuboCoins($decodedUser->id);
         break;
 
     // Delete user (Admin only)
