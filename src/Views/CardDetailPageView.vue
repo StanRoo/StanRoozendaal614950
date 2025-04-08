@@ -44,9 +44,8 @@ onMounted(async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     card.value = response.data.card;
-    console.log('Fetched card data:', card.value); 
   } catch (error) {
-    console.error('Error fetching card data:', error);
+
   }
 });
 

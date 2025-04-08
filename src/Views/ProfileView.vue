@@ -201,7 +201,6 @@ export default {
     },
 
     redirectToLogin() {
-      console.error("No token found! Redirecting to login.");
       this.$router.push("/");
     }
   }

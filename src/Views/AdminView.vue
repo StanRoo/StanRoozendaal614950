@@ -72,6 +72,7 @@ export default {
   async created() {
     await this.fetchUsers();
   },
+  emits: ['profileUpdated'],
   methods: {
     async fetchUsers() {
       try {
@@ -81,7 +82,6 @@ export default {
         });
         this.users = response.data.users;
       } catch (error) {
-        console.error("Failed to fetch users:", error);
         this.errorMessage = handleApiError(error);
       }
     },
@@ -95,11 +95,8 @@ export default {
         }, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         this.successMessage = "User updated successfully!";
-        console.log("User updated:", response.data);
       } catch (error) {
-        console.error("Error updating user:", error);
         this.errorMessage = handleApiError(error);
       }
     },
@@ -116,7 +113,6 @@ export default {
         this.successMessage = "User deleted successfully!";
         this.users = this.users.filter(user => user.id !== userId);
       } catch (error) {
-        console.error("Error deleting user:", error);
         this.errorMessage = handleApiError(error);
       }
     },

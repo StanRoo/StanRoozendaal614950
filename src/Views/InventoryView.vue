@@ -24,6 +24,8 @@ import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
 import InventoryBanner from '@/assets/images/Inventory_Banner.png'
 
+defineEmits(['profileUpdated'])
+
 const router = useRouter();
 
 const cards = ref([]);

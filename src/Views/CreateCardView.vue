@@ -165,6 +165,7 @@
   import { useUserStore } from '@/Store/UserStore';
   import CreateCardBanner from '@/assets/images/Create_Card_Banner.png';
   
+  defineEmits(['profileUpdated'])
   const userStore = useUserStore();
   const selectedRarity = ref('common');
   const cardName = ref('[name]');

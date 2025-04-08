@@ -42,18 +42,18 @@ const successMessage = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
+defineEmits(['profileUpdated'])
+
 const fetchBalance = async () => {
   try {
     const token = localStorage.getItem('token')
     const response = await axios.get('/user/balance', {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log('Full response:', JSON.stringify(response.data, null, 2))
     balance.value = response.data.balance
     hasClaimedToday.value = response.data.claimed_today
   } catch (error) {
     errorMessage.value = 'Failed to load balance.'
-    console.error(error)
   }
 }
 
@@ -67,14 +67,12 @@ const claimDaily = async () => {
     const response = await axios.post('/user/claim-daily', {}, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log('Full response:', JSON.stringify(response.data, null, 2))
     balance.value = response.data.balance
     hasClaimedToday.value = response.data.claimed_today
     userStore.updateBalance(response.data.balance);
     successMessage.value = 'You claimed 500 CuboCoins!'
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Something went wrong.'
-    console.error(error)
   } finally {
     isLoading.value = false
   }

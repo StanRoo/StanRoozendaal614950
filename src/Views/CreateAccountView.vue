@@ -110,7 +110,6 @@ export default {
           }, 2000);
           return;
         }
-
         this.errorMessage = response.data.message || "Failed to create account.";
       } catch (error) {
         this.errorMessage = handleApiError(error);
