@@ -54,7 +54,7 @@ class CardService {
     }
 
     public function deleteCard($userId, $cardId) {
-        $card = $this->cardRepository->getById($cardId);
+        $card = $this->cardRepository->getCardById($cardId);
         if (!$card) {
             return ErrorHandler::respondWithError(404, "Card not found.");
         }

@@ -89,7 +89,7 @@ class CardController {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
 
-            $deleted = $this->cardService->deleteCard($cardId, $decodedUser);
+            $this->cardService->deleteCard($decodedUser->id, $cardId);
             if (!$deleted) {
                 ErrorHandler::respondWithError(403, "Unauthorized or card not found.");
             }

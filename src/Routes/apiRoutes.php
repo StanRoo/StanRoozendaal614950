@@ -30,6 +30,12 @@ switch (true) {
         $userController->getAllUsers($decodedUser);
         break;
 
+    // Get a user's inventory
+    case $requestUri === '/api/user/inventory' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $transactionController->getUserInventory($decodedUser->id);
+        break;
+
     // Get current user balance and last claim
     case $requestUri === '/api/user/balance' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
@@ -91,7 +97,7 @@ switch (true) {
         $cardController->getAllCards();
         break;
 
-    // Get all cards created by the authenticated user
+    // Get all cards created by the user
     case $requestUri === '/api/cards/user' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $cardController->getUserCards($decodedUser->id);
@@ -103,18 +109,18 @@ switch (true) {
         $cardController->getCardById($cardId);
         break;
 
+    // Delete card
+    case preg_match('/\/api\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $cardId = $matches[1];
+        $cardController->deleteCard($cardId);
+        break;
+
     // -------------Transaction Routes-----------------
 
     // Buy a Pokémon card
     case $requestUri === '/api/cards/buy' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $transactionController->buyCard($decodedUser->id);
-        break;
-
-    // Get a user's inventory
-    case $requestUri === '/api/user/inventory' && $requestMethod === 'GET':
-        $decodedUser = $authMiddleware->verifyToken();
-        $transactionController->getUserInventory($decodedUser->id);
         break;
 
     // -----------Default 404 Response------------
