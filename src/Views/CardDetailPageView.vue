@@ -15,7 +15,22 @@
           <button @click="listOnMarketplace" :disabled="!price">Add to Marketplace</button>
         </div>
 
-        <button @click="deleteCard" class="danger delete-button">Delete Card</button>
+        <button @click="confirmDelete" class="danger delete-button">Delete Card</button>
+
+        <div class="feedback">
+          <p v-if="deleteMessage" class="success">{{ deleteMessage }}</p>
+          <p v-if="deleteError" class="error">{{ deleteError }}</p>
+        </div>
+
+        <div v-if="showConfirmDelete" class="popup-overlay">
+          <div class="popup">
+            <p>Are you sure you want to delete this card?</p>
+            <div class="popup-actions">
+              <button @click="deleteCard" class="danger">Yes, delete</button>
+              <button @click="showConfirmDelete = false">Cancel</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -34,6 +49,10 @@ const route = useRoute();
 const router = useRouter();
 const card = ref(null);
 const price = ref(null);
+
+const deleteMessage = ref('');
+const deleteError = ref('');
+const showConfirmDelete = ref(false);
 
 onMounted(async () => {
   const token = localStorage.getItem('token');
@@ -66,20 +85,25 @@ const listOnMarketplace = async () => {
   }
 };
 
-const deleteCard = async () => {
-  if (!confirm("Are you sure you want to delete this card?")) return;
+const confirmDelete = () => {
+  deleteMessage.value = '';
+  deleteError.value = '';
+  showConfirmDelete.value = true;
+};
 
+const deleteCard = async () => {
   try {
     const token = localStorage.getItem('token');
     await axios.delete(`/cards/${card.value.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    alert('Card deleted!');
+    deleteMessage.value = 'Card deleted successfully!';
     router.push('/inventory');
   } catch (error) {
-    console.error(error);
-    alert('Failed to delete card.');
+    deleteError.value = 'Failed to delete card.';
+  } finally {
+    showConfirmDelete.value = false;
   }
 };
 
@@ -188,6 +212,91 @@ const goBack = () => {
 
 .delete-button:hover {
   background-color: #a71d2a;
+}
+
+.feedback p {
+  margin-top: 1vw;
+  font-weight: bold;
+}
+.success {
+  color: green;
+}
+.error {
+  color: red;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background: #3366af;
+  padding: 2.5vw 2vw;
+  border-radius: 12px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.popup p {
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin-bottom: 1.8vw;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1vw;
+}
+
+.popup-actions button {
+  padding: 0.6vw 1.4vw;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.popup-actions .danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.popup-actions .danger:hover {
+  background-color: #b02a37;
+}
+
+.popup-actions button:not(.danger) {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.popup-actions button:not(.danger):hover {
+  background-color: #cfcfcf;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .loading {
