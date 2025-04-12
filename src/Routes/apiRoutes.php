@@ -5,6 +5,7 @@ use App\Controllers\AuthController;
 use App\Controllers\UserController;
 use App\Controllers\CardController;
 use App\Controllers\TransactionController;
+use App\Controllers\MarketplaceController;
 
 $requestUri = strtok($_SERVER['REQUEST_URI'], '?');
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -13,6 +14,7 @@ $authController = $authController;
 $userController = $userController;
 $cardController = $cardController;
 $transactionController = $transactionController;
+$marketplaceController = $marketplaceController;
 $authMiddleware = $authMiddleware;
 
 switch (true) {
@@ -113,6 +115,38 @@ switch (true) {
     case preg_match('/\/api\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
         $cardId = $matches[1];
         $cardController->deleteCard($cardId);
+        break;
+
+    // -----------Marketplace Routes--------------
+    
+    // Get all cards on the marketplace
+    case $requestUri === '/api/marketplace/list' && $requestMethod === 'GET':
+        $marketplaceController->getMarketplaceCards();
+        break;
+
+    // Get listed card info
+    case preg_match('/\/api\/marketplace\/card\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
+        $cardId = $matches[1];
+        $marketplaceController->getMarketplaceCard($cardId);
+        break;
+
+    // List a card on the marketplace
+    case $requestUri === '/api/marketplace/list' && $requestMethod === 'POST':
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->listCard($decodedUser->id);
+        break;
+
+    // Get a specific card's marketplace listing details
+    case preg_match('/\/api\/marketplace\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
+        $cardId = $matches[1];
+        $marketplaceController->getMarketplaceCardDetails($cardId);
+        break;
+
+    // Update card price in the marketplace
+    case preg_match('/\/api\/marketplace\/(\d+)\/price/', $requestUri, $matches) && $requestMethod === 'PUT':
+        $decodedUser = $authMiddleware->verifyToken();
+        $cardId = $matches[1];
+        $marketplaceController->updateCardPrice($decodedUser->id, $cardId);
         break;
 
     // -------------Transaction Routes-----------------

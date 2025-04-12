@@ -12,7 +12,9 @@
           <h3>List Card on Marketplace</h3>
           <label for="price">Minimum Price</label>
           <input v-model="price" type="number" id="price" min="0" placeholder="Enter minimum price" />
-          <button @click="listOnMarketplace" :disabled="!price">Add to Marketplace</button>
+          <button @click="listOnMarketplace" :disabled="!price || listingComplete">Add to Marketplace</button>
+          <p v-if="listMessage" class="success">{{ listMessage }}</p>
+          <p v-if="listError" class="error">{{ listError }}</p>
         </div>
 
         <button @click="confirmDelete" class="danger delete-button">Delete Card</button>
@@ -50,6 +52,10 @@ const router = useRouter();
 const card = ref(null);
 const price = ref(null);
 
+const listMessage = ref('');
+const listError = ref('');
+const listingComplete = ref(false);
+
 const deleteMessage = ref('');
 const deleteError = ref('');
 const showConfirmDelete = ref(false);
@@ -69,19 +75,31 @@ onMounted(async () => {
 });
 
 const listOnMarketplace = async () => {
+  listMessage.value = '';
+  listError.value = '';
+
   try {
     const token = localStorage.getItem('token');
-    await axios.post(`/marketplace/list`, {
+    await axios.post('/marketplace/list', {
       card_id: card.value.id,
       price: price.value
     }, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    alert('Card listed on the marketplace!');
+    listMessage.value = 'Card listed on the marketplace!';
+    listingComplete.value = true;
+    setTimeout(() => {
+      listMessage.value = '';
+    }, 4000);
   } catch (error) {
-    console.error(error);
-    alert('Failed to list card.');
+    listError.value = error.response?.data?.message || 'Failed to list card.';
+    setTimeout(() => {
+      listError.value = '';
+    }, 4000);
   }
 };
 

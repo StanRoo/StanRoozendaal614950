@@ -16,8 +16,7 @@ class UserRepository {
     public function getAllUsers(): array {
         $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, balance FROM users");
         $stmt->execute();
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         return array_map(fn($user) => new UserModel($user), $users);
     }
 
@@ -25,7 +24,6 @@ class UserRepository {
         $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, status, profile_picture_url, bio, created_at, updated_at, last_login, balance, last_daily_claim FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $userData ? new UserModel($userData) : null;
     }
 
@@ -35,8 +33,7 @@ class UserRepository {
             FROM users WHERE username = ?
         ");
         $stmt->execute([$username]);
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);       
         return $userData ? new UserModel($userData) : null;
     }
 
@@ -47,7 +44,6 @@ class UserRepository {
         ");
         $stmt->execute([$email]);
         $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-        
         return $userData ? new UserModel($userData) : null;
     }
 
@@ -65,20 +61,16 @@ class UserRepository {
     public function updateUser($userId, $data): bool {
         $fields = [];
         $params = [];
-
         foreach ($data as $key => $value) {
             $fields[] = "$key = :$key";
             $params[$key] = $value;
         }
-
         if (empty($fields)) {
             return false;
         }
-
         $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $params['id'] = $userId;
-
         return $stmt->execute($params);
     }
 

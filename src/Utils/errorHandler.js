@@ -17,4 +17,4 @@ export function handleApiError(error) {
     } else {
       return "An unexpected error occurred.";
     }
-  }  
+  }

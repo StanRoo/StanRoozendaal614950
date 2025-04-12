@@ -3,6 +3,7 @@ import { createWebHistory, createRouter } from 'vue-router'
 import HomeView from '@/Views/HomeView.vue'
 import InventoryView from '@/Views/InventoryView.vue'
 import MarketplaceView from '@/Views/MarketplaceView.vue'
+import MarketplaceDetailView from '@/Views/MarketplaceDetailView.vue';
 import CreateCardView from '@/Views/CreateCardView.vue'
 import BalanceView from '@/Views/BalanceView.vue'
 import ProfileView from '@/Views/ProfileView.vue'
@@ -23,6 +24,7 @@ const routes = [
   { path: '/balance', name: 'Balance', component: BalanceView },
   { path: '/profile', name: 'Profile', component: ProfileView },
   { path: '/card/:id', name: 'CardDetail', component: CardDetailPageView, props: true },
+  { path: '/marketplace/detail/:id', name: 'MarketplaceDetail', component: MarketplaceDetailView, props: true },
   {
     path: "/admin",
     component: AdminView,
