@@ -40,4 +40,12 @@ class CardRepository {
         $stmt = $this->pdo->prepare("DELETE FROM cards WHERE id = ?");
         return $stmt->execute([$id]);
     }
+
+    public function updateCardOwner($cardId, $newOwnerId): bool {
+        $sql = "UPDATE cards SET user_id = :newOwnerId WHERE id = :cardId";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':newOwnerId', $newOwnerId);
+        $stmt->bindParam(':cardId', $cardId);
+        return $stmt->execute();
+    }
 }

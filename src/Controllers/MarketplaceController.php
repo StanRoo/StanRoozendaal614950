@@ -76,6 +76,7 @@ class MarketplaceController
             echo json_encode([
                 'card' => $cardWithListing['card'],
                 'price' => $cardWithListing['price'],
+                'listing_id' => $cardWithListing['listing_id'],
                 'listed_at' => $cardWithListing['listed_at'],
                 'seller_id' => $cardWithListing['seller_id'],
                 'seller_username' => $cardWithListing['seller_username']

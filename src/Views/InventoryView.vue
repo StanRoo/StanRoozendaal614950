@@ -8,7 +8,8 @@
       <CardDisplay 
         v-for="card in cards" 
         :key="card.id" 
-        :card="card" 
+        :card="card"
+        class="inventory-card"
         @click="selectCard(card)" 
       />
     </section>
@@ -73,6 +74,20 @@ const selectCard = (card) => {
   grid-template-columns: repeat(5, 1fr);
   gap: 1vw;
   justify-items: center;
+}
+
+.inventory-card {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5vw;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 21vw;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.inventory-card:hover {
+  transform: scale(1.05);
 }
 
 .empty-message {

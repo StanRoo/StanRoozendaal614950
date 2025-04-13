@@ -93,6 +93,9 @@ class UserService {
     }
 
     public function updateBalance($userId, $newBalance) {
+        if ($newBalance < 0) {
+            ErrorHandler::respondWithError(400, "Balance cannot be negative.");
+        }
         $result = $this->userRepository->updateBalance($userId, $newBalance);
         if ($result) {
             return true;
@@ -167,4 +170,9 @@ class UserService {
         return ["success" => false, "message" => "Failed to update balance. Please try again."];
     }
     
+    public function addBalance($userId, $amount): bool {
+        $user = $this->userRepository->getUserById($userId);
+        $newBalance = $user->balance + $amount;
+        return $this->userRepository->updateBalance($userId, $newBalance);
+    }
 }

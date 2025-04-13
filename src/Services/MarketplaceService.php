@@ -80,10 +80,19 @@ class MarketplaceService
         $cardData = [
             'card' => $cardArray,
             'price' => $listing->getPrice(),
+            'listing_id' => $listing->getId(),
             'listed_at' => $listing->getListedAt(),
             'seller_id' => $listing->getSellerId(),
             'seller_username' => $seller ? $seller->getUsername() : 'Unknown',
         ];
         return $cardData;
+    }
+
+    public function getListingById($listingId) {
+        return $this->marketplaceRepository->getListingById($listingId);
+    }
+
+    public function markListingAsSold($listingId): bool {
+        return $this->marketplaceRepository->markListingAsSold($listingId);
     }
 }

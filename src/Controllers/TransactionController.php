@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Services\TransactionService;
+use App\Services\MarketplaceService;
+use App\Services\InventoryService;
 use App\Services\UserService;
 use App\Services\CardService;
 use App\Middleware\AuthMiddleware;
@@ -10,53 +12,45 @@ use App\Utils\ErrorHandler;
 
 class TransactionController {
     private $transactionService;
+    private $marketplaceService;
+    private $inventoryService;
     private $userService;
     private $cardService;
     private $authMiddleware;
 
-    public function __construct(TransactionService $transactionService, UserService $userService, CardService $cardService, AuthMiddleware $authMiddleware) {
+    public function __construct(TransactionService $transactionService, MarketplaceService $marketplaceService, InventoryService $inventoryService, UserService $userService, CardService $cardService, AuthMiddleware $authMiddleware) {
         $this->transactionService = $transactionService;
+        $this->marketplaceService = $marketplaceService;
+        $this->inventoryService = $inventoryService;
         $this->userService = $userService;
         $this->cardService = $cardService;
         $this->authMiddleware = $authMiddleware;
     }
 
-    public function buyCard($userId) {
-        try {
-            $decodedUser = $this->authMiddleware->verifyToken();
+    public function buyCard($listingId, $buyerId) {
+        $listing = $this->marketplaceService->getListingById($listingId);
+        if (!$listing) {
+            ErrorHandler::respondWithError(404, "Listing not found.");
+            return;
+        }
 
-            if ($decodedUser->id !== $userId) {
-                ErrorHandler::respondWithError(403, "Unauthorized");
-            }
-
-            $requestData = json_decode(file_get_contents("php://input"), true);
-            if (!isset($requestData['card_id'])) {
-                ErrorHandler::respondWithError(400, "Card ID is required.");
-            }
-
-            $card = $this->cardService->getCardById($requestData['card_id']);
-            if (!$card) {
-                ErrorHandler::respondWithError(404, "Card not found.");
-            }
-
-            $user = $this->userService->getUserById($userId);
-            if (!$user) {
-                ErrorHandler::respondWithError(404, "User not found.");
-            }
-
-            if ($user->getBalance() < $card->getPrice()) {
-                ErrorHandler::respondWithError(400, "Insufficient balance.");
-            }
-
-            $purchase = $this->transactionService->buyCard($userId, $requestData['card_id']);
-
-            echo json_encode([
-                "success" => true,
-                "message" => "Card purchased successfully!",
-                "transaction" => $purchase
-            ]);
-        } catch (\Exception $e) {
-            ErrorHandler::handleException($e);
+        $cardId = $listing['card_id'];
+        $sellerId = $listing['seller_id'];
+        $price = $listing['price'];
+        $buyer = $this->userService->getUserById($buyerId);
+        if ($buyer->balance < $price) {
+            ErrorHandler::respondWithError(400, "Insufficient balance.");
+            return;
+        }
+        $this->userService->updateBalance($buyer->id, $price);
+        $this->userService->addBalance($sellerId, $price);
+        $this->marketplaceService->markListingAsSold($listingId);
+        $this->inventoryService->addCardToInventory($buyerId, $cardId);
+        $transactionCreated = $this->transactionService->logTransaction($buyerId, $sellerId, $cardId, $price);
+        if ($transactionCreated) {
+            echo json_encode(['message' => 'Transaction successful']);
+        } else {
+            ErrorHandler::respondWithError(500, 'Transaction failed.');
         }
     }
 

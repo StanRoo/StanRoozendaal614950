@@ -25,23 +25,15 @@ class TransactionService {
         return $this->transactionRepository->getAll($userId);
     }
 
-    public function purchaseCard($buyerId, $cardId) {
-        $card = $this->cardRepository->getById($cardId);
-
-        if (!$card) {
-            return ErrorHandler::respondWithError(404, "Card not found.");
-        }
-        if ($card->user_id == $buyerId) {
-            return ErrorHandler::respondWithError(400, "You cannot buy your own card.");
-        }
-
+    public function logTransaction($buyerId, $sellerId, $cardId, $price): bool {
         $transaction = new TransactionModel([
             'buyer_id' => $buyerId,
+            'seller_id' => $sellerId,
             'card_id' => $cardId,
-            'price' => $card->price,
-            'transaction_date' => date('Y-m-d H:i:s')
+            'price' => $price,
+            'transaction_date' => date('Y-m-d H:i:s'),
+            'status' => 'Completed',
         ]);
-
-        return $this->transactionRepository->create($transaction);
+        return $this->transactionRepository->createTransaction($transaction);
     }
 }

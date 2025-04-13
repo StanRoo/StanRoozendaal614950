@@ -10,7 +10,7 @@
       <div class="right-column">
         <div class="marketplace-section">
           <h3>List Card on Marketplace</h3>
-          <label for="price">Minimum Price</label>
+          <label for="price">Price</label>
           <input v-model="price" type="number" id="price" min="0" placeholder="Enter minimum price" />
           <button @click="listOnMarketplace" :disabled="!price || listingComplete">Add to Marketplace</button>
           <p v-if="listMessage" class="success">{{ listMessage }}</p>

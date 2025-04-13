@@ -12,8 +12,10 @@
           <h3>Seller Info</h3>
           <p><strong>Seller:</strong> {{ listingInfo.seller_username }}</p>
           <p><strong>Listed At:</strong> {{ formatDate(listingInfo.listed_at) }}</p>
-          <p><strong>Minimum Price:</strong> {{ listingInfo.price }} <img src="@/assets/icons/coin.png" class="coin-icon" /></p>
+          <p><strong>Price:</strong> {{ listingInfo.price }} <img src="@/assets/icons/coin.png" class="coin-icon" /></p>
         </div>
+
+        <button @click="buyNow" class="buy-now-button">Buy Now</button>
       </div>
     </div>
   </div>
@@ -26,6 +28,8 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
+
+defineEmits(['profileUpdated'])
 
 const route = useRoute();
 const router = useRouter();
@@ -42,13 +46,14 @@ onMounted(async () => {
     const response = await axios.get(`/marketplace/card/${cardId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log('API Response:', response.data);
+    console.log(response.data);
     card.value = response.data.card;
     listingInfo.value = {
       price: response.data.price,
       seller_id: response.data.seller_id,
       seller_username: response.data.seller_username,
       listed_at: response.data.listed_at,
+      listing_id: response.data.listing_id,
     };
   } catch (error) {
     console.error('Error fetching card details:', error.response?.data || error);
@@ -62,6 +67,21 @@ const formatDate = (dateStr) => {
 
 const goBack = () => {
   router.back();
+};
+
+const buyNow = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const response = await axios.post('/transaction/buyNow', 
+      { listing_id: listingInfo.value.listing_id }, 
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    alert('Transaction successful');
+  } catch (error) {
+    alert('Error purchasing card: ' + (error.response?.data?.message || error.message));
+  }
 };
 </script>
 
@@ -115,6 +135,7 @@ const goBack = () => {
   padding: 2vw;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2vw;
 }
 
 .info-card h3 {
@@ -132,6 +153,21 @@ const goBack = () => {
   width: 1.5vw;
   vertical-align: middle;
   margin-left: 0.5vw;
+}
+
+.buy-now-button {
+  padding: 1vw 2vw;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2vw;
+  cursor: pointer;
+  margin-top: 2vw;
+}
+
+.buy-now-button:hover {
+  background-color: #218838;
 }
 
 .loading-message {

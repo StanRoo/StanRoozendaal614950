@@ -1,6 +1,7 @@
 <?php
 
 use App\Middleware\AuthMiddleware;
+use App\Utils\ErrorHandler;
 use App\Controllers\AuthController;
 use App\Controllers\UserController;
 use App\Controllers\CardController;
@@ -152,9 +153,16 @@ switch (true) {
     // -------------Transaction Routes-----------------
 
     // Buy a Pokémon card
-    case $requestUri === '/api/cards/buy' && $requestMethod === 'POST':
+    case $requestUri === '/api/transaction/buyNow' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
-        $transactionController->buyCard($decodedUser->id);
+        $requestBody = json_decode(file_get_contents("php://input"), true);
+        if (!isset($requestBody['listing_id'])) {
+            ErrorHandler::respondWithError(400, "Listing ID is missing.");
+            return;
+        }
+        $listingId = $requestBody['listing_id'];
+        $buyerId = $decodedUser->id;
+        $transactionController->buyCard($listingId, $buyerId);
         break;
 
     // -----------Default 404 Response------------

@@ -25,17 +25,15 @@ class MarketplaceRepository {
             'status' => $listing->getStatus()
         ]);
         $id = $this->pdo->lastInsertId();
-        return $this->getById($id);
+        return $this->getId($id);
     }
 
-    public function getById(int $id): ?MarketplaceListingModel {
-        $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE id = :id");
-        $stmt->execute(['id' => $id]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$data) {
-            return null;
-        }
-        return new MarketplaceListingModel($data);
+    public function getListingById($listingId) {
+        $sql = "SELECT * FROM marketplace_listings WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $listingId);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getActiveListings(): array {
@@ -55,9 +53,11 @@ class MarketplaceRepository {
         return $row ? new MarketplaceListingModel($row) : null;
     }
 
-    public function markAsSold(int $id): void {
-        $stmt = $this->pdo->prepare("UPDATE marketplace_listings SET status = 'sold' WHERE id = :id");
-        $stmt->execute(['id' => $id]);
+    public function markListingAsSold($listingId): bool {
+        $sql = "UPDATE marketplace_listings SET status = 'sold' WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $listingId);
+        return $stmt->execute();
     }
 
     public function cancelListing(int $id): void {

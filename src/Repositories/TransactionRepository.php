@@ -29,9 +29,14 @@ class TransactionRepository {
         return array_map(fn($row) => new TransactionModel($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    public function create(TransactionModel $transaction): ?TransactionModel {
-        $stmt = $this->pdo->prepare("INSERT INTO transactions (buyer_id, card_id, price, transaction_date) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$transaction->buyer_id, $transaction->card_id, $transaction->price, $transaction->transaction_date]);
-        return $this->getTransactionById($this->pdo->lastInsertId());
+    public function createTransaction(TransactionModel $transaction): bool {
+        $stmt = $this->pdo->prepare("INSERT INTO transactions (buyer_id, seller_id, card_id, price, transaction_date, status) VALUES (:buyer_id, :seller_id, :card_id, :price, :transaction_date, :status)");
+        $stmt->bindValue(':buyer_id', $transaction->getBuyerId(), PDO::PARAM_INT);
+        $stmt->bindValue(':seller_id', $transaction->getSellerId(), PDO::PARAM_INT);
+        $stmt->bindValue(':card_id', $transaction->getCardId(), PDO::PARAM_INT);
+        $stmt->bindValue(':price', $transaction->getPrice());
+        $stmt->bindValue(':transaction_date', $transaction->getTransactionDate());
+        $stmt->bindValue(':status', $transaction->getStatus());
+        return $stmt->execute();
     }
 }

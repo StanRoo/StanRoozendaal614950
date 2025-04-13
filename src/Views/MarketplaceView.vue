@@ -30,8 +30,8 @@ import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
 import MarketplaceBanner from '@/assets/images/Marketplace_Banner.png';
 
+defineEmits(['profileUpdated'])
 const router = useRouter();
-
 const cards = ref([]);
 
 onMounted(async () => {

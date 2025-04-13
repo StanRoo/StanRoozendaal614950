@@ -8,6 +8,7 @@ use App\Config;
 // Repositories
 use App\Repositories\CardRepository;
 use App\Repositories\TransactionRepository;
+use App\Repositories\InventoryRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\MarketplaceRepository;
 
@@ -15,6 +16,7 @@ use App\Repositories\MarketplaceRepository;
 use App\Services\AuthService;
 use App\Services\UserService;
 use App\Services\CardService;
+use App\Services\InventoryService;
 use App\Services\TransactionService;
 use App\Services\MarketplaceService;
 
@@ -37,6 +39,7 @@ $pdo = \App\Config::getPDO();
 // Initialize repositories
 $cardRepository = new CardRepository($pdo);
 $transactionRepository = new TransactionRepository($pdo);
+$inventoryRepository = new InventoryRepository($pdo);
 $userRepository = new UserRepository($pdo);
 $marketplaceRepository = new MarketplaceRepository($pdo);
 
@@ -44,6 +47,7 @@ $marketplaceRepository = new MarketplaceRepository($pdo);
 $authService = new AuthService($userRepository);
 $userService = new UserService($userRepository);
 $cardService = new CardService($cardRepository);
+$inventoryService = new InventoryService($inventoryRepository);
 $transactionService = new TransactionService($transactionRepository, $cardRepository);
 $marketplaceService = new MarketplaceService($marketplaceRepository, $cardRepository, $userRepository);
 
@@ -55,5 +59,5 @@ $authMiddleware = new AuthMiddleware($userRepository);
 $authController = new AuthController($authService, $errorHandler);
 $userController = new UserController($userService, $authMiddleware, $errorHandler);
 $cardController = new CardController($cardService, $userService, $authMiddleware, $errorHandler);
-$transactionController = new TransactionController($transactionService, $userService, $cardService, $authMiddleware, $errorHandler);
+$transactionController = new TransactionController($transactionService, $marketplaceService, $inventoryService, $userService, $cardService, $authMiddleware, $errorHandler);
 $marketplaceController = new MarketplaceController($marketplaceService, $authMiddleware, $errorHandler);
