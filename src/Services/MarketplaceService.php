@@ -59,9 +59,14 @@ class MarketplaceService
         return ErrorHandler::respondWithError(500, "Failed to list card.");
     }
 
-    public function getActiveListings(): array
+    public function getAllActiveListingsExceptUser($user_id): array
     {
-        return $this->marketplaceRepository->getActiveListings();
+        return $this->marketplaceRepository->getAllActiveListingsExceptUser($user_id);
+    }
+
+    public function getUserListings(int $userId): array
+    {
+        return $this->marketplaceRepository->getListingsByUserId($userId);
     }
 
     public function getCardWithListing($cardId) {       

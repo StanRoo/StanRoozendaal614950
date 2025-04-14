@@ -3,6 +3,12 @@
     <img class="banner" :src="MarketplaceBanner" alt="Marketplace Banner" />
   </header>
 
+  <div class="marketplace-header-actions">
+    <button @click="goToMyListings" class="my-listings-button">
+      My Listings
+    </button>
+  </div>
+
   <div class="marketplace-container">
     <section v-if="cards.length > 0" class="marketplace-grid">
       <div
@@ -72,12 +78,37 @@ const fetchMarketplaceCards = async () => {
 const selectCard = (card) => {
   router.push({ name: 'MarketplaceDetail', params: { id: card.id } });
 };
+
+const goToMyListings = () => {
+  router.push({ name: 'MyMarketplaceListings' });
+};
 </script>
 
 <style scoped>
 .banner {
   width: 100%;
   margin-top: 10px;
+}
+
+.marketplace-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1vw 2vw;
+}
+
+.my-listings-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.8vw 1.6vw;
+  border-radius: 5px;
+  font-size: 1.1vw;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.my-listings-button:hover {
+  background-color: #0056b3;
 }
 
 .marketplace-container {

@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Services\TransactionService;
 use App\Services\MarketplaceService;
-use App\Services\InventoryService;
 use App\Services\UserService;
 use App\Services\CardService;
 use App\Middleware\AuthMiddleware;
@@ -13,15 +12,13 @@ use App\Utils\ErrorHandler;
 class TransactionController {
     private $transactionService;
     private $marketplaceService;
-    private $inventoryService;
     private $userService;
     private $cardService;
     private $authMiddleware;
 
-    public function __construct(TransactionService $transactionService, MarketplaceService $marketplaceService, InventoryService $inventoryService, UserService $userService, CardService $cardService, AuthMiddleware $authMiddleware) {
+    public function __construct(TransactionService $transactionService, MarketplaceService $marketplaceService, UserService $userService, CardService $cardService, AuthMiddleware $authMiddleware) {
         $this->transactionService = $transactionService;
         $this->marketplaceService = $marketplaceService;
-        $this->inventoryService = $inventoryService;
         $this->userService = $userService;
         $this->cardService = $cardService;
         $this->authMiddleware = $authMiddleware;
@@ -31,6 +28,10 @@ class TransactionController {
         $listing = $this->marketplaceService->getListingById($listingId);
         if (!$listing) {
             ErrorHandler::respondWithError(404, "Listing not found.");
+            return;
+        }
+        if ($buyerId === $listing['seller_id']) {
+            ErrorHandler::respondWithError(400, "You cannot buy your own card.");
             return;
         }
 
@@ -45,7 +46,7 @@ class TransactionController {
         $this->userService->updateBalance($buyer->id, $price);
         $this->userService->addBalance($sellerId, $price);
         $this->marketplaceService->markListingAsSold($listingId);
-        $this->inventoryService->addCardToInventory($buyerId, $cardId);
+        $this->cardService->updateCardOwner($cardId, $buyerId);
         $transactionCreated = $this->transactionService->logTransaction($buyerId, $sellerId, $cardId, $price);
         if ($transactionCreated) {
             echo json_encode(['message' => 'Transaction successful']);

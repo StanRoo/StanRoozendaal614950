@@ -64,7 +64,7 @@ class CardService {
         return $this->cardRepository->delete($cardId);
     }
 
-    public function updateCardOwner($cardId, $newOwnerId): bool {
+    public function updateCardOwner($cardId, $newOwnerId) {
         return $this->cardRepository->updateCardOwner($cardId, $newOwnerId);
     }
 }

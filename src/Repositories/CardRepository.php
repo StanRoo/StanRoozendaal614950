@@ -42,7 +42,7 @@ class CardRepository {
     }
 
     public function updateCardOwner($cardId, $newOwnerId): bool {
-        $sql = "UPDATE cards SET user_id = :newOwnerId WHERE id = :cardId";
+        $sql = "UPDATE cards SET owner_id = :newOwnerId WHERE id = :cardId";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':newOwnerId', $newOwnerId);
         $stmt->bindParam(':cardId', $cardId);

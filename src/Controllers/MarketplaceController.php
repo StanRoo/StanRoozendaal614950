@@ -42,8 +42,8 @@ class MarketplaceController
         echo json_encode(["success" => true, "message" => "Card listed on the marketplace!"]);
     }
 
-    public function getMarketplaceCards() {
-        $listings = $this->marketplaceService->getActiveListings();
+    public function getMarketplaceCards($user_id) {
+        $listings = $this->marketplaceService->getAllActiveListingsExceptUser($user_id);
     
         if (empty($listings)) {
             http_response_code(404);
@@ -64,6 +64,33 @@ class MarketplaceController
     
         echo json_encode(['listings' => $listingsData]);
     }
+
+    public function getUserListings($userId) {
+        try {
+            $listings = $this->marketplaceService->getUserListings($userId);
+
+            if (empty($listings)) {
+                http_response_code(404);
+                echo json_encode(['message' => 'You have no active listings.']);
+                return;
+            }
+
+            $listingsData = array_map(function ($listing) {
+                return [
+                    'id' => $listing->getId(),
+                    'card_id' => $listing->getCardId(),
+                    'seller_id' => $listing->getSellerId(),
+                    'price' => $listing->getPrice(),
+                    'listed_at' => $listing->getListedAt(),
+                    'status' => $listing->getStatus(),
+                ];
+            }, $listings);
+            echo json_encode(['listings' => $listingsData]);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(500, 'Failed to fetch your listings.');
+        }
+    }
+
 
     public function getMarketplaceCard($cardId) {
         try {

@@ -36,8 +36,24 @@ class MarketplaceRepository {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getActiveListings(): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE status = 'active'");
+    public function getAllActiveListingsExceptUser($user_id): array {
+        if ($excludeUserId !== null) {
+            $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE status = 'active' AND seller_id != :userId");
+            $stmt->bindParam(':userId', $user_id, PDO::PARAM_INT);
+        } else {
+            $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE status = 'active'");
+        }
+        $stmt->execute();
+        $listings = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $listings[] = new MarketplaceListingModel($row);
+        }
+        return $listings;
+    }
+
+    public function getListingsByUserId(int $userId): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE seller_id = :userId AND status = 'active' ORDER BY listed_at DESC");
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->execute();
         $listings = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

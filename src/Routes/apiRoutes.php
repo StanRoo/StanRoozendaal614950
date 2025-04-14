@@ -120,9 +120,16 @@ switch (true) {
 
     // -----------Marketplace Routes--------------
     
-    // Get all cards on the marketplace
+    // Get all cards on the marketplace (except user listed cards)
     case $requestUri === '/api/marketplace/list' && $requestMethod === 'GET':
-        $marketplaceController->getMarketplaceCards();
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->getMarketplaceCards($decodedUser->id);
+        break;
+
+    // Get user's marketplace listings
+    case $requestUri === '/api/marketplace/userListings' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->getUserListings($decodedUser->id);
         break;
 
     // Get listed card info
