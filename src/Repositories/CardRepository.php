@@ -19,15 +19,19 @@ class CardRepository {
         return $cardData ? new CardModel($cardData) : null;
     }
 
-    public function getUserCards($userId) {
+    public function getUserCards($userId): array {
         $stmt = $this->pdo->prepare("SELECT * FROM cards WHERE user_id = :user_id");
         $stmt->execute(["user_id" => $userId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($card) => new CardModel($card), $cards);
     }
 
     public function create($cardData) {
-        $query = "INSERT INTO cards (user_id, name, type, hp, attack, defense, speed, image_url, rarity, created_at, updated_at)
-                  VALUES (:user_id, :name, :type, :hp, :attack, :defense, :speed, :image_url, :rarity, :created_at, :updated_at)";
+        $query = "INSERT INTO cards 
+            (user_id, owner_id, name, type, hp, attack, defense, speed, image_url, rarity, is_listed, created_at, updated_at)
+            VALUES 
+            (:user_id, :owner_id, :name, :type, :hp, :attack, :defense, :speed, :image_url, :rarity, :is_listed, :created_at, :updated_at)";
+        
         $stmt = $this->pdo->prepare($query);
         if ($stmt->execute($cardData)) {
             $cardData['id'] = $this->pdo->lastInsertId();
@@ -42,10 +46,18 @@ class CardRepository {
     }
 
     public function updateCardOwner($cardId, $newOwnerId): bool {
-        $sql = "UPDATE cards SET owner_id = :newOwnerId WHERE id = :cardId";
+        $sql = "UPDATE cards SET user_id = :newOwnerId WHERE id = :cardId";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':newOwnerId', $newOwnerId);
         $stmt->bindParam(':cardId', $cardId);
         return $stmt->execute();
+    }
+
+    public function setCardListedStatus(int $cardId, bool $isListed): bool {
+        $stmt = $this->pdo->prepare("UPDATE cards SET is_listed = :is_listed, updated_at = NOW() WHERE id = :card_id");
+        return $stmt->execute([
+            'is_listed' => $isListed ? 1 : 0,
+            'card_id' => $cardId
+        ]);
     }
 }

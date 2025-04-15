@@ -28,12 +28,15 @@ class CardService {
         if (empty($data['name']) || empty($data['type']) || empty($data['rarity'])) {
             return ['success' => false, 'message' => 'Missing required fields'];
         }
+
         $imagePath = ImageUploader::upload($image, 'cards');
         if (!$imagePath) {
             return ['success' => false, 'message' => 'Failed to upload image'];
         }
+
         $cardData = [
             'user_id' => $userId,
+            'owner_id' => $userId,
             'name' => $data['name'],
             'type' => $data['type'],
             'hp' => $data['hp'] ?? 0,
@@ -42,29 +45,34 @@ class CardService {
             'speed' => $data['speed'] ?? 0,
             'image_url' => $imagePath,
             'rarity' => $data['rarity'],
+            'is_listed' => 0,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ];
+
         $createdCard = $this->cardRepository->create($cardData);
         if ($createdCard) {
             $cardModel = new CardModel($cardData);
             return ['success' => true, 'message' => 'Card created successfully', 'data' => $cardModel->toArray()];
         }
+
         return ['success' => false, 'message' => 'Failed to create card'];
     }
 
-    public function deleteCard($userId, $cardId) {
+    public function deleteCard($userId, $cardId): bool {
         $card = $this->cardRepository->getCardById($cardId);
-        if (!$card) {
-            return ErrorHandler::respondWithError(404, "Card not found.");
+        if (!$card || $card->user_id !== $userId || $card->is_listed) {
+            return false;
         }
-        if ($card->user_id !== $userId) {
-            return ErrorHandler::respondWithError(403, "Unauthorized: You don't own this card.");
-        }
+    
         return $this->cardRepository->delete($cardId);
     }
 
     public function updateCardOwner($cardId, $newOwnerId) {
         return $this->cardRepository->updateCardOwner($cardId, $newOwnerId);
+    }
+
+    public function setCardListingStatus($cardId, bool $status) {
+        return $this->cardRepository->setCardListedStatus($cardId, $status);
     }
 }

@@ -89,9 +89,9 @@ class CardController {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
 
-            $this->cardService->deleteCard($decodedUser->id, $cardId);
+            $deleted = $this->cardService->deleteCard($decodedUser->id, $cardId);
             if (!$deleted) {
-                ErrorHandler::respondWithError(403, "Unauthorized or card not found.");
+                ErrorHandler::respondWithError(403, "Unauthorized, card not found, or card is listed.");
             }
 
             echo json_encode(["success" => true, "message" => "Card deleted successfully!"]);

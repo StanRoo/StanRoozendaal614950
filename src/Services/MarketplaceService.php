@@ -14,15 +14,13 @@ class MarketplaceService
     private CardRepository $cardRepository;
     private UserRepository $userRepository;
 
-    public function __construct(MarketplaceRepository $marketplaceRepository, CardRepository $cardRepository, UserRepository $userRepository)
-    {
+    public function __construct(MarketplaceRepository $marketplaceRepository, CardRepository $cardRepository, UserRepository $userRepository) {
         $this->marketplaceRepository = $marketplaceRepository;
         $this->cardRepository = $cardRepository;
         $this->userRepository = $userRepository;
     }
 
-    public function listCard(int $userId, int $cardId, float $price): array
-    {
+    public function listCard(int $userId, int $cardId, float $price): array {
         $card = $this->cardRepository->getCardById($cardId);
 
         if (!$card) {
@@ -33,9 +31,13 @@ class MarketplaceService
             return ErrorHandler::respondWithError(403, "Unauthorized: You do not own this card.");
         }
 
+        if ($card->is_listed) {
+            return ErrorHandler::respondWithError(400, "This card is already listed.");
+        }
+
         $existingListing = $this->marketplaceRepository->getListingByCardId($cardId);
         if ($existingListing) {
-            return ErrorHandler::respondWithError(400, "This card is already listed on the marketplace.");
+            return ErrorHandler::respondWithError(400, "This card already has a listing.");
         }
 
         $listingData = [
@@ -50,6 +52,8 @@ class MarketplaceService
         $created = $this->marketplaceRepository->createListing($listing);
 
         if ($created) {
+            $this->cardRepository->setCardListedStatus($cardId, 1);
+
             return [
                 'success' => true,
                 'message' => 'Card listed successfully.',
@@ -59,13 +63,11 @@ class MarketplaceService
         return ErrorHandler::respondWithError(500, "Failed to list card.");
     }
 
-    public function getAllActiveListingsExceptUser($user_id): array
-    {
+    public function getAllActiveListingsExceptUser($user_id): array {
         return $this->marketplaceRepository->getAllActiveListingsExceptUser($user_id);
     }
 
-    public function getUserListings(int $userId): array
-    {
+    public function getUserListings(int $userId): array {
         return $this->marketplaceRepository->getListingsByUserId($userId);
     }
 

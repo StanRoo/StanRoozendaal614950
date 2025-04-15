@@ -19,8 +19,7 @@ class MarketplaceController
         $this->errorHandler = $errorHandler;
     }
 
-    public function listCard($userId)
-    {
+    public function listCard($userId) {
         $data = json_decode(file_get_contents('php://input'), true);
         $cardId = $data['card_id'] ?? null;
         $price = $data['price'] ?? null;
@@ -35,11 +34,15 @@ class MarketplaceController
 
         $result = $this->marketplaceService->listCard($userId, $cardId, $price);
 
-        if (isset($result['error'])) {
-            return ErrorHandler::respondWithError($result['error']['status'], $result['error']['message']);
+        if (!$result['success']) {
+            return ErrorHandler::respondWithError(500, "Failed to list card.");
         }
 
-        echo json_encode(["success" => true, "message" => "Card listed on the marketplace!"]);
+        echo json_encode([
+            "success" => true,
+            "message" => $result['message'],
+            "listing" => $result['data']
+        ]);
     }
 
     public function getMarketplaceCards($user_id) {

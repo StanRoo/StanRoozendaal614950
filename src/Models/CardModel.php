@@ -5,6 +5,7 @@ namespace App\Models;
 class CardModel {
     public $id;
     public $user_id;
+    public $owner_id;
     public $name;
     public $type;
     public $hp;
@@ -13,12 +14,14 @@ class CardModel {
     public $speed;
     public $image_url;
     public $rarity;
+    public $is_listed;
     public $created_at;
     public $updated_at;
 
     public function __construct($data) {
         $this->id = $data['id'] ?? null;
         $this->user_id = $data['user_id'];
+        $this->owner_id = $data['owner_id'];
         $this->name = $data['name'];
         $this->type = $data['type'];
         $this->hp = $data['hp'];
@@ -27,6 +30,7 @@ class CardModel {
         $this->speed = $data['speed'];
         $this->image_url = $data['image_url'];
         $this->rarity = $data['rarity'];
+        $this->is_listed = $data['is_listed'] ?? 0;
         $this->created_at = $data['created_at'] ?? date("Y-m-d H:i:s");
         $this->updated_at = $data['updated_at'] ?? date("Y-m-d H:i:s");
     }
@@ -35,6 +39,7 @@ class CardModel {
         return [
             "id" => $this->id,
             "user_id" => $this->user_id,
+            "owner_id" => $this->owner_id,
             "name" => $this->name,
             "type" => $this->type,
             "hp" => $this->hp,
@@ -43,6 +48,7 @@ class CardModel {
             "speed" => $this->speed,
             "image_url" => $this->image_url,
             "rarity" => $this->rarity,
+            "is_listed" => $this->is_listed,
             "created_at" => $this->created_at,
             "updated_at" => $this->updated_at
         ];
@@ -54,6 +60,10 @@ class CardModel {
 
     public function getUserId(): int {
         return $this->user_id;
+    }
+
+    public function getOwnerId(): int {
+        return $this->owner_id;
     }
 
     public function getName(): string {
@@ -86,7 +96,11 @@ class CardModel {
 
     public function getRarity(): string {
         return $this->rarity;
-    } 
+    }
+
+    public function isListed(): bool {
+        return $this->is_listed;
+    }
 
     public function getCreatedAt(): ?string {
         return $this->created_at;

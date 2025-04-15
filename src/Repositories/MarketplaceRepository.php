@@ -25,7 +25,7 @@ class MarketplaceRepository {
             'status' => $listing->getStatus()
         ]);
         $id = $this->pdo->lastInsertId();
-        return $this->getId($id);
+        return new MarketplaceListingModel(array_merge($listing->toArray(), ['id' => $id]));
     }
 
     public function getListingById($listingId) {
@@ -37,7 +37,7 @@ class MarketplaceRepository {
     }
 
     public function getAllActiveListingsExceptUser($user_id): array {
-        if ($excludeUserId !== null) {
+        if ($user_id !== null) {
             $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE status = 'active' AND seller_id != :userId");
             $stmt->bindParam(':userId', $user_id, PDO::PARAM_INT);
         } else {
