@@ -16,6 +16,10 @@
         </div>
 
         <button @click="buyNow" class="buy-now-button">Buy Now</button>
+        <div class="feedback">
+          <p v-if="successMessage" class="success">{{ successMessage }}</p>
+          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -27,14 +31,18 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import { useUserStore } from '@/Store/UserStore';
 import CardDisplay from '@/Components/CardDisplay.vue';
 
 defineEmits(['profileUpdated'])
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 const card = ref(null);
 const listingInfo = ref(null);
+const successMessage = ref('');
+const errorMessage = ref('');
 
 onMounted(async () => {
   const cardId = route.params.id;
@@ -73,14 +81,24 @@ const buyNow = async () => {
   const token = localStorage.getItem('token');
   if (!token) return;
 
+  successMessage.value = '';
+  errorMessage.value = '';
+
   try {
-    const response = await axios.post('/transaction/buyNow', 
+    await axios.post('/transaction/buyNow', 
       { listing_id: listingInfo.value.listing_id }, 
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    alert('Transaction successful');
+
+    const currentBalance = userStore.user?.balance ?? 0;
+    const newBalance = currentBalance - listingInfo.value.price;
+    userStore.updateBalance(newBalance);
+
+    successMessage.value = 'Purchase successful!';
+    setTimeout(() => (successMessage.value = ''), 4000);
   } catch (error) {
-    alert('Error purchasing card: ' + (error.response?.data?.message || error.message));
+    errorMessage.value = error.response?.data?.message || 'Purchase failed.';
+    setTimeout(() => (errorMessage.value = ''), 4000);
   }
 };
 </script>
@@ -173,5 +191,12 @@ const buyNow = async () => {
 .loading-message {
   font-size: 1.5vw;
   color: gray;
+}
+
+.success {
+  color: green;
+}
+.error {
+  color: red;
 }
 </style>

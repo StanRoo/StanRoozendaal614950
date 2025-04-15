@@ -30,10 +30,10 @@ class TransactionController {
             ErrorHandler::respondWithError(404, "Listing not found.");
             return;
         }
-        if ($buyerId === $listing['seller_id']) {
+        /*if ($buyerId === $listing['seller_id']) {
             ErrorHandler::respondWithError(400, "You cannot buy your own card.");
             return;
-        }
+        }*/
 
         $cardId = $listing['card_id'];
         $sellerId = $listing['seller_id'];
@@ -43,8 +43,8 @@ class TransactionController {
             ErrorHandler::respondWithError(400, "Insufficient balance.");
             return;
         }
-        $this->userService->updateBalance($buyer->id, $price);
-        $this->userService->addBalance($sellerId, $price);
+        $this->userService->updateUserBalance($buyer->id, $price);
+        $this->userService->addOwnerBalance($sellerId, $price);
         $this->marketplaceService->markListingAsSold($listingId);
         $this->cardService->updateCardOwner($cardId, $buyerId);
         $transactionCreated = $this->transactionService->logTransaction($buyerId, $sellerId, $cardId, $price);
