@@ -9,6 +9,7 @@ const baseUrl = "http://localhost:8000/";
 
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
+const dropdownVisibleMarketplace = ref(false);
 const dropdownVisible = ref(false);
 const userBalance = computed(() => userStore.user?.balance ?? 0);
 
@@ -45,7 +46,13 @@ const logout = () => {
       </router-link>
       <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
       <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
-      <router-link to="/marketplace" class="nav-link" active-class="active">Marketplace</router-link>
+      <div class="nav-link dropdown-wrapper" @mouseenter="dropdownVisibleMarketplace = true" @mouseleave="dropdownVisibleMarketplace = false">
+        <span class="dropdown-title">Marketplace &#11167;</span>
+        <div v-if="dropdownVisibleMarketplace" class="dropdown-menu marketplace-dropdown">
+          <router-link to="/marketplace" class="dropdown-item">Marketplace</router-link>
+          <router-link to="/myMarketplaceListings" class="dropdown-item">My Listings</router-link>
+        </div>
+      </div>
       <router-link to="/createCard" class="nav-link" active-class="active">Create Card</router-link>
     </div>
 
@@ -113,6 +120,38 @@ const logout = () => {
 .nav-left .active {
   background: #4992f8;
   color: white;
+}
+
+.dropdown-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+  cursor: pointer;
+}
+
+.dropdown-title {
+  color: white;
+  font-size: 1.1rem;
+  user-select: none;
+}
+
+.marketplace-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #3366af;
+  border-radius: 5px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.dropdown-wrapper:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .nav-right {
@@ -183,7 +222,7 @@ const logout = () => {
 .dropdown-menu {
   color: white;
   position: absolute;
-  top: 50px;
+  top: 100%;
   right: 0;
   background: #3366af;
   border-radius: 5px;
