@@ -10,7 +10,6 @@ const baseUrl = "http://localhost:8000/";
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisibleMarketplace = ref(false);
-const dropdownVisible = ref(false);
 const userBalance = computed(() => userStore.user?.balance ?? 0);
 
 const profilePicture = computed(() => {
@@ -28,10 +27,6 @@ const profilePicture = computed(() => {
   return url;
 });
 
-const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value;
-};
-
 const logout = () => {
   userStore.logout();
   window.location.href = "/";
@@ -46,9 +41,16 @@ const logout = () => {
       </router-link>
       <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
       <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
-      <div class="nav-link dropdown-wrapper" @mouseenter="dropdownVisibleMarketplace = true" @mouseleave="dropdownVisibleMarketplace = false">
+      <div
+        class="nav-link dropdown-wrapper"
+        @mouseenter="dropdownVisibleMarketplace = true"
+        @mouseleave="dropdownVisibleMarketplace = false"
+      >
         <span class="dropdown-title">Marketplace &#11167;</span>
-        <div v-if="dropdownVisibleMarketplace" class="dropdown-menu marketplace-dropdown">
+        <div
+          v-if="dropdownVisibleMarketplace"
+          class="marketplace-dropdown-menu"
+        >
           <router-link to="/marketplace" class="dropdown-item">Marketplace</router-link>
           <router-link to="/myMarketplaceListings" class="dropdown-item">My Listings</router-link>
         </div>
@@ -64,17 +66,14 @@ const logout = () => {
 
       <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
 
-      <div class="profile-dropdown profile-container nav-link" active-class="active">
+      <div class="profile-dropdown profile-container nav-link">
         <img
           :src="profilePicture"
           class="profile-pic"
           alt="Profile Picture"
-          @click="toggleDropdown"
         />
-        <div v-if="dropdownVisible" class="dropdown-menu">
-          <router-link to="/profile" class="dropdown-item" @click="toggleDropdown">
-            My Profile
-          </router-link>
+        <div class="profile-dropdown-menu">
+          <router-link to="/profile" class="dropdown-item">My Profile</router-link>
           <button @click="logout" class="dropdown-item">Logout</button>
         </div>
       </div>
@@ -137,7 +136,7 @@ const logout = () => {
   user-select: none;
 }
 
-.marketplace-dropdown {
+.marketplace-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -148,6 +147,8 @@ const logout = () => {
   display: flex;
   flex-direction: column;
   padding: 10px;
+  width: 8vw;
+  color: white;
 }
 
 .dropdown-wrapper:hover {
@@ -197,6 +198,10 @@ const logout = () => {
   position: relative;
 }
 
+.profile-dropdown:hover .profile-dropdown-menu {
+  display: flex;
+}
+
 .profile-container {
   display: flex;
   align-items: center;
@@ -219,8 +224,8 @@ const logout = () => {
   transform: scale(1.1);
 }
 
-.dropdown-menu {
-  color: white;
+.profile-dropdown-menu {
+  display: none;
   position: absolute;
   top: 100%;
   right: 0;
@@ -228,9 +233,10 @@ const logout = () => {
   border-radius: 5px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  display: flex;
   flex-direction: column;
   padding: 10px;
+  width: 8vw;
+  color: white;
 }
 
 .dropdown-item {
