@@ -20,14 +20,7 @@ class MarketplaceListingModel {
     }
 
     public function toArray(): array {
-        return [
-            'id' => $this->id,
-            'card_id' => $this->card_id,
-            'seller_id' => $this->seller_id,
-            'price' => $this->price,
-            'listed_at' => $this->listed_at,
-            'status' => $this->status
-        ];
+        return get_object_vars($this);
     }
 
     public function getId(): ?int {

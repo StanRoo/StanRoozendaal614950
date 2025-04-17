@@ -36,22 +36,7 @@ class CardModel {
     }
 
     public function toArray(): array {
-        return [
-            "id" => $this->id,
-            "user_id" => $this->user_id,
-            "owner_id" => $this->owner_id,
-            "name" => $this->name,
-            "type" => $this->type,
-            "hp" => $this->hp,
-            "attack" => $this->attack,
-            "defense" => $this->defense,
-            "speed" => $this->speed,
-            "image_url" => $this->image_url,
-            "rarity" => $this->rarity,
-            "is_listed" => $this->is_listed,
-            "created_at" => $this->created_at,
-            "updated_at" => $this->updated_at
-        ];
+        return get_object_vars($this);
     }
 
     public function getId(): ?int {
