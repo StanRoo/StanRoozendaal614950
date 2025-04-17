@@ -13,6 +13,7 @@ import ForgotPasswordView from '@/Views/ForgotPasswordView.vue'
 import CreateAccountView from '@/Views/CreateAccountView.vue'
 import AdminView from '@/Views/AdminView.vue'
 import CardDetailPageView from '@/Views/CardDetailPageView.vue';
+import ErrorView from '@/Views/ErrorView.vue';
 
 const routes = [
   { path: '/', name: 'Login', component: LoginView },
@@ -39,6 +40,24 @@ const routes = [
         next();
       }
     }
+  },
+  {
+    path: '/error',
+    name: 'ErrorView',
+    component: ErrorView,
+    props: route => ({
+      status: route.query.status || 500,
+      message: route.query.message || 'Something went wrong.',
+    }),
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: 'NotFound',
+    component: ErrorView,
+    props: {
+      status: 404,
+      message: "The page you're looking for doesn't exist.",
+    },
   },
 ]
 

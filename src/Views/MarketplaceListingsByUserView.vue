@@ -1,11 +1,9 @@
 <template>
     <header>
-      <img class="banner" :src="MarketplaceBanner" alt="Marketplace Banner" />
+      <img class="banner" :src="MyListingsBanner" alt="My Listings Banner" />
     </header>
   
     <div class="my-listings-container">
-      <h2 class="page-title">My Listings</h2>
-  
       <section v-if="cards.length > 0" class="marketplace-grid">
         <div
           v-for="card in cards"
@@ -30,7 +28,7 @@
   import { ref, onMounted } from 'vue';
   import axios from 'axios';
   import CardDisplay from '@/Components/CardDisplay.vue';
-  import MarketplaceBanner from '@/assets/images/Marketplace_Banner.png';
+  import MyListingsBanner from '@/assets/images/My_Listings_Banner.png';
   
   const router = useRouter();
   const cards = ref([]);

@@ -1,4 +1,8 @@
 <template>
+  <header>
+    <img class="banner" :src="ProfileBanner" alt="Profile Banner"/>
+  </header>
+  
   <div class="container profile-container">
     <div class="profile-grid">
       <!-- Profile Picture Section -->
@@ -71,11 +75,13 @@
 import { useUserStore } from '@/Store/UserStore';
 import axios from "axios";
 import { handleApiError } from "@/Utils/errorHandler";
+import ProfileBanner from '@/assets/images/Profile_Banner.png'
 
 export default {
   data() {
     return {
       user: { ...useUserStore().user },
+      ProfileBanner,
       selectedFile: null,
       previewImage: null,
       defaultPictures: [
@@ -94,7 +100,11 @@ export default {
         "/uploads/Defaults/Riolu_PFP.png",
         "/uploads/Defaults/Shinx_PFP.png",
         "/uploads/Defaults/Snorlax_PFP.png",
-        "/uploads/Defaults/Umbreon_PFP.png"
+        "/uploads/Defaults/Umbreon_PFP.png",
+        "/uploads/Defaults/Metagross_PFP.png",
+        "/uploads/Defaults/Absol_PFP.png",
+        "/uploads/Defaults/Scizor_PFP.png",
+        "/uploads/Defaults/Rayquaza_PFP.png"
       ],
       messagePicture: "",
       messageInfo: "",
@@ -208,6 +218,11 @@ export default {
 </script>
 
 <style scoped>
+  .banner {
+    width: 100%;
+    margin-top: 10px;
+  }
+
   .profile-container {
     max-width: 1000px;
     margin: 100px auto 50px;
