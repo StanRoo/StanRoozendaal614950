@@ -23,21 +23,22 @@ class MarketplaceController
         $data = json_decode(file_get_contents('php://input'), true);
         $cardId = $data['card_id'] ?? null;
         $price = $data['price'] ?? null;
+        $minimumBid = $data['min_bid_price'] ?? null;
+        $expiresAt = $data['expires_at'] ?? null;
 
-        if (!$cardId || !$price) {
-            return ErrorHandler::respondWithError(400, "Card ID and price are required.");
+        if (!$cardId || !$price || !$minimumBid || !$expiresAt) {
+            return ErrorHandler::respondWithError(400, "Card ID, price, minimum bid, and expiry date are required.");
         }
-
-        if (!is_numeric($price) || $price <= 0) {
-            return ErrorHandler::respondWithError(400, "Price must be a positive number.");
+        if (!is_numeric($price) || $price <= 0 || !is_numeric($minimumBid) || $minimumBid < 0) {
+            return ErrorHandler::respondWithError(400, "Price and minimum bid must be valid numbers (min bid can be 0).");
         }
-
-        $result = $this->marketplaceService->listCard($userId, $cardId, $price);
-
+        if (!strtotime($expiresAt)) {
+            return ErrorHandler::respondWithError(400, "Invalid expiry date.");
+        }
+        $result = $this->marketplaceService->listCard($userId, $cardId, $price, $minimumBid, $expiresAt);
         if (!$result['success']) {
-            return ErrorHandler::respondWithError(500, "Failed to list card.");
+            return ErrorHandler::respondWithError(500, $result['message']);
         }
-
         echo json_encode([
             "success" => true,
             "message" => $result['message'],
@@ -99,6 +100,7 @@ class MarketplaceController
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
             $cardWithListing = $this->marketplaceService->getCardWithListing($cardId);
+            $highestBid = $this->marketplaceService->getHighestBidForListing($cardWithListing['listing_id']);
             
             if (!$cardWithListing) {
                 ErrorHandler::respondWithError(404, "Listing not found for card ID: $cardId");
@@ -109,10 +111,34 @@ class MarketplaceController
                 'listing_id' => $cardWithListing['listing_id'],
                 'listed_at' => $cardWithListing['listed_at'],
                 'seller_id' => $cardWithListing['seller_id'],
-                'seller_username' => $cardWithListing['seller_username']
+                'seller_username' => $cardWithListing['seller_username'],
+                'min_bid_price' => $cardWithListing['min_bid_price'],
+                'highest_bid' => $highestBid
             ]);
         } catch (\Exception $e) {
             ErrorHandler::respondWithError(500, $e->getMessage());
+        }
+    }
+
+    public function finalizeExpiredListings() {
+        try {
+            $results = $this->marketplaceService->finalizeExpiredListings();
+            echo json_encode([
+                'success' => true,
+                'processed' => count($results),
+                'results' => $results
+            ]);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(500, "Failed to finalize expired listings: " . $e->getMessage());
+        }
+    }
+
+    public function buyCard($listingId, $buyerId) {
+        $transactionResult = $this->marketplaceService->buyCard($listingId, $buyerId);
+        if ($transactionResult['success']) {
+            echo json_encode(['message' => 'Transaction successful']);
+        } else {
+            ErrorHandler::respondWithError(500, $transactionResult['message']);
         }
     }
 }

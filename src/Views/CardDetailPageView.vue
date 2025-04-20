@@ -10,9 +10,14 @@
       <div class="right-column">
         <div class="marketplace-section">
           <h3>List Card on Marketplace</h3>
-          <label for="price">Price</label>
-          <input v-model="price" type="number" id="price" min="0" placeholder="Enter minimum price" />
-          <button @click="listOnMarketplace" :disabled="!price || listingComplete">Add to Marketplace</button>
+          <label for="price">Buy Now Price</label>
+          <input v-model="price" type="number" id="price" min="0" placeholder="Enter buy now price" />
+          <label for="minBidPrice">Minimum Bid Price</label>
+          <input v-model="minBidPrice" type="number" id="minBidPrice" min="0" placeholder="Enter minimum bid price" />
+          <label for="expiryDate">Expiry Date</label>
+          <input v-model="expiryDate" type="datetime-local" id="expiryDate" />
+          
+          <button @click="listOnMarketplace" :disabled="!price || !minBidPrice || listingComplete">Add to Marketplace</button>
           <p v-if="listMessage" class="success">{{ listMessage }}</p>
           <p v-if="listError" class="error">{{ listError }}</p>
         </div>
@@ -40,7 +45,6 @@
   <div v-else class="loading">Loading card details...</div>
 </template>
 
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -51,6 +55,8 @@ const route = useRoute();
 const router = useRouter();
 const card = ref(null);
 const price = ref(null);
+const minBidPrice = ref(null);
+const expiryDate = ref('');
 
 const listMessage = ref('');
 const listError = ref('');
@@ -70,7 +76,7 @@ onMounted(async () => {
     });
     card.value = response.data.card;
   } catch (error) {
-
+    console.error(error);
   }
 });
 
@@ -78,11 +84,21 @@ const listOnMarketplace = async () => {
   listMessage.value = '';
   listError.value = '';
 
+  if (!price.value || !minBidPrice.value || !expiryDate.value) {
+  listError.value = 'Buy Now Price, Minimum Bid Price, and Expiry Date are required.';
+  setTimeout(() => {
+    listError.value = '';
+  }, 4000);
+  return;
+}
+
   try {
     const token = localStorage.getItem('token');
     await axios.post('/marketplace/list', {
       card_id: card.value.id,
-      price: price.value
+      price: price.value,
+      min_bid_price: minBidPrice.value,
+      expires_at: expiryDate.value
     }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -194,6 +210,13 @@ const goBack = () => {
   border-radius: 5px;
   border: 1px solid #ccc;
   margin-top: 1.2vw;
+}
+
+.min-bid-price {
+  font-size: 1.1vw;
+  color: #007bff;
+  font-weight: bold;
+  margin-top: 1.5vw;
 }
 
 .marketplace-section button {

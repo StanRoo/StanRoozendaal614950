@@ -14,26 +14,31 @@ class MarketplaceRepository {
 
     public function createListing(MarketplaceListingModel $listing): ?MarketplaceListingModel {
         $stmt = $this->pdo->prepare("
-            INSERT INTO marketplace_listings (card_id, seller_id, price, listed_at, status)
-            VALUES (:card_id, :seller_id, :price, :listed_at, :status)
+            INSERT INTO marketplace_listings (card_id, seller_id, price, listed_at, status, min_bid_price, expires_at) VALUES (
+                :card_id, :seller_id, :price, :listed_at, :status, :min_bid_price, :expires_at
+            )
         ");
+
         $stmt->execute([
             'card_id' => $listing->getCardId(),
             'seller_id' => $listing->getSellerId(),
             'price' => $listing->getPrice(),
             'listed_at' => $listing->getListedAt(),
-            'status' => $listing->getStatus()
+            'status' => $listing->getStatus(),
+            'min_bid_price' => $listing->getMinBidPrice(),
+            'expires_at' => $listing->getExpiresAt(),
         ]);
         $id = $this->pdo->lastInsertId();
         return new MarketplaceListingModel(array_merge($listing->toArray(), ['id' => $id]));
     }
 
-    public function getListingById($listingId) {
+    public function getListingById(int $listingId): ?MarketplaceListingModel {
         $sql = "SELECT * FROM marketplace_listings WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':id', $listingId);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $data ? new MarketplaceListingModel($data) : null;
     }
 
     public function getAllActiveListingsExceptUser($user_id): array {
@@ -89,5 +94,15 @@ class MarketplaceRepository {
             return null;
         }
         return new MarketplaceListingModel($data);
+    }
+
+    public function getExpiredActiveListings(): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM marketplace_listings WHERE status = 'active' AND expires_at IS NOT NULL AND expires_at <= NOW()");
+        $stmt->execute();
+        $expired = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $expired[] = new MarketplaceListingModel($row);
+        }
+        return $expired;
     }
 }

@@ -5,6 +5,11 @@
     <div class="main-content">
       <div class="left-column">
         <CardDisplay :card="card" />
+        <button @click="buyNow" class="buy-now-button">Buy Now</button>
+        <div class="feedback">
+          <p v-if="successMessage" class="success">{{ successMessage }}</p>
+          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        </div>
       </div>
 
       <div class="right-column">
@@ -15,10 +20,35 @@
           <p><strong>Price:</strong> {{ listingInfo.price }} <img src="@/assets/icons/coin.png" class="coin-icon" /></p>
         </div>
 
-        <button @click="buyNow" class="buy-now-button">Buy Now</button>
-        <div class="feedback">
-          <p v-if="successMessage" class="success">{{ successMessage }}</p>
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <div class="info-card bid-section" v-if="listingInfo">
+          <h3>Place a Bid</h3>
+
+          <p>
+            <strong>Current Highest Bid: </strong>
+            <span v-if="listingInfo.highest_bid !== null">{{ formatPrice(listingInfo.highest_bid.bid_amount) }}</span>
+            <span v-else>No bids yet</span>
+            <img src="@/assets/icons/coin.png" class="coin-icon" />
+          </p>
+          <p>
+            <strong>Minimum Bid:</strong>
+            {{ formatPrice(listingInfo.min_bid_price) }}
+            <img src="@/assets/icons/coin.png" class="coin-icon" />
+          </p>
+
+          <form @submit.prevent="placeBid">
+            <input
+              v-model="bidAmount"
+              type="number"
+              :min="listingInfo.min_bid_price"
+              step="0.01"
+              required
+              placeholder="Enter bid amount"
+            />
+            <button type="submit" class="bid-button">Submit Bid</button>
+          </form>
+
+          <p v-if="bidMessage" class="success">{{ bidMessage }}</p>
+          <p v-if="bidError" class="error">{{ bidError }}</p>
         </div>
       </div>
     </div>
@@ -43,18 +73,23 @@ const card = ref(null);
 const listingInfo = ref(null);
 const successMessage = ref('');
 const errorMessage = ref('');
+const bidAmount = ref('');
+const bidMessage = ref('');
+const bidError = ref('');
 
-onMounted(async () => {
-  const cardId = route.params.id;
+onMounted(() => {
+  fetchCardDetails();
+});
+
+const fetchCardDetails = async () => {
   const token = localStorage.getItem('token');
-
-  if (!token) return;
+  const cardId = route.params.id;
 
   try {
     const response = await axios.get(`/marketplace/card/${cardId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log(response.data);
+
     card.value = response.data.card;
     listingInfo.value = {
       price: response.data.price,
@@ -62,15 +97,22 @@ onMounted(async () => {
       seller_username: response.data.seller_username,
       listed_at: response.data.listed_at,
       listing_id: response.data.listing_id,
+      min_bid_price: response.data.min_bid_price,
+      highest_bid: response.data.highest_bid,
     };
   } catch (error) {
     console.error('Error fetching card details:', error.response?.data || error);
   }
-});
+};
 
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
   return date.toLocaleString();
+};
+
+const formatPrice = (value) => {
+  if (!value && value !== 0) return '0';
+  return Number(value).toLocaleString();
 };
 
 const goBack = () => {
@@ -85,7 +127,7 @@ const buyNow = async () => {
   errorMessage.value = '';
 
   try {
-    await axios.post('/transaction/buyNow', 
+    await axios.post('/marketplace/buyNow', 
       { listing_id: listingInfo.value.listing_id }, 
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -99,6 +141,36 @@ const buyNow = async () => {
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Purchase failed.';
     setTimeout(() => (errorMessage.value = ''), 4000);
+  }
+};
+
+const placeBid = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  bidMessage.value = '';
+  bidError.value = '';
+
+  try {
+    await axios.post('/bid/place',
+      {
+        listing_id: listingInfo.value.listing_id,
+        amount: parseFloat(bidAmount.value),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    bidMessage.value = 'Bid placed successfully!';
+    bidAmount.value = '';
+    await fetchCardDetails();
+    setTimeout(() => (bidMessage.value = ''), 3000);
+  } catch (err) {
+    bidError.value = err.response?.data?.message || 'Failed to place bid.';
+    setTimeout(() => (bidError.value = ''), 3000);
   }
 };
 </script>
@@ -144,6 +216,22 @@ const buyNow = async () => {
   width: 48%;
 }
 
+.buy-now-button {
+  padding: 1vw 2vw;
+  width: 18vw;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2vw;
+  cursor: pointer;
+  margin-top: 5vw;
+}
+
+.buy-now-button:hover {
+  background-color: #218838;
+}
+
 .right-column {
   width: 48%;
 }
@@ -173,21 +261,6 @@ const buyNow = async () => {
   margin-left: 0.5vw;
 }
 
-.buy-now-button {
-  padding: 1vw 2vw;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.2vw;
-  cursor: pointer;
-  margin-top: 2vw;
-}
-
-.buy-now-button:hover {
-  background-color: #218838;
-}
-
 .loading-message {
   font-size: 1.5vw;
   color: gray;
@@ -198,5 +271,42 @@ const buyNow = async () => {
 }
 .error {
   color: red;
+}
+
+.bid-section {
+  background-color: #fefefe;
+  padding: 2vw;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 128, 0, 0.1);
+  margin-top: 2vw;
+}
+
+.bid-section form {
+  margin-top: 1vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.bid-section input[type="number"] {
+  padding: 0.6vw;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1vw;
+  margin-bottom: 1vw;
+}
+
+.bid-button {
+  background-color: #ffc107;
+  color: #000;
+  padding: 0.8vw 1.5vw;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1vw;
+  transition: all 0.3s ease;
+}
+
+.bid-button:hover {
+  background-color: #e0a800;
 }
 </style>

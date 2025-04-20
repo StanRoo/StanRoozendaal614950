@@ -7,6 +7,7 @@ use App\Controllers\UserController;
 use App\Controllers\CardController;
 use App\Controllers\TransactionController;
 use App\Controllers\MarketplaceController;
+use App\Controllers\BidController;
 
 $requestUri = strtok($_SERVER['REQUEST_URI'], '?');
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -16,6 +17,7 @@ $userController = $userController;
 $cardController = $cardController;
 $transactionController = $transactionController;
 $marketplaceController = $marketplaceController;
+$bidController = $bidController;
 $authMiddleware = $authMiddleware;
 
 switch (true) {
@@ -157,10 +159,39 @@ switch (true) {
         $marketplaceController->updateCardPrice($decodedUser->id, $cardId);
         break;
 
-    // -------------Transaction Routes-----------------
+    // Finalize expired listings
+    case $requestUri === '/api/marketplace/finalizeExpired' && $requestMethod === 'POST':
+        $marketplaceController->finalizeExpiredListings();
+        break;
+
+    // ---------------- Bid Routes --------------------
+
+    // Place a bid on a listing
+    case $requestUri === '/api/bid/place' && $requestMethod === 'POST':
+        $decodedUser = $authMiddleware->verifyToken();
+        $bidController->placeBid($decodedUser->id);
+        break;
+
+    // Get bids for a specific listing
+    case $requestUri === '/api/bid/listing' && $requestMethod === 'GET':
+        $bidController->getBidsForListing();
+        break;
+
+    // Get current user's bids (optional)
+    case $requestUri === '/api/bid/my' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $_SESSION['user_id'] = $decodedUser->id;
+        $bidController->getMyBids();
+        break;
+
+    // Get highest bid for a specific listing
+    case preg_match('/\/api\/marketplace\/highestBid\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
+        $listingId = $matches[1];
+        $marketplaceController->getHighestBid($listingId);
+        break;
 
     // Buy a Pokémon card
-    case $requestUri === '/api/transaction/buyNow' && $requestMethod === 'POST':
+    case $requestUri === '/api/marketplace/buyNow' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $requestBody = json_decode(file_get_contents("php://input"), true);
         if (!isset($requestBody['listing_id'])) {
@@ -169,7 +200,7 @@ switch (true) {
         }
         $listingId = $requestBody['listing_id'];
         $buyerId = $decodedUser->id;
-        $transactionController->buyCard($listingId, $buyerId);
+        $marketplaceController->buyCard($listingId, $buyerId);
         break;
 
     // -----------Default 404 Response------------
