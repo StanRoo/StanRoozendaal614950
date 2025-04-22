@@ -60,6 +60,6 @@ $authMiddleware = new AuthMiddleware($userRepository);
 $authController = new AuthController($authService, $errorHandler);
 $userController = new UserController($userService, $authMiddleware, $errorHandler);
 $cardController = new CardController($cardService, $userService, $authMiddleware, $errorHandler);
-$transactionController = new TransactionController($transactionService, $marketplaceService, $userService, $cardService, $authMiddleware, $errorHandler);
+$transactionController = new TransactionController($transactionService, $authMiddleware, $errorHandler);
 $marketplaceController = new MarketplaceController($marketplaceService, $authMiddleware, $errorHandler);
 $bidController = new BidController($bidService, $marketplaceService, $authMiddleware, $errorHandler);
