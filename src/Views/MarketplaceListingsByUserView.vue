@@ -1,37 +1,120 @@
 <template>
-    <header>
-      <img class="banner" :src="MyListingsBanner" alt="My Listings Banner" />
-    </header>
+  <header>
+    <img class="banner" :src="MyListingsBanner" alt="My Listings Banner" />
+  </header>
   
-    <div class="my-listings-container">
-      <section v-if="cards.length > 0" class="marketplace-grid">
-        <div
-          v-for="card in cards"
-          :key="card.id"
-          class="marketplace-card"
-          @click="selectCard(card)"
-        >
-          <CardDisplay :card="card" />
-          <div class="price-container">
-            <span class="price">Price: {{ card.price }}</span>
-            <img src="@/assets/icons/coin.png" alt="Cubocoins" class="coin-icon" />
-          </div>
+  <div class="card shadow-sm mb-4 p-3 filter-card">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-3">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          class="form-control" 
+          placeholder="Search by card name..."
+        />
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select" v-model="selectedRarity">
+          <option value="">All Rarities</option>
+          <option value="Common">Common</option>
+          <option value="Rare">Rare</option>
+          <option value="Epic">Epic</option>
+          <option value="Legendary">Legendary</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select" v-model="selectedType">
+          <option value="">All Types</option>
+          <option value="Normal">Normal</option>
+          <option value="Fire">Fire</option>
+          <option value="Water">Water</option>
+          <option value="Electric">Electric</option>
+          <option value="Grass">Grass</option>
+          <option value="Ice">Ice</option>
+          <option value="Fighting">Fighting</option>
+          <option value="Poison">Poison</option>
+          <option value="Ground">Ground</option>
+          <option value="Flying">Flying</option>
+          <option value="Psychic">Psychic</option>
+          <option value="Bug">Bug</option>
+          <option value="Rock">Rock</option>
+          <option value="Ghost">Ghost</option>
+          <option value="Dragon">Dragon</option>
+          <option value="Dark">Dark</option>
+          <option value="Steel">Steel</option>
+          <option value="Fairy">Fairy</option>
+          <option value="Stellar">Stellar</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <div class="input-group">
+          <input 
+            type="number" 
+            v-model.number="minPrice" 
+            class="form-control" 
+            placeholder="Min Price" 
+          />
+          <input 
+            type="number" 
+            v-model.number="maxPrice" 
+            class="form-control" 
+            placeholder="Max Price" 
+          />
         </div>
-      </section>
-  
-      <p v-else class="empty-message">You haven't listed any cards yet.</p>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select" v-model="sortOption">
+          <option value="name_asc">Sort by Name (A-Z)</option>
+          <option value="price_asc">Lowest Price</option>
+          <option value="price_desc">Highest Price</option>
+          <option value="created_desc">Newest First</option>
+          <option value="created_asc">Oldest First</option>
+        </select>
+      </div>
     </div>
-  </template>
+  </div>
+
+  <div class="my-listings-container">
+    <section v-if="cards.length > 0" class="marketplace-grid">
+      <div
+        v-for="card in filteredCards"
+        :key="card.id"
+        class="marketplace-card"
+        @click="selectCard(card)"
+      >
+        <CardDisplay :card="card" />
+        <div class="price-container">
+          <span class="price">Price: {{ card.price }}</span>
+          <img src="@/assets/icons/coin.png" alt="Cubocoins" class="coin-icon" />
+        </div>
+      </div>
+    </section>
+    <p v-else class="empty-message">You haven't listed any cards yet.</p>
+  </div>
+</template>
   
-  <script setup>
+<script setup>
   import { useRouter } from 'vue-router';
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
   import axios from 'axios';
   import CardDisplay from '@/Components/CardDisplay.vue';
   import MyListingsBanner from '@/assets/images/My_Listings_Banner.png';
-  
+
+  defineEmits(['profileUpdated'])
+
   const router = useRouter();
   const cards = ref([]);
+ 
+  const searchQuery = ref('');
+  const selectedRarity = ref('');
+  const selectedType = ref('');
+  const minPrice = ref(null);
+  const maxPrice = ref(null);
+  const sortOption = ref('name_asc');
   
   onMounted(async () => {
     await fetchMyMarketplaceCards();
@@ -71,9 +154,54 @@
   const selectCard = (card) => {
     router.push({ name: 'MarketplaceDetail', params: { id: card.id } });
   };
-  </script>
+
+  const filteredCards = computed(() => {
+    let filtered = [...cards.value];
+
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase();
+      filtered = filtered.filter(card => card.name.toLowerCase().includes(query));
+    }
+
+    if (selectedRarity.value) {
+      filtered = filtered.filter(card => card.rarity === selectedRarity.value);
+    }
+
+    if (selectedType.value) {
+      filtered = filtered.filter(card => card.type === selectedType.value);
+    }
+
+    if (minPrice.value !== null) {
+      filtered = filtered.filter(card => card.price >= minPrice.value);
+    }
+
+    if (maxPrice.value !== null) {
+      filtered = filtered.filter(card => card.price <= maxPrice.value);
+    }
+
+    switch (sortOption.value) {
+      case 'name_asc':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'price_asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price_desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'created_desc':
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        break;
+      case 'created_asc':
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        break;
+    }
+
+    return filtered;
+  });
+</script>
   
-  <style scoped>
+<style scoped>
   .banner {
     width: 100%;
     margin-top: 10px;
@@ -138,4 +266,34 @@
     color: gray;
     margin-top: 2vw;
   }
-  </style>  
+
+  .filter-card {
+  background-color: #3366af;
+  color: white;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 0;
+}
+
+.filter-card .form-control,
+.filter-card .form-select {
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+}
+
+.filters {
+  margin: 1.5vw auto;
+  display: flex;
+  justify-content: center;
+  gap: 1vw;
+  flex-wrap: wrap;
+}
+
+.filters select {
+  padding: 0.6vw 1vw;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1vw;
+}
+</style>  

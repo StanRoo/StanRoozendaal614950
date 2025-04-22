@@ -20,7 +20,7 @@
           <p><strong>Price:</strong> {{ listingInfo.price }} <img src="@/assets/icons/coin.png" class="coin-icon" /></p>
         </div>
 
-        <div class="info-card bid-section" v-if="listingInfo">
+        <div class="info-card bid-section" v-if="listingInfo && !isOwnListing">
           <h3>Place a Bid</h3>
 
           <p>
@@ -50,6 +50,11 @@
           <p v-if="bidMessage" class="success">{{ bidMessage }}</p>
           <p v-if="bidError" class="error">{{ bidError }}</p>
         </div>
+
+        <div class="info-card bid-section" v-if="listingInfo && isOwnListing">
+          <h3>Place a Bid</h3>
+          <p>You cannot bid on your own listing.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -58,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useUserStore } from '@/Store/UserStore';
@@ -173,6 +178,10 @@ const placeBid = async () => {
     setTimeout(() => (bidError.value = ''), 3000);
   }
 };
+
+const isOwnListing = computed(() => {
+  return listingInfo.value && userStore.user?.id === listingInfo.value.seller_id;
+});
 </script>
 
 <style scoped>
