@@ -60,4 +60,37 @@ class CardRepository {
             'card_id' => $cardId
         ]);
     }
+
+    public function getAllCards(): array {
+        $query = "
+            SELECT c.*, u.username AS owner_username
+            FROM cards c
+            JOIN users u ON c.owner_id = u.id
+            ORDER BY c.created_at DESC
+        ";
+    
+        $stmt = $this->pdo->query($query);
+        $cardsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    
+        $cards = [];
+        foreach ($cardsData as $data) {
+            $cards[] = new CardModel($data);
+        }
+    
+        return $cards;
+    }
+    
+    public function updateCard(int $id, array $data): void {
+        $stmt = $this->pdo->prepare("
+            UPDATE cards 
+            SET owner_id = :owner_id, is_listed = :is_listed, updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+        ");
+    
+        $stmt->execute([
+            ':id' => $id,
+            ':owner_id' => $data['owner_id'],
+            ':is_listed' => $data['is_listed']
+        ]);
+    }
 }

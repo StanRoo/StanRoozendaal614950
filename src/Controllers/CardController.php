@@ -99,4 +99,33 @@ class CardController {
             ErrorHandler::handleException($e);
         }
     }
+
+    public function getAllCards() {
+        try {
+            $cards = $this->cardService->getAllCards();
+            echo json_encode(['cards' => $cards]);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(500, 'Failed to fetch cards');
+        }
+    }
+    
+    public function updateCard($id) {
+        $input = json_decode(file_get_contents('php://input'), true);
+    
+        try {
+            $this->cardService->updateCard($id, $input);
+            echo json_encode(['message' => 'Card updated successfully']);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(400, 'Failed to update card');
+        }
+    }
+    
+    public function adminDeleteCard($id) {
+        try {
+            $this->cardService->deleteCard($id);
+            echo json_encode(['message' => 'Card deleted successfully']);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(400, 'Failed to delete card');
+        }
+    }
 }

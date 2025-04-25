@@ -141,4 +141,45 @@ class MarketplaceController
             ErrorHandler::respondWithError(500, $transactionResult['message']);
         }
     }
+
+    public function getAllListings($decodedUser) {
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ErrorHandler::respondWithError(403, 'You are not authorized to view listings.');
+                return;
+            }
+            $listings = $this->marketplaceService->getAllListings();
+            echo json_encode(['listings' => $listings]);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(500, 'Failed to fetch listings: ' . $e->getMessage());
+        }
+    }
+    
+    public function updateListing($decodedUser, $listingId) {
+        $input = json_decode(file_get_contents('php://input'), true);
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ErrorHandler::respondWithError(403, 'You are not authorized to update listing status.');
+                return;
+            }
+            $this->marketplaceService->updateListing($listingId, $input);
+            echo json_encode(['message' => 'Listing status updated successfully']);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(400, 'Failed to update listing status');
+        }
+    }
+    
+    public function deleteListing($decodedUser, $listingId) {
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ErrorHandler::respondWithError(403, 'You are not authorized to delete listings.');
+                return;
+            }
+            $this->marketplaceService->deleteListing($listingId);
+            echo json_encode(['message' => 'Listing deleted successfully']);
+        } catch (\Exception $e) {
+            ErrorHandler::respondWithError(400, 'Failed to delete listing');
+        }
+    }
+    
 }

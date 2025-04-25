@@ -21,8 +21,8 @@ class TransactionService {
         return $this->transactionRepository->getById($id);
     }
 
-    public function getAllTransactions($userId = null) {
-        return $this->transactionRepository->getAll($userId);
+    public function getAllTransactions() {
+        return $this->transactionRepository->getAllTransactions();
     }
 
     public function logTransaction($buyerId, $sellerId, $cardId, $price): bool {
@@ -35,5 +35,10 @@ class TransactionService {
             'status' => 'Completed',
         ]);
         return $this->transactionRepository->createTransaction($transaction);
+    }
+
+    public function deleteTransaction($transactionId)
+    {
+        $this->transactionRepository->deleteTransaction($transactionId);
     }
 }

@@ -54,4 +54,25 @@ class BidRepository {
         }
         return $bids;
     }
+
+    public function getAllBids(): array {
+        $query = "SELECT b.id, b.listing_id, b.bidder_id, b.bid_amount, b.bid_time
+                  FROM bids b
+                  ORDER BY b.bid_time DESC";
+
+        $stmt = $this->pdo->query($query);
+        $bidsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $bids = [];
+        foreach ($bidsData as $data) {
+            $bids[] = new BidModel($data);
+        }
+
+        return $bids;
+    }
+
+    public function deleteBid(int $id): bool {
+        $stmt = $this->pdo->prepare("DELETE FROM bids WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
 }

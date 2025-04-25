@@ -14,7 +14,7 @@ class UserRepository {
     }
 
     public function getAllUsers(): array {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, balance FROM users");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, last_login, balance, last_daily_claim FROM users");
         $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         return array_map(fn($user) => new UserModel($user), $users);

@@ -57,4 +57,12 @@ class BidService {
     public function getBidsByUser(int $userId): array {
         return $this->bidRepository->getBidsByUserId($userId);
     }
+
+    public function getAllBids() {
+        return $this->bidRepository->getAllBids();
+    }
+
+    public function deleteBid(int $id) {
+        return $this->bidRepository->deleteBid($id);
+    }
 }

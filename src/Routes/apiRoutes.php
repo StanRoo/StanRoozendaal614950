@@ -82,13 +82,6 @@ switch (true) {
         $userController->claimDailyCuboCoins($decodedUser->id);
         break;
 
-    // Delete user (Admin only)
-    case preg_match('/\/api\/users\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
-        $decodedUser = $authMiddleware->verifyToken();
-        $userId = $matches[1];
-        $userController->deleteUser($userId);
-        break;
-
     // --------------Card Routes (Marketplace)--------------
 
     // Create a new Pokémon card
@@ -201,6 +194,77 @@ switch (true) {
         $listingId = $requestBody['listing_id'];
         $buyerId = $decodedUser->id;
         $marketplaceController->buyCard($listingId, $buyerId);
+        break;
+
+    // ---------------- Admin Routes --------------------
+
+    // Get all users (Admin tab)
+    case $requestUri === '/api/admin/users' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $userController->getAllUsers($decodedUser);
+        break;
+
+    // Get all cards
+    case $requestUri === '/api/admin/cards' && $requestMethod === 'GET':
+        $authMiddleware->verifyToken();
+        $cardController->getAllCards();
+        break;
+
+    // Update a card
+    case preg_match('/\/api\/admin\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'PUT':
+        $authMiddleware->verifyToken();
+        $cardController->updateCard((int)$matches[1]);
+        break;
+
+    // Delete a card
+    case preg_match('/\/api\/admin\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $authMiddleware->verifyToken();
+        $cardController->deleteCard((int)$matches[1]);
+        break;
+
+    case $requestUri === '/api/admin/listings' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->getAllListings($decodedUser);
+        break;
+        
+    case preg_match('/\/api\/admin\/listings\/(\d+)/', $requestUri, $matches) && $requestMethod === 'PUT':
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->updateListing($decodedUser, (int)$matches[1]);
+        break;
+        
+    case preg_match('/\/api\/admin\/listings\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $decodedUser = $authMiddleware->verifyToken();
+        $marketplaceController->deleteListing($decodedUser, (int)$matches[1]);
+        break;
+
+    // Get all bids (Admin tab)
+    case $requestUri === '/api/admin/bids' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $bidController->getAllBids();
+        break;
+
+    // Delete a bid (Admin only)
+    case preg_match('/\/api\/admin\/bids\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $decodedUser = $authMiddleware->verifyToken();
+        $bidController->deleteBid((int)$matches[1]);
+        break;
+
+    // Get all transactions (Admin tab)
+    case $requestUri === '/api/admin/transactions' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $transactionController->getAllTransactions();
+        break;
+
+    // Delete transaction (Admin only)
+    case preg_match('/\/api\/admin\/transactions\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $decodedUser = $authMiddleware->verifyToken();
+        $transactionController->deleteTransaction($decodedUser, (int)$matches[1]);
+        break;
+
+    // Delete user (Admin only)
+    case preg_match('/\/api\/users\/(\d+)/', $requestUri, $matches) && $requestMethod === 'DELETE':
+        $decodedUser = $authMiddleware->verifyToken();
+        $userController->deleteUser((int)$matches[1]);
         break;
 
     // -----------Default 404 Response------------

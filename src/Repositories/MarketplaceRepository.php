@@ -105,4 +105,45 @@ class MarketplaceRepository {
         }
         return $expired;
     }
+
+    public function getAllListings(): array
+    {
+        $query = "
+            SELECT ml.*, u.username AS seller_username, c.name AS card_name
+            FROM marketplace_listings ml
+            JOIN users u ON ml.seller_id = u.id
+            JOIN cards c ON ml.card_id = c.id
+            ORDER BY ml.listed_at DESC
+        ";
+
+        $stmt = $this->pdo->query($query);
+        $listingsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $listings = [];
+        foreach ($listingsData as $data) {
+            $listings[] = new MarketplaceListingModel($data);
+        }
+
+        return $listings;
+    }
+
+    public function updateListing(int $id, array $data): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE marketplace_listings
+            SET status = :status
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            ':id' => $id,
+            ':status' => $data['status']
+        ]);
+    }
+
+    public function deleteListing(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM marketplace_listings WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
 }

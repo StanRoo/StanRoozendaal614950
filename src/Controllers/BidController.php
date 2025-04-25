@@ -85,4 +85,18 @@ class BidController {
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'bids' => $bids]);
     }
+
+    public function getAllBids() {
+        $bids = $this->bidService->getAllBids();
+        echo json_encode(['bids' => $bids]);
+    }
+
+    public function deleteBid(int $id) {
+        try {
+            $this->bidService->deleteBid($id);
+            echo json_encode(['message' => 'Bid deleted successfully']);
+        } catch (\Exception $e) {
+            Response::error($e->getMessage());
+        }
+    }
 }

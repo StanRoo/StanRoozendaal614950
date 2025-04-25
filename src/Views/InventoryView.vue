@@ -119,6 +119,8 @@ const selectCard = (card) => {
 const filteredCards = computed(() => {
   let filtered = [...cards.value];
 
+  filtered = filtered.filter(card => card.is_listed === 0);
+
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     filtered = filtered.filter(card => card.name.toLowerCase().includes(query));

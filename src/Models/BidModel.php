@@ -14,7 +14,7 @@ class BidModel {
         $this->listing_id = $data['listing_id'] ?? 0;
         $this->bidder_id = $data['bidder_id'] ?? 0;
         $this->bid_amount = $data['bid_amount'] ?? 0.00;
-        $this->created_at = $data['created_at'] ?? null;
+        $this->created_at = $data['bid_time'] ?? null;
     }
 
     public function toArray(): array {

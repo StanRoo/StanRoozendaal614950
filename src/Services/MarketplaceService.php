@@ -178,4 +178,16 @@ class MarketplaceService
             return ['success' => false, 'message' => 'Transaction failed.'];
         }
     }
+
+    public function getAllListings(): array {
+        return $this->marketplaceRepository->getAllListings();
+    }
+    
+    public function updateListing(int $id, array $data): void {
+        $this->marketplaceRepository->updateListing($id, $data);
+    }
+    
+    public function deleteListing(int $id): void {
+        $this->marketplaceRepository->deleteListing($id);
+    }
 }

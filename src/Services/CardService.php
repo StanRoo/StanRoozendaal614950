@@ -75,4 +75,16 @@ class CardService {
     public function setCardListingStatus($cardId, bool $status) {
         return $this->cardRepository->setCardListedStatus($cardId, $status);
     }
+
+    public function getAllCards(): array {
+        return $this->cardRepository->getAllCards();
+    }
+    
+    public function updateCard(int $id, array $data): void {
+        $this->cardRepository->updateCard($id, $data);
+    }
+    
+    public function adminDeleteCard(int $id): void {
+        $this->cardRepository->deleteCard($id);
+    }
 }
