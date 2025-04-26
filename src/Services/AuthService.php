@@ -22,6 +22,16 @@ class AuthService {
             ErrorHandler::respondWithError(401, 'Invalid credentials');
         }
 
+        if ($user->getStatus() === 'banned') {
+            ErrorHandler::respondWithError(403, 'Your account has been banned.');
+        }
+    
+        if ($user->getStatus() === 'inactive') {
+            ErrorHandler::respondWithError(403, 'Your account is not active.');
+        }
+
+        $this->userRepository->updateLastLogin($user->getId());
+
         $userData = [
             "id" => $user->getId(),
             "username" => $user->getUsername(),
@@ -32,6 +42,7 @@ class AuthService {
             "created_at" => $user->getCreatedAt(),
             "updated_at" => $user->getUpdatedAt(),
             "balance" => $user->getBalance(),
+            "last_login" => $user->getLastLogin(),
         ];
 
         $payload = [

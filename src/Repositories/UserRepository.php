@@ -68,14 +68,14 @@ class UserRepository {
         if (empty($fields)) {
             return false;
         }
-        $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = :id";
+        $sql = "UPDATE users SET " . implode(", ", $fields) . "updated_at = NOW() WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $params['id'] = $userId;
         return $stmt->execute($params);
     }
 
     public function updateProfilePicture($userId, $profilePictureUrl): bool {
-        $stmt = $this->pdo->prepare("UPDATE users SET profile_picture_url = ? WHERE id = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET profile_picture_url = ?, updated_at = NOW() WHERE id = ?");
         return $stmt->execute([$profilePictureUrl, $userId]);
     }
 
@@ -86,7 +86,7 @@ class UserRepository {
     }
 
     public function updateBalance($userId, $newBalance): bool {
-        $sql = "UPDATE users SET balance = :balance WHERE id = :id";
+        $sql = "UPDATE users SET balance = :balance, updated_at = NOW() WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':balance', $newBalance);
         $stmt->bindParam(':id', $userId);
@@ -101,7 +101,13 @@ class UserRepository {
     }
 
     public function updateBalanceAndClaimTime($userId, $balance, $claimTime): bool {
-        $stmt = $this->pdo->prepare("UPDATE users SET balance = ?, last_daily_claim = ? WHERE id = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET balance = ?, last_daily_claim = ?, updated_at = NOW() WHERE id = ?");
         return $stmt->execute([$balance, $claimTime, $userId]);
+    }
+
+    public function updateLastLogin($userId): bool {
+        $stmt = $this->pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = :id");
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }

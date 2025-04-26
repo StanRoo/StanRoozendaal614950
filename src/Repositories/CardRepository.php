@@ -46,7 +46,7 @@ class CardRepository {
     }
 
     public function updateCardOwner($cardId, $newOwnerId): bool {
-        $sql = "UPDATE cards SET user_id = :newOwnerId WHERE id = :cardId";
+        $sql = "UPDATE cards SET user_id = :newOwnerId, updated_at = NOW() WHERE id = :cardId";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':newOwnerId', $newOwnerId);
         $stmt->bindParam(':cardId', $cardId);
@@ -54,7 +54,11 @@ class CardRepository {
     }
 
     public function setCardListedStatus(int $cardId, bool $isListed): bool {
-        $stmt = $this->pdo->prepare("UPDATE cards SET is_listed = :is_listed, updated_at = NOW() WHERE id = :card_id");
+        $stmt = $this->pdo->prepare("
+            UPDATE cards
+            SET is_listed = :is_listed, updated_at = NOW()
+            WHERE id = :card_id
+            ");
         return $stmt->execute([
             'is_listed' => $isListed ? 1 : 0,
             'card_id' => $cardId
@@ -83,7 +87,7 @@ class CardRepository {
     public function updateCard(int $id, array $data): void {
         $stmt = $this->pdo->prepare("
             UPDATE cards 
-            SET owner_id = :owner_id, is_listed = :is_listed, updated_at = CURRENT_TIMESTAMP
+            SET owner_id = :owner_id, is_listed = :is_listed, updated_at = NOW()
             WHERE id = :id
         ");
     
