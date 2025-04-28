@@ -5,12 +5,12 @@ namespace App\Services;
 use App\Repositories\CardRepository;
 use App\Models\CardModel;
 use App\Utils\Validator;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 use App\Utils\ImageUploader;
 use Exception;
 
 class CardService {
-    private $cardRepository;
+    private CardRepository $cardRepository;
 
     public function __construct(CardRepository $cardRepository) {
         $this->cardRepository = $cardRepository;
@@ -24,14 +24,14 @@ class CardService {
         return $this->cardRepository->getUserCards($userId);
     }
 
-    public function createCard($userId, $data, $image) {
+    public function createCard($userId, $data, $image): void {
         if (empty($data['name']) || empty($data['type']) || empty($data['rarity'])) {
-            return ['success' => false, 'message' => 'Missing required fields'];
+            ResponseHelper::error('Missing required fields.', 400);
         }
 
         $imagePath = ImageUploader::upload($image, 'cards');
         if (!$imagePath) {
-            return ['success' => false, 'message' => 'Failed to upload image'];
+            ResponseHelper::error('Failed to upload image', 500);
         }
 
         $cardData = [
@@ -51,21 +51,24 @@ class CardService {
         ];
 
         $createdCard = $this->cardRepository->create($cardData);
+
         if ($createdCard) {
             $cardModel = new CardModel($cardData);
-            return ['success' => true, 'message' => 'Card created successfully', 'data' => $cardModel->toArray()];
+            ResponseHelper::success($cardModel->toArray(), 'Card created successfully');
+        } else {
+            ResponseHelper::error('Failed to create card', 500);
         }
-
-        return ['success' => false, 'message' => 'Failed to create card'];
     }
 
-    public function deleteCard($userId, $cardId): bool {
+    public function deleteCard($userId, $cardId): void {
         $card = $this->cardRepository->getCardById($cardId);
+
         if (!$card || $card->user_id !== $userId || $card->is_listed) {
-            return false;
+            ResponseHelper::error('Card not found or cannot be deleted', 403);
         }
-    
-        return $this->cardRepository->delete($cardId);
+
+        $this->cardRepository->delete($cardId);
+        ResponseHelper::success(null, 'Card deleted successfully');
     }
 
     public function updateCardOwner($cardId, $newOwnerId) {
@@ -79,11 +82,11 @@ class CardService {
     public function getAllCards(): array {
         return $this->cardRepository->getAllCards();
     }
-    
+
     public function updateCard(int $id, array $data): void {
         $this->cardRepository->updateCard($id, $data);
     }
-    
+
     public function adminDeleteCard(int $id): void {
         $this->cardRepository->deleteCard($id);
     }

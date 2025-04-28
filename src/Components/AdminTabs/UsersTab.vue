@@ -81,7 +81,7 @@ export default {
         const response = await axios.get('/users', {
           headers: { Authorization: `Bearer ${token}` },
         })
-        this.users = response.data.users
+        this.users = Object.values(response.data).filter(item => typeof item === 'object')
       } catch (error) {
         this.errorMessage = handleApiError(error)
       }

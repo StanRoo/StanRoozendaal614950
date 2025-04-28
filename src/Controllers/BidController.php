@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\BidModel;
 use App\Services\BidService;
 use App\Services\MarketplaceService;
+use App\Utils\ResponseHelper;
 
 class BidController {
     private BidService $bidService;
@@ -16,87 +17,99 @@ class BidController {
     }
 
     public function placeBid($userId): void {
-        $data = json_decode(file_get_contents("php://input"), true);
-        
-        $listingId = $data['listing_id'] ?? null;
-        $bidAmount = $data['amount'] ?? null;
-    
-        if (!$listingId || !$bidAmount || !$userId) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Missing required fields.']);
-            return;
+        try {
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            $listingId = $data['listing_id'] ?? null;
+            $bidAmount = $data['amount'] ?? null;
+
+            if (!$listingId || !$bidAmount || !$userId) {
+                ResponseHelper::error('Something went wrong.', 400);
+                return;
+            }
+
+            $listing = $this->marketplaceService->getListingById($listingId);
+
+            if (!$listing) {
+                ResponseHelper::error('Listing not found.', 404);
+                return;
+            }
+
+            if (strtotime($listing->expires_at) < time()) {
+                ResponseHelper::error('Listing has ended.', 400);
+                return;
+            }
+
+            $minimumBid = 10.00;
+
+            $bid = new BidModel([
+                'listing_id' => (int)$listingId,
+                'bidder_id' => (int)$userId,
+                'bid_amount' => (float)$bidAmount,
+                'bid_time' => date('Y-m-d H:i:s'),
+            ]);
+
+            $result = $this->bidService->placeBid($bid, $minimumBid);
+
+            if (isset($result['error'])) {
+                ResponseHelper::error($result['message'], 400);
+            } else {
+                ResponseHelper::success($result, 'Bid placed successfully.');
+            }
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while placing the bid: " . $e->getMessage(), 500);
         }
-    
-        $listing = $this->marketplaceService->getListingById($listingId);
-    
-        if (!$listing) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Listing not found.']);
-            return;
-        }
-    
-        if (strtotime($listing->expires_at) < time()) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Bidding for this listing has ended.']);
-            return;
-        }
-    
-        $minimumBid = 10.00;
-    
-        $bid = new BidModel([
-            'listing_id' => (int)$listingId,
-            'bidder_id' => (int)$userId,
-            'bid_amount' => (float)$bidAmount,
-            'bid_time' => date('Y-m-d H:i:s'),
-        ]);
-    
-        $result = $this->bidService->placeBid($bid, $minimumBid);
-    
-        header('Content-Type: application/json');
-        echo json_encode($result);
     }
 
     public function getBidsForListing(): void {
-        $listingId = $_GET['listing_id'] ?? null;
+        try {
+            $listingId = $_GET['listing_id'] ?? null;
 
-        if (!$listingId) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Listing ID required']);
-            return;
+            if (!$listingId) {
+                ResponseHelper::error('Something went wrong.', 400);
+                return;
+            }
+
+            $bids = $this->bidService->getAllBidsForListing((int)$listingId);
+
+            ResponseHelper::success(['bids' => $bids], 'Bids retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
         }
-
-        $bids = $this->bidService->getAllBidsForListing((int)$listingId);
-
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'bids' => $bids]);
     }
 
     public function getMyBids(): void {
-        $userId = $_SESSION['user_id'] ?? null;
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
 
-        if (!$userId) {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Not logged in']);
-            return;
+            if (!$userId) {
+                ResponseHelper::error('Not logged in.', 401);
+                return;
+            }
+
+            $bids = $this->bidService->getBidsByUser((int)$userId);
+
+            ResponseHelper::success(['bids' => $bids], 'Your bids retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching your bids: " . $e->getMessage(), 500);
         }
-
-        $bids = $this->bidService->getBidsByUser((int)$userId);
-
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'bids' => $bids]);
     }
 
-    public function getAllBids() {
-        $bids = $this->bidService->getAllBids();
-        echo json_encode(['bids' => $bids]);
+    public function getAllBids(): void {
+        try {
+            $bids = $this->bidService->getAllBids();
+            ResponseHelper::success(['bids' => $bids], 'All bids retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching all bids: " . $e->getMessage(), 500);
+        }
     }
 
-    public function deleteBid(int $id) {
+    public function deleteBid(int $id): void {
         try {
             $this->bidService->deleteBid($id);
-            echo json_encode(['message' => 'Bid deleted successfully']);
-        } catch (\Exception $e) {
-            Response::error($e->getMessage());
+            ResponseHelper::success(null, 'Bid deleted successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("Failed to delete bid: " . $e->getMessage(), 500);
         }
     }
 }

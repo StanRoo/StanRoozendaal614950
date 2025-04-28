@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Services\TransactionService;
 use App\Middleware\AuthMiddleware;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 
 class TransactionController {
     private $transactionService;
@@ -15,12 +15,12 @@ class TransactionController {
         $this->authMiddleware = $authMiddleware;
     }
 
-    public function getAllTransactions() {
+    public function getAllTransactions(): void {
         try {
-            $transactions = $this->transactionService->getAllTransactions();      
-            $formattedTransactions = [];
-            foreach ($transactions as $transaction) {
-                $formattedTransactions[] = [
+            $transactions = $this->transactionService->getAllTransactions();
+            
+            $formattedTransactions = array_map(function($transaction) {
+                return [
                     'id' => $transaction->getId(),
                     'buyer_username' => $transaction->getBuyerUsername(),
                     'seller_username' => $transaction->getSellerUsername(),
@@ -31,24 +31,26 @@ class TransactionController {
                     'transaction_date' => $transaction->getTransactionDate(),
                     'status' => $transaction->getStatus()
                 ];
-            }
-            echo json_encode(['transactions' => $formattedTransactions]);
-        } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, 'Failed to fetch transactions');
+            }, $transactions);
+
+            ResponseHelper::success(['transactions' => $formattedTransactions], 'Transactions fetched successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error('Failed to fetch transactions: ' . $e->getMessage(), 500);
         }
     }
 
-    public function deleteTransaction($user, $transactionId)
-    {
+    public function deleteTransaction($user, $transactionId): void {
         try {
             if ($user->role !== 'admin') {
-                ErrorHandler::respondWithError(403, 'Forbidden');
+                ResponseHelper::error('Forbidden: Admin access required.', 403);
                 return;
             }
+
             $this->transactionService->deleteTransaction($transactionId);
-            echo json_encode(["message" => "Transaction deleted successfully"]);
-        } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, $e->getMessage());
+
+            ResponseHelper::success(null, 'Transaction deleted successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error('Failed to delete transaction: ' . $e->getMessage(), 500);
         }
     }
 }

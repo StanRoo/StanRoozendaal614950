@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 use Firebase\JWT\JWT;
 use App\Config;
 use App\Utils\Validator;
@@ -19,15 +19,15 @@ class AuthService {
         $user = $this->userRepository->getUserByUsername($username);
 
         if (!$user || !password_verify($password, $user->getPassword())) {
-            ErrorHandler::respondWithError(401, 'Invalid credentials');
+            ResponseHelper::error('Invalid credentials.', 400);
         }
 
         if ($user->getStatus() === 'banned') {
-            ErrorHandler::respondWithError(403, 'Your account has been banned.');
+            ResponseHelper::error('Your account has been banned.', 403);
         }
     
         if ($user->getStatus() === 'inactive') {
-            ErrorHandler::respondWithError(403, 'Your account is not active.');
+            ResponseHelper::error('Your account is not active.', 403);
         }
 
         $this->userRepository->updateLastLogin($user->getId());
@@ -54,41 +54,41 @@ class AuthService {
 
         $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
 
-        return [
+        ResponseHelper::success([
             'message' => 'Login successful',
             'token' => $jwt,
             'user' => $userData
-        ];
+        ]);
     }
 
     public function register($data) {
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            ErrorHandler::respondWithError(400, $usernameValidation);
+            ResponseHelper::error('Invalid username.', 400);
         }
 
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            ErrorHandler::respondWithError(400, $emailValidation);
+            ResponseHelper::error('Invalid Email.', 400);
         }
 
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            ErrorHandler::respondWithError(400, $passwordValidation);
+            ResponseHelper::error('Invalid password.', 400);
         }
 
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
 
         if ($this->userRepository->getUserByEmail($data['email'])) {
-            ErrorHandler::respondWithError(400, 'Email is already registered.');
+            ResponseHelper::error('Email is already registered.', 400);
         }
 
         $newUser = $this->userRepository->createUser($data['username'], $data['email'], $hashedPassword, "I love Pokémon :)", "/images/profile.png");
 
         if (!$newUser) {
-            ErrorHandler::respondWithError(500, 'Failed to create account.');
+            ResponseHelper::error('Failed to create account.', 500);
         }
 
-        return ['error' => false, 'message' => 'Account created successfully!'];
+        ResponseHelper::success(null, 'Account created successfully!');
     }
 }

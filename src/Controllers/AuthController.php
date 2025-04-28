@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Services\AuthService;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 
 class AuthController {
     private $authService;
@@ -17,7 +17,8 @@ class AuthController {
             $data = json_decode(file_get_contents("php://input"), true);
 
             if (empty($data['username']) || empty($data['password'])) {
-                ErrorHandler::respondWithError(400, "Username and password are required.");
+                ResponseHelper::error('Username and Password are required.', 400);
+                return;
             }
 
             $username = $data['username'];
@@ -26,12 +27,15 @@ class AuthController {
             $result = $this->authService->login($username, $password);
 
             if (isset($result['error'])) {
-                ErrorHandler::respondWithError(401, $result['message']);
+                ResponseHelper::error($result['message'], 401);
             } else {
-                echo json_encode($result);
+                ResponseHelper::success([
+                    'token' => $result['data']['token'],
+                    'user' => $result['data']['user']
+                ], "Login successful.");
             }
         } catch (\Throwable $e) {
-            ErrorHandler::handleException($e);
+            ResponseHelper::error("An error occurred during login: " . $e->getMessage(), 500);
         }
     }
 
@@ -40,18 +44,19 @@ class AuthController {
             $data = json_decode(file_get_contents("php://input"), true);
 
             if (!isset($data['username'], $data['email'], $data['password'])) {
-                ErrorHandler::respondWithError(400, "Missing required fields");
+                ResponseHelper::error('Username, Email and Password are required.', 400);
+                return;
             }
 
             $result = $this->authService->register($data);
 
             if (isset($result['error'])) {
-                ErrorHandler::respondWithError(400, $result['message']);
+                ResponseHelper::error($result['message'], 400);
             } else {
-                echo json_encode(["message" => "Account created successfully!"]);
+                ResponseHelper::success(null, "Account created successfully!");
             }
         } catch (\Throwable $e) {
-            ErrorHandler::handleException($e);
+            ResponseHelper::error("An error occurred during registration: " . $e->getMessage(), 500);
         }
     }
 }

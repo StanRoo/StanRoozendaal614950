@@ -3,8 +3,9 @@
 namespace App\Controllers;
 
 use App\Services\MarketplaceService;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 use App\Utils\Validator;
+use App\Utils\ErrorHandler;
 
 class MarketplaceController
 {
@@ -19,7 +20,8 @@ class MarketplaceController
         $this->errorHandler = $errorHandler;
     }
 
-    public function listCard($userId) {
+    public function listCard($userId)
+    {
         $data = json_decode(file_get_contents('php://input'), true);
         $cardId = $data['card_id'] ?? null;
         $price = $data['price'] ?? null;
@@ -27,34 +29,34 @@ class MarketplaceController
         $expiresAt = $data['expires_at'] ?? null;
 
         if (!$cardId || !$price || !$minimumBid || !$expiresAt) {
-            return ErrorHandler::respondWithError(400, "Card ID, price, minimum bid, and expiry date are required.");
-        }
-        if (!is_numeric($price) || $price <= 0 || !is_numeric($minimumBid) || $minimumBid < 0) {
-            return ErrorHandler::respondWithError(400, "Price and minimum bid must be valid numbers (min bid can be 0).");
-        }
-        if (!strtotime($expiresAt)) {
-            return ErrorHandler::respondWithError(400, "Invalid expiry date.");
-        }
-        $result = $this->marketplaceService->listCard($userId, $cardId, $price, $minimumBid, $expiresAt);
-        if (!$result['success']) {
-            return ErrorHandler::respondWithError(500, $result['message']);
-        }
-        echo json_encode([
-            "success" => true,
-            "message" => $result['message'],
-            "listing" => $result['data']
-        ]);
-    }
-
-    public function getMarketplaceCards($user_id) {
-        $listings = $this->marketplaceService->getAllActiveListingsExceptUser($user_id);
-    
-        if (empty($listings)) {
-            http_response_code(404);
-            echo json_encode(['message' => 'No cards listed on the marketplace']);
+            ResponseHelper::error("Card ID, Price, Minimum Bid and Expire Date are required.", 400);
             return;
         }
-    
+        if (!is_numeric($price) || $price <= 0 || !is_numeric($minimumBid) || $minimumBid < 0) {
+            ResponseHelper::error("Price or Mimimum Bid cannot be negative numbers.", 400);
+            return;
+        }
+        if (!strtotime($expiresAt)) {
+            ResponseHelper::error("Invalid Expiry Date.", 400);
+            return;
+        }
+
+        $result = $this->marketplaceService->listCard($userId, $cardId, $price, $minimumBid, $expiresAt);
+
+        if (!$result['success']) {
+            ResponseHelper::error($result['message'], 500);
+            return;
+        }
+
+        ResponseHelper::success([
+            'listing' => $result['data']
+        ], $result['message']);
+    }
+
+    public function getMarketplaceCards($userId)
+    {
+        $listings = $this->marketplaceService->getAllActiveListingsExceptUser($userId);
+
         $listingsData = array_map(function ($listing) {
             return [
                 'id' => $listing->getId(),
@@ -65,19 +67,16 @@ class MarketplaceController
                 'status' => $listing->getStatus(),
             ];
         }, $listings);
-    
-        echo json_encode(['listings' => $listingsData]);
+
+        ResponseHelper::success([
+            'listings' => $listingsData
+        ], empty($listingsData) ? "No cards listed on the marketplace." : "Marketplace listings retrieved successfully.");
     }
 
-    public function getUserListings($userId) {
+    public function getUserListings($userId)
+    {
         try {
             $listings = $this->marketplaceService->getUserListings($userId);
-
-            if (empty($listings)) {
-                http_response_code(404);
-                echo json_encode(['message' => 'You have no active listings.']);
-                return;
-            }
 
             $listingsData = array_map(function ($listing) {
                 return [
@@ -89,23 +88,29 @@ class MarketplaceController
                     'status' => $listing->getStatus(),
                 ];
             }, $listings);
-            echo json_encode(['listings' => $listingsData]);
+
+            ResponseHelper::success([
+                'listings' => $listingsData
+            ], empty($listingsData) ? "You have no active listings." : "Your listings retrieved successfully.");
         } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, 'Failed to fetch your listings.');
+            ResponseHelper::error('Failed to fetch your listings.', 500);
         }
     }
 
-
-    public function getMarketplaceCard($cardId) {
+    public function getMarketplaceCard($cardId)
+    {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
             $cardWithListing = $this->marketplaceService->getCardWithListing($cardId);
-            $highestBid = $this->marketplaceService->getHighestBidForListing($cardWithListing['listing_id']);
-            
+
             if (!$cardWithListing) {
-                ErrorHandler::respondWithError(404, "Listing not found for card ID: $cardId");
+                ResponseHelper::error("Listing not found for card ID: $cardId", 404);
+                return;
             }
-            echo json_encode([
+
+            $highestBid = $this->marketplaceService->getHighestBidForListing($cardWithListing['listing_id']);
+
+            ResponseHelper::success([
                 'card' => $cardWithListing['card'],
                 'price' => $cardWithListing['price'],
                 'listing_id' => $cardWithListing['listing_id'],
@@ -116,70 +121,83 @@ class MarketplaceController
                 'highest_bid' => $highestBid
             ]);
         } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, $e->getMessage());
+            ResponseHelper::error($e->getMessage(), 500);
         }
     }
 
-    public function finalizeExpiredListings() {
+    public function finalizeExpiredListings()
+    {
         try {
             $results = $this->marketplaceService->finalizeExpiredListings();
-            echo json_encode([
-                'success' => true,
+            ResponseHelper::success([
                 'processed' => count($results),
                 'results' => $results
+            ], "Expired listings finalized successfully.");
+        } catch (\Exception $e) {
+            ResponseHelper::error("Failed to finalize expired listings: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function buyCard($listingId, $buyerId)
+    {
+        $transactionResult = $this->marketplaceService->buyCard($listingId, $buyerId);
+
+        if ($transactionResult['success']) {
+            ResponseHelper::success(null, 'Transaction successful');
+        } else {
+            ResponseHelper::error($transactionResult['message'], 500);
+        }
+    }
+
+    public function getAllListings($decodedUser)
+    {
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('You are not authorized to view listings.', 403);
+                return;
+            }
+
+            $listings = $this->marketplaceService->getAllListings();
+
+            ResponseHelper::success([
+                'listings' => $listings
             ]);
         } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, "Failed to finalize expired listings: " . $e->getMessage());
+            ResponseHelper::error('Failed to fetch listings: ' . $e->getMessage(), 500);
         }
     }
 
-    public function buyCard($listingId, $buyerId) {
-        $transactionResult = $this->marketplaceService->buyCard($listingId, $buyerId);
-        if ($transactionResult['success']) {
-            echo json_encode(['message' => 'Transaction successful']);
-        } else {
-            ErrorHandler::respondWithError(500, $transactionResult['message']);
-        }
-    }
-
-    public function getAllListings($decodedUser) {
-        try {
-            if ($decodedUser->role !== 'admin') {
-                ErrorHandler::respondWithError(403, 'You are not authorized to view listings.');
-                return;
-            }
-            $listings = $this->marketplaceService->getAllListings();
-            echo json_encode(['listings' => $listings]);
-        } catch (\Exception $e) {
-            ErrorHandler::respondWithError(500, 'Failed to fetch listings: ' . $e->getMessage());
-        }
-    }
-    
-    public function updateListing($decodedUser, $listingId) {
+    public function updateListing($decodedUser, $listingId)
+    {
         $input = json_decode(file_get_contents('php://input'), true);
+
         try {
             if ($decodedUser->role !== 'admin') {
-                ErrorHandler::respondWithError(403, 'You are not authorized to update listing status.');
+                ResponseHelper::error('You are not authorized to update listing status.', 403);
                 return;
             }
+
             $this->marketplaceService->updateListing($listingId, $input);
-            echo json_encode(['message' => 'Listing status updated successfully']);
+
+            ResponseHelper::success(null, 'Listing status updated successfully.');
         } catch (\Exception $e) {
-            ErrorHandler::respondWithError(400, 'Failed to update listing status');
+            ResponseHelper::error('Failed to update listing status', 400);
         }
     }
-    
-    public function deleteListing($decodedUser, $listingId) {
+
+    public function deleteListing($decodedUser, $listingId)
+    {
         try {
             if ($decodedUser->role !== 'admin') {
-                ErrorHandler::respondWithError(403, 'You are not authorized to delete listings.');
+                ResponseHelper::error('You are not authorized to delete listings.', 403);
                 return;
             }
+
             $this->marketplaceService->deleteListing($listingId);
-            echo json_encode(['message' => 'Listing deleted successfully']);
+
+            ResponseHelper::success(null, 'Listing deleted successfully.');
         } catch (\Exception $e) {
-            ErrorHandler::respondWithError(400, 'Failed to delete listing');
+            ResponseHelper::error('Failed to delete listing', 400);
         }
     }
-    
 }

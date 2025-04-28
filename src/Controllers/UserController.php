@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Middleware\AuthMiddleware;
 use App\Services\UserService;
-use App\Utils\ErrorHandler;
+use App\Utils\ResponseHelper;
 use App\Utils\Validator;
 
 class UserController {
@@ -16,144 +16,140 @@ class UserController {
         $this->authMiddleware = $authMiddleware;
     }
 
-    public function getUser($userId) {
+    public function getUser($userId): void {
         $user = $this->userService->getUserById($userId);
 
         if (!$user) {
-            ErrorHandler::respondWithError(404, "User not found.");
+            ResponseHelper::error('User not found.', 404);
         }
 
-        echo json_encode([
-            "user" => [
-                "id" => $user->getId(),
-                "username" => $user->getUsername(),
-                "email" => $user->getEmail(),
-                "profile_picture_url" => $user->getProfilePictureUrl(),
-                "bio" => $user->getBio(),
-                "status" => $user->getStatus(),
-                "created_at" => $user->getCreatedAt(),
-                "updated_at" => $user->getUpdatedAt(),
-                "balance" => $user->getBalance(),
+        ResponseHelper::success([
+            'user' => [
+                'id' => $user->getId(),
+                'username' => $user->getUsername(),
+                'email' => $user->getEmail(),
+                'profile_picture_url' => $user->getProfilePictureUrl(),
+                'bio' => $user->getBio(),
+                'status' => $user->getStatus(),
+                'created_at' => $user->getCreatedAt(),
+                'updated_at' => $user->getUpdatedAt(),
+                'balance' => $user->getBalance(),
             ]
-        ]);
+        ], 'User fetched successfully.');
     }
 
-    public function getAllUsers() {
+    public function getAllUsers(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
 
-        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            ErrorHandler::respondWithError(403, "Access denied. Admins only.");
+        if ($decodedUser->role !== 'admin') {
+            ResponseHelper::error('Access denied. Admins only.', 403);
         }
 
         $users = $this->userService->getAllUsers($decodedUser);
-        echo json_encode(["users" => $users]);
+        ResponseHelper::success(['users' => $users], 'Users fetched successfully.');
     }
 
-    public function updateUser($userId) {
+    public function updateUser($userId): void {
         $decodedUser = $this->authMiddleware->verifyToken();
-
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data || !is_array($data)) {
-            ErrorHandler::respondWithError(400, "Invalid request data");
+            ResponseHelper::success(['error' => "Invalid fields."]);
         }
 
         $result = $this->userService->updateUser($userId, $data, $decodedUser);
 
         if ($result === null) {
-            ErrorHandler::respondWithError(403, "Unauthorized or forbidden");
+            ResponseHelper::error('Unauthorized or forbidden', 403);
         }
 
-        echo json_encode(["success" => true, "message" => "User updated successfully"]);
+        ResponseHelper::success(null, 'User updated successfully.');
     }
 
-    public function deleteUser($id) {
+    public function deleteUser($id): void {
         $decodedUser = $this->authMiddleware->verifyToken();
 
         $result = $this->userService->deleteUser($id, $decodedUser);
 
         if ($result === null) {
-            ErrorHandler::respondWithError(403, "Access denied. Admins only.");
+            ResponseHelper::error('Access denied. Admins only.', 403);
         }
 
-        echo json_encode(["message" => "User deleted successfully!"]);
+        ResponseHelper::success(null, 'User deleted successfully!');
     }
 
-    public function createAccount() {
+    public function createAccount(): void {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data || !is_array($data)) {
-            ErrorHandler::respondWithError(400, "Invalid request data");
+            ResponseHelper::error('Invalid fields.', 400);
         }
 
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            ErrorHandler::respondWithError(400, $usernameValidation);
+            ResponseHelper::error($usernameValidation, 400);
         }
 
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            ErrorHandler::respondWithError(400, $emailValidation);
+            ResponseHelper::error($emailValidation, 400);
         }
 
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            ErrorHandler::respondWithError(400, $passwordValidation);
+            ResponseHelper::error($passwordValidation, 400);
         }
 
         if ($data['password'] !== $data['confirmPassword']) {
-            ErrorHandler::respondWithError(400, "Passwords do not match!");
+            ResponseHelper::error('Passwords do not match.', 400);
         }
 
         $result = $this->userService->createAccount($data);
 
         if ($result) {
-            echo json_encode(["message" => "Account created successfully!"]);
+            ResponseHelper::success(null, 'Account created successfully!');
         } else {
-            ErrorHandler::respondWithError(500, "Failed to create account. Please try again.");
+            ResponseHelper::error('Failed to create account. Please try again.', 500);
         }
     }
 
-    public function updateProfilePicture($userId) {
+    public function updateProfilePicture($userId): void {
         $decodedUser = $this->authMiddleware->verifyToken();
-    
         $data = json_decode(file_get_contents("php://input"), true);
-    
+
         if ($decodedUser->id !== $userId) {
-            ErrorHandler::respondWithError(403, "Unauthorized");
+            ResponseHelper::error('Unauthorized', 403);
         }
-    
+
         $file = $_FILES['profile_picture'] ?? null;
         $result = $this->userService->updateProfilePicture($userId, $data, $file);
-    
+
         if ($result) {
-            echo json_encode(["success" => true, "message" => "Profile picture updated successfully"]);
+            ResponseHelper::success(null, 'Profile picture updated successfully');
         } else {
-            ErrorHandler::respondWithError(500, "Failed to update profile picture");
+            ResponseHelper::error('Failed to update profile picture', 500);
         }
     }
 
-    public function getUserBalance() {
+    public function getUserBalance(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
-    
+
         $balance = $this->userService->getBalance($decodedUser->id);
-    
-        echo json_encode($balance);
+        ResponseHelper::success(['balance' => $balance], 'Balance fetched successfully.');
     }
-    
-    public function claimDailyCuboCoins() {
+
+    public function claimDailyCuboCoins(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
-    
+
         $result = $this->userService->claimDailyReward($decodedUser->id);
-    
+
         if ($result['success']) {
-            echo json_encode([
-                "success" => true,
-                "message" => $result['message'],
-                "balance" => $result['balance']
-            ]);
+            ResponseHelper::success([
+                'message' => $result['message'],
+                'balance' => $result['balance']
+            ], 'Daily reward claimed successfully.');
         } else {
-            ErrorHandler::respondWithError(400, $result['message']);
+            ResponseHelper::error($result['message'], 400);
         }
     }
 }

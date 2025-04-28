@@ -15,17 +15,17 @@ axios.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status || 500;
-    const message =
-      error.response?.data?.error?.message ||
-      error.message ||
-      'An unexpected error occurred.';
+    const message = error.response?.data?.message || error.message || 'An unexpected error occurred.';
 
-    router.push({
-      name: 'ErrorView',
-      query: { status, message },
-    });
-
-    return Promise.reject(error);
+    if (status === 400 || status === 422) {
+      return Promise.reject(error);
+    } else {
+      router.push({
+        name: 'ErrorView',
+        query: { status, message },
+      });
+      return Promise.reject(error);
+    }
   }
 );
 

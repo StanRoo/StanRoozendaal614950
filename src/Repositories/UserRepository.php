@@ -68,7 +68,7 @@ class UserRepository {
         if (empty($fields)) {
             return false;
         }
-        $sql = "UPDATE users SET " . implode(", ", $fields) . "updated_at = NOW() WHERE id = :id";
+        $sql = "UPDATE users SET " . implode(", ", $fields) . ", updated_at = NOW() WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $params['id'] = $userId;
         return $stmt->execute($params);

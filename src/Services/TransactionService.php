@@ -5,27 +5,30 @@ namespace App\Services;
 use App\Repositories\TransactionRepository;
 use App\Repositories\CardRepository;
 use App\Models\TransactionModel;
-use App\Utils\ErrorHandler;
-use Exception;
 
-class TransactionService {
-    private $transactionRepository;
-    private $cardRepository;
+class TransactionService
+{
+    private TransactionRepository $transactionRepository;
+    private CardRepository $cardRepository;
 
-    public function __construct(TransactionRepository $transactionRepository, CardRepository $cardRepository) {
+    public function __construct(TransactionRepository $transactionRepository, CardRepository $cardRepository)
+    {
         $this->transactionRepository = $transactionRepository;
         $this->cardRepository = $cardRepository;
     }
 
-    public function getTransactionById($id) {
+    public function getTransactionById(int $id): ?TransactionModel
+    {
         return $this->transactionRepository->getById($id);
     }
 
-    public function getAllTransactions() {
+    public function getAllTransactions(): array
+    {
         return $this->transactionRepository->getAllTransactions();
     }
 
-    public function logTransaction($buyerId, $sellerId, $cardId, $price): bool {
+    public function logTransaction(int $buyerId, int $sellerId, int $cardId, float $price): bool
+    {
         $transaction = new TransactionModel([
             'buyer_id' => $buyerId,
             'seller_id' => $sellerId,
@@ -37,7 +40,7 @@ class TransactionService {
         return $this->transactionRepository->createTransaction($transaction);
     }
 
-    public function deleteTransaction($transactionId)
+    public function deleteTransaction(int $transactionId): void
     {
         $this->transactionRepository->deleteTransaction($transactionId);
     }
