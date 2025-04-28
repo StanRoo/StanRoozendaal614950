@@ -49,28 +49,28 @@
         </select>
       </div>
 
-      <div class="col-md-2">
-        <input 
-          type="number" 
-          v-model="minPrice" 
-          class="form-control" 
-          placeholder="Min Price"
-          min="0"
-        />
-      </div>
-      <div class="col-md-2">
-        <input 
-          type="number" 
-          v-model="maxPrice" 
-          class="form-control" 
-          placeholder="Max Price"
-          min="0"
-        />
+      <div class="col-md-3">
+        <div class="input-group">
+          <input 
+            type="number" 
+            v-model.number="minPrice" 
+            class="form-control" 
+            placeholder="Min Price" 
+          />
+          <input 
+            type="number" 
+            v-model.number="maxPrice" 
+            class="form-control" 
+            placeholder="Max Price" 
+          />
+        </div>
       </div>
 
       <div class="col-md-2">
         <select class="form-select" v-model="sortOption">
           <option value="name_asc">Sort by Name (A-Z)</option>
+          <option value="price_asc">Lowest Price</option>
+          <option value="price_desc">Highest Price</option>
           <option value="created_desc">Newest First</option>
           <option value="created_asc">Oldest First</option>
         </select>
@@ -79,7 +79,7 @@
   </div>
 
   <div class="marketplace-header-actions">
-    <button @click="goToMyListings" class="my-listings-button">
+    <button @click="goToMyListings" class="btn btn-primary my-listings-btn">
       My Listings
     </button>
   </div>
@@ -118,8 +118,8 @@ const cards = ref([]);
 const searchQuery = ref('');
 const selectedRarity = ref('');
 const selectedType = ref('');
-const minPrice = ref(0);
-const maxPrice = ref(0);
+const minPrice = ref(null);
+const maxPrice = ref(null);
 const sortOption = ref('name_asc');
 
 onMounted(async () => {
@@ -172,25 +172,39 @@ const filteredCards = computed(() => {
     const query = searchQuery.value.toLowerCase();
     filtered = filtered.filter(card => card.name.toLowerCase().includes(query));
   }
+
   if (selectedRarity.value) {
     filtered = filtered.filter(card => card.rarity === selectedRarity.value);
   }
+
   if (selectedType.value) {
     filtered = filtered.filter(card => card.type === selectedType.value);
   }
-  if (minPrice.value > 0) {
+
+  if (minPrice.value !== null) {
     filtered = filtered.filter(card => card.price >= minPrice.value);
   }
-  if (maxPrice.value > 0) {
+
+  if (maxPrice.value !== null) {
     filtered = filtered.filter(card => card.price <= maxPrice.value);
   }
 
-  if (sortOption.value === 'name_asc') {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortOption.value === 'created_desc') {
-    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  } else if (sortOption.value === 'created_asc') {
-    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  switch (sortOption.value) {
+    case 'name_asc':
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'price_asc':
+      filtered.sort((a, b) => a.price - b.price);
+      break;
+    case 'price_desc':
+      filtered.sort((a, b) => b.price - a.price);
+      break;
+    case 'created_desc':
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      break;
+    case 'created_asc':
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      break;
   }
 
   return filtered;
@@ -202,6 +216,19 @@ const filteredCards = computed(() => {
 .banner {
   width: 100%;
   margin-top: 10px;
+}
+
+.marketplace-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-right: 2rem;
+}
+
+.my-listings-btn {
+  font-size: 1.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
 }
 
 .marketplace-container {
