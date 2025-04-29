@@ -59,12 +59,15 @@ class UserRepository {
     }
 
     public function updateUser($userId, $data): bool {
+        $allowedFields = ['username', 'email', 'bio', 'profile_picture_url', 'status'];
         $fields = [];
-        $params = [];
+        $params = []; 
         foreach ($data as $key => $value) {
-            $fields[] = "$key = :$key";
-            $params[$key] = $value;
-        }
+            if (in_array($key, $allowedFields)) {
+                $fields[] = "$key = :$key";
+                $params[$key] = $value;
+            }
+        } 
         if (empty($fields)) {
             return false;
         }

@@ -18,7 +18,7 @@ class UserService {
         if (!$user) {
             ResponseHelper::error('User not found.', 404);
         }
-        ResponseHelper::success($user);
+        ResponseHelper::success(['user' => $user->toArray()]);
     }
 
     public function getAllUsers($decodedUser) {
