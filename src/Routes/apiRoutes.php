@@ -82,6 +82,16 @@ switch (true) {
         $userController->claimDailyCuboCoins($decodedUser->id);
         break;
 
+    // Send password reset link
+    case $requestUri === '/api/forgot-password' && $requestMethod === 'POST':
+        $authController->sendPasswordResetLink();
+        break;
+    
+    // Reset password   
+    case $requestUri === '/api/reset-password' && $requestMethod === 'POST':
+        $authController->resetPassword();
+        break;
+
     // --------------Card Routes (Marketplace)--------------
 
     // Create a new Pokémon card

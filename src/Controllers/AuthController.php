@@ -59,4 +59,44 @@ class AuthController {
             ResponseHelper::error("An error occurred during registration: " . $e->getMessage(), 500);
         }
     }
+
+    public function forgotPassword() {
+        try {
+            $data = json_decode(file_get_contents("php://input"), true);
+            if (empty($data['email'])) {
+                ResponseHelper::error('Email is required.', 400);
+                return;
+            }
+    
+            $result = $this->authService->sendResetLink($data['email']);
+    
+            if (isset($result['error'])) {
+                ResponseHelper::error($result['message'], 404);
+            } else {
+                ResponseHelper::success(null, 'Reset link sent if email exists.');
+            }
+        } catch (\Throwable $e) {
+            ResponseHelper::error("Error: " . $e->getMessage(), 500);
+        }
+    }
+    
+    public function resetPassword() {
+        try {
+            $data = json_decode(file_get_contents("php://input"), true);
+            if (empty($data['token']) || empty($data['newPassword'])) {
+                ResponseHelper::error('Token and new password are required.', 400);
+                return;
+            }
+    
+            $result = $this->authService->resetPassword($data['token'], $data['newPassword']);
+    
+            if (isset($result['error'])) {
+                ResponseHelper::error($result['message'], 400);
+            } else {
+                ResponseHelper::success(null, 'Password reset successful.');
+            }
+        } catch (\Throwable $e) {
+            ResponseHelper::error("Error: " . $e->getMessage(), 500);
+        }
+    }
 }

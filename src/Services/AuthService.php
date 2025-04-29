@@ -7,6 +7,7 @@ use App\Utils\ResponseHelper;
 use Firebase\JWT\JWT;
 use App\Config;
 use App\Utils\Validator;
+use App\Services\MailService;
 
 class AuthService {
     private $userRepository;
@@ -90,5 +91,40 @@ class AuthService {
         }
 
         ResponseHelper::success(null, 'Account created successfully!');
+    }
+
+    public function sendResetLink($email) {
+        $user = $this->userRepository->getUserByEmail($email);
+        if (!$user) {
+            return ['error' => true, 'message' => 'User not found.'];
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+        $this->userRepository->storeResetToken($email, $token, $expiresAt);
+
+        $resetLink = "http://localhost:8000/reset-password?token=$token";
+        $subject = 'Reset your password';
+        $body = "Hi {$user->getUsername()},<br><br>"
+            . "Click the link below to reset your password:<br>"
+            . "<a href='{$resetLink}'>{$resetLink}</a><br><br>"
+            . "If you didn't request this, you can ignore this email.";
+
+        return MailService::send($email, $user->getUsername(), $subject, $body);
+    } 
+    
+    public function resetPassword($token, $newPassword) {
+        $reset = $this->userRepository->getResetToken($token);
+    
+        if (!$reset || strtotime($reset['expires_at']) < time()) {
+            return ['error' => true, 'message' => 'Invalid or expired token.'];
+        }
+    
+        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        $this->userRepository->updatePasswordByEmail($reset['email'], $hashedPassword);
+        $this->userRepository->deleteResetToken($token);
+    
+        return ['success' => true];
     }
 }

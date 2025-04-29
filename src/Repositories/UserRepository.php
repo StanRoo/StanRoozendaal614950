@@ -110,4 +110,25 @@ class UserRepository {
         $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    public function updatePasswordByEmail($email, $hashedPassword) {
+        $stmt = $this->db->prepare("UPDATE users SET password = ? WHERE email = ?");
+        $stmt->execute([$hashedPassword, $email]);
+    }
+    
+    public function storeResetToken($email, $token, $expiresAt) {
+        $stmt = $this->db->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$email, $token, $expiresAt]);
+    }
+    
+    public function getResetToken($token) {
+        $stmt = $this->db->prepare("SELECT * FROM password_resets WHERE token = ?");
+        $stmt->execute([$token]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }  
+    
+    public function deleteResetToken($token) {
+        $stmt = $this->db->prepare("DELETE FROM password_resets WHERE token = ?");
+        $stmt->execute([$token]);
+    }
 }
