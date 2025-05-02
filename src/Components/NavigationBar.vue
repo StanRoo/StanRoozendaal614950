@@ -11,6 +11,8 @@ const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisibleMarketplace = ref(false);
 const dropdownVisibleProfile = ref(false);
+const hasClickedMarketplace = ref(false);
+const hasClickedProfile = ref(false);
 const userBalance = computed(() => userStore.user?.balance ?? 0);
 const isHamburgerOpen = ref(false);
 
@@ -38,18 +40,18 @@ const toggleHamburgerMenu = () => {
   isHamburgerOpen.value = !isHamburgerOpen.value;
 };
 
-const toggleMarketplaceDropdown = () => {
-  dropdownVisibleMarketplace.value = !dropdownVisibleMarketplace.value;
-};
-
-const toggleProfileDropdown = () => {
-  dropdownVisibleProfile.value = !dropdownVisibleProfile.value;
-};
-
 const handleClickOutside = (event) => {
-  const dropdown = document.querySelector(".profile-dropdown");
-  if (dropdown && !dropdown.contains(event.target)) {
+  const profileDropdown = document.querySelector(".profile-dropdown");
+  const marketplaceDropdown = document.querySelector(".dropdown-wrapper");
+
+  if (profileDropdown && !profileDropdown.contains(event.target)) {
     dropdownVisibleProfile.value = false;
+    hasClickedProfile.value = false;
+  }
+
+  if (marketplaceDropdown && !marketplaceDropdown.contains(event.target)) {
+    dropdownVisibleMarketplace.value = false;
+    hasClickedMarketplace.value = false;
   }
 };
 
@@ -73,9 +75,12 @@ onBeforeUnmount(() => {
         <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
         <div
           class="nav-link dropdown-wrapper"
-          @mouseenter="dropdownVisibleMarketplace = true"
-          @mouseleave="dropdownVisibleMarketplace = false"
-          @click = "toggleMarketplaceDropdown"
+            @mouseenter="!hasClickedMarketplace && (dropdownVisibleMarketplace = true)"
+            @mouseleave="!hasClickedMarketplace && (dropdownVisibleMarketplace = false)"
+            @click="() => {
+              dropdownVisibleMarketplace = !dropdownVisibleMarketplace;
+              hasClickedMarketplace = true;
+            }"
         >
           <span class="dropdown-title">Marketplace &#11167;</span>
           <div v-if="dropdownVisibleMarketplace" class="marketplace-dropdown-menu">
@@ -95,7 +100,14 @@ onBeforeUnmount(() => {
       <div class="desktop-nav-right">
         <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
 
-        <div class="profile-dropdown profile-container nav-link" @click="toggleProfileDropdown">
+        <div class="profile-dropdown profile-container nav-link" 
+          @mouseenter="!hasClickedProfile && (dropdownVisibleProfile = true)"
+          @mouseleave="!hasClickedProfile && (dropdownVisibleProfile = false)"
+          @click="() => {
+            dropdownVisibleProfile = !dropdownVisibleProfile;
+            hasClickedProfile = true;
+          }"
+        >
           <img :src="profilePicture" class="profile-pic" />
           <div class="profile-dropdown-menu">
             <router-link to="/profile" class="dropdown-item">My Profile</router-link>
