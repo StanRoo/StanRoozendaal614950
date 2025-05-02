@@ -50,8 +50,8 @@ const fetchBalance = async () => {
     const response = await axios.get('/user/balance', {
       headers: { Authorization: `Bearer ${token}` },
     })
-    balance.value = response.data.balance
-    hasClaimedToday.value = response.data.claimed_today
+    balance.value = response.data.balance.balance
+    hasClaimedToday.value = response.data.balance.claimed_today
   } catch (error) {
     errorMessage.value = 'Failed to load balance.'
   }
@@ -67,9 +67,9 @@ const claimDaily = async () => {
     const response = await axios.post('/user/claim-daily', {}, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    balance.value = response.data.balance
-    hasClaimedToday.value = response.data.claimed_today
-    userStore.updateBalance(response.data.balance);
+    balance.value = response.data.balance.balance;
+    hasClaimedToday.value = response.data.balance.claimed_today;
+    userStore.updateBalance(response.data.balance.balance);
     successMessage.value = 'You claimed 500 CuboCoins!'
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Something went wrong.'
@@ -211,7 +211,6 @@ watch(balance, () => {
   opacity: 0;
 }
 
-/* Media Queries */
 @media (max-width: 768px) {
   .banner {
     object-fit: cover;

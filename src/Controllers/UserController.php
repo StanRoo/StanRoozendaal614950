@@ -135,7 +135,8 @@ class UserController {
     public function getUserBalance(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
 
-        $balance = $this->userService->getBalance($decodedUser->id);
+        $balanceResult = $this->userService->getBalance($decodedUser->id);
+        $balance = $balanceResult['data'];
         ResponseHelper::success(['balance' => $balance], 'Balance fetched successfully.');
     }
 
