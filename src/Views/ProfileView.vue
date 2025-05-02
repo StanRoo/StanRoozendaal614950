@@ -5,66 +5,70 @@
   
   <div class="container profile-container">
     <div class="profile-grid">
-      <!-- Profile Picture Section -->
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <img
-            :src="previewImage || user.profile_picture_url"
-            alt="Profile Picture"
-            class="rounded-circle profile-picture"
-          />
-          <h5 class="mt-3">Choose a Default Profile Picture:</h5>
-          <div class="default-pictures">
+      <div class="card-wrapper">
+        <!-- Profile Picture Section -->
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
             <img
-              v-for="pic in defaultPictures"
-              :key="pic"
-              :src="pic"
-              @click="selectProfilePicture(pic)"
-              class="default-pic"
-              :class="{ selected: user.profile_picture_url === pic }"
+              :src="previewImage || user.profile_picture_url"
+              alt="Profile Picture"
+              class="rounded-circle profile-picture"
             />
-          </div>
+            <h5 class="mt-3">Choose a Default Profile Picture:</h5>
+            <div class="default-pictures">
+              <img
+                v-for="pic in defaultPictures"
+                :key="pic"
+                :src="pic"
+                @click="selectProfilePicture(pic)"
+                class="default-pic"
+                :class="{ selected: user.profile_picture_url === pic }"
+              />
+            </div>
 
-          <h5 class="mt-3">Or Upload a Custom Picture:</h5>
-          <input type="file" class="form-control" @change="previewFile" />
+            <h5 class="mt-3">Or Upload a Custom Picture:</h5>
+            <input type="file" class="form-control" @change="previewFile" />
 
-          <div class="profile-actions">
-            <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>
-          </div>
+            <div class="profile-actions">
+              <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>
+            </div>
 
-          <div class="profile-feedback">
-            <p v-if="messagePicture" :class="messagePictureClass">{{ messagePicture }}</p>
+            <div class="profile-feedback">
+              <p v-if="messagePicture" :class="messagePictureClass">{{ messagePicture }}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Profile Info Section -->
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <div class="user-info">
-            <h2 class="text-center">{{ user.username }}</h2>
-            <p class="text-muted text-center">{{ user.email }}</p>
-            <p><strong>Status:</strong> <span class="badge bg-info">{{ user.status }}</span></p>
+      <div class="card-wrapper">
+        <!-- Profile Info Section -->
+        <div class="card shadow-sm">
+          <div class="card-body user-information">
+            <div class="user-info">
+              <h2 class="text-center">{{ user.username }}</h2>
+              <p class="text-muted text-center">{{ user.email }}</p>
+              <p><strong>Status:</strong> <span class="badge bg-info">{{ user.status }}</span></p>
+            </div>
+
+            <form @submit.prevent="updateProfileInfo">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" v-model="user.username" required />
+
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" v-model="user.email" required />
+
+              <label class="form-label">Bio</label>
+              <textarea class="form-control" v-model="user.bio"></textarea>
+
+              <div class="profile-actions">
+                <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
+              </div>
+
+              <div class="profile-feedback">
+                <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
+              </div>
+            </form>
           </div>
-
-          <form @submit.prevent="updateProfileInfo">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control" v-model="user.username" required />
-
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" v-model="user.email" required />
-
-            <label class="form-label">Bio</label>
-            <textarea class="form-control" v-model="user.bio"></textarea>
-
-            <div class="profile-actions">
-              <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
-            </div>
-
-            <div class="profile-feedback">
-              <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
-            </div>
-          </form>
         </div>
       </div>
     </div>
@@ -218,88 +222,146 @@ export default {
 </script>
 
 <style scoped>
-  .banner {
-    width: 100%;
-    margin-top: 10px;
-  }
+.banner {
+  width: 100%;
+  height: 11vh;
+  margin-top: 0.6rem;
+}
 
-  .profile-container {
-    max-width: 1000px;
-    margin: 100px auto 50px;
-  }
+.profile-container {
+  max-width: 90vw;
+  margin: 3rem auto;
+}
 
-  .profile-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  justify-content: center;
+}
 
-  .card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
-    height: 100%;
-  }
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+}
 
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-  }
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem;
+  height: 100%;
+  max-width: 65vh;
+  min-width: 40vh;
+  width: 100%;
+}
 
-  .user-info {
-    padding: 20px;
-    text-align: center;
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+.user-info {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.form-label {
+  margin-top: 2rem;
+}
+
+.profile-picture {
+  align-self: center;
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border: 3px solid #ddd;
+  border-radius: 50%;
+}
+
+.default-pictures {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.default-pic {
+  width: 8vh;
+  height: 8vh;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.default-pic:hover {
+  transform: scale(1.1);
+}
+
+.selected {
+  border: 2px solid #3366af;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: auto;
+  text-align: center;
+}
+
+.profile-feedback {
+  min-height: 1.5rem;
+}
+
+@media (max-width: 1050px) {
+  .default-pic {
+    width: 6.8vh;
+    height: 6.8vh;
   }
 
   .profile-picture {
-    align-self: center;
-    width: 100px;
-    height: 100px;
+    width: 6.8vh;
+    height: 6.8vh;
+  }
+}
+
+@media (max-width: 940px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner {
     object-fit: cover;
-    border: 3px solid #ddd;
-    border-radius: 50%;
   }
 
-  .default-pictures {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    object-fit: cover;
+  }
+
+  .card {
+    padding: 1.5rem;
   }
 
   .default-pic {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: transform 0.2s;
+    width: 5.5vh;
+    height: 5.5vh;
   }
 
-  .default-pic:hover {
-    transform: scale(1.1);
+  .profile-picture {
+    width: 5.5vh;
+    height: 5.5vh;
   }
-
-  .selected {
-    border: 2px solid #3366af;
-  }
-
-  .profile-actions {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: auto;
-    text-align: center;
-  }
-
-  .profile-feedback {
-    min-height: 20px;
-  }
-
-  .alert {
-    text-align: center;
-    font-size: 14px;
-  }
+}
 </style>

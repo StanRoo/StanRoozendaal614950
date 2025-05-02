@@ -45,7 +45,8 @@ class UserController {
             ResponseHelper::error('Access denied. Admins only.', 403);
         }
 
-        $users = $this->userService->getAllUsers($decodedUser);
+        $usersResult = $this->userService->getAllUsers($decodedUser);
+        $users = $usersResult['data'];
         ResponseHelper::success(['users' => $users], 'Users fetched successfully.');
     }
 

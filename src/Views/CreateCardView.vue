@@ -5,8 +5,47 @@
   <div class="create-card-container">
     <section class="card-customization">
       <div class="customization-wrapper">
-        <!--Left Side-->
-        <div class="left-side">
+
+        <div class="left">
+          <div class="info-card">
+            <h3>Important Information</h3>
+            <ul>
+              <li>Please enter a Pokémon themed name.</li>
+              <li>Please use an image of an actual Pokémon. (custom images are allowed as long as it contains a Pokémon)</li>
+              <li>Images might be getting cropped, to refrain your custom image of being cropped please use size <strong>260x300</strong> or smaller.</li>
+              <li>Please refrain from using offensive language. This will result in a ban.</li>
+              <li>Please refrain from using offensive images. This will result in a ban.</li>
+            </ul>
+          </div>
+          <div class="preview-card">
+            <h3>Card Preview</h3>
+            <div class="preview-card-content" :style="cardStyle" :class="{ 'legendary-card': selectedRarity === 'legendary' }">
+              <div v-if="selectedRarity === 'legendary' || selectedRarity === 'epic'" class="shimmer-overlay" :style="shimmerStyle"></div>
+
+              <h4 :style="{ fontFamily: rarityFonts.fontFamily, fontSize: rarityFonts.fontSize, fontWeight: rarityFonts.fontWeight, color: typeColors.text }">
+                {{ cardName }}
+              </h4>
+
+              <p class="hp-display" :style="{ color: typeColors.text }">
+                HP {{ hp }}
+              </p>
+
+              <img :src="cardImage" alt="Card Image" class="card-image" />
+
+              <div class="card-info">
+                <p :style="{ color: typeColors.text }">
+                  Attack: {{ attack }} | Defense: {{ defense }} | Speed: {{ speed }}
+                </p>
+
+                <p :style="{ color: typeColors.text }">
+                  Type: {{ cardType }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right">
           <div class="details-card">
             <h3>Card Details</h3>
 
@@ -18,7 +57,7 @@
                 @click="selectRarity('common')"
               >
                 <input type="radio" :checked="selectedRarity === 'common'" />
-                <label>Common</label>
+                <label>Common (<img src="@/assets/icons/coin.png" class="coin-icon" /> 250)</label>
               </div>
               <div
                 class="rarity-option rare"
@@ -26,7 +65,7 @@
                 @click="selectRarity('rare')"
               >
                 <input type="radio" :checked="selectedRarity === 'rare'" />
-                <label>Rare</label>
+                <label>Rare (<img src="@/assets/icons/coin.png" class="coin-icon" /> 500)</label>
               </div>
               <div
                 class="rarity-option epic"
@@ -34,7 +73,7 @@
                 @click="selectRarity('epic')"
               >
                 <input type="radio" :checked="selectedRarity === 'epic'" />
-                <label>Epic</label>
+                <label>Epic (<img src="@/assets/icons/coin.png" class="coin-icon" /> 1000)</label>
               </div>
               <div
                 class="rarity-option legendary"
@@ -42,7 +81,7 @@
                 @click="selectRarity('legendary')"
               >
                 <input type="radio" :checked="selectedRarity === 'legendary'" />
-                <label>Legendary</label>
+                <label>Legendary (<img src="@/assets/icons/coin.png" class="coin-icon" /> 2000)</label>
               </div>
             </div>
 
@@ -95,71 +134,19 @@
                 <input v-model="speed" type="number" placeholder="Speed" class="input-small" min="1" max="350" @input="validateStat('speed')" />
               </div>
             </div>
+            <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="create-button">
+              Create Card
+            </button>
+            <p v-if="successMessage" class="succesmessage">{{ successMessage }}</p>
+            <p v-if="errorMessage" class="errormessage">{{ errorMessage }}</p>
           </div>
-        </div>
-
-        <!--Middle-->
-        <div class="middle">
-          <div class="preview-card">
-            <h3>Card Preview</h3>
-            <div class="preview-card-content" :style="cardStyle" :class="{ 'legendary-card': selectedRarity === 'legendary' }">
-              <!-- Effects -->
-              <div v-if="selectedRarity === 'legendary' || selectedRarity === 'epic'" class="shimmer-overlay" :style="shimmerStyle"></div>
-
-              <h4 :style="{ fontFamily: rarityFonts.fontFamily, fontSize: rarityFonts.fontSize, fontWeight: rarityFonts.fontWeight, color: typeColors.text }">
-                {{ cardName }}
-              </h4>
-
-              <p class="hp-display" :style="{ color: typeColors.text }">
-                HP {{ hp }}
-              </p>
-
-              <img :src="cardImage" alt="Card Image" class="card-image" />
-
-              <div class="card-info">
-                <p :style="{ color: typeColors.text }">
-                  Attack: {{ attack }} | Defense: {{ defense }} | Speed: {{ speed }}
-                </p>
-
-                <p :style="{ color: typeColors.text }">
-                  Type: {{ cardType }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!--Right Side-->
-        <div class="right-side">
-          <div class="info-card">
-            <h3>Important Information</h3>
-              <ul>
-                <li>Please enter an Pokémon themed name.</li>
-                <li>Please use an image of an actual Pokémon. (custom images are allowed as long as it contains a Pokémon)</li>
-                <li>Images might be getting cropped, to refrain your custom image of being cropped please use size <strong>260x300</strong> or smaller.</li>
-                <li>Please refrain from using offensive language. This will result in a ban.</li>
-                <li>Please refrain from using offensive images. This will result in a ban.</li>
-              </ul>
-          </div>
-
-          <div class="balance-card">
-            <h3>Balance</h3>
-            <p>Available: {{ userBalance }} CuboCoins</p>
-            <p>Cost: {{ requiredBalance }} CuboCoins</p>
-            <p v-if="!enoughBalance" style="color: red;">Insufficient CuboCoins.</p>
-          </div>
-          <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="create-button">
-            Create Card
-          </button>
-          <p v-if="successMessage" class="succesmessage">{{ successMessage }}</p>
         </div>
       </div>
     </section>
   </div>
 </template>
 
-  
-  <script setup>
+<script setup>
   import axios from "axios";
   import { ref, computed } from 'vue';
   import { useUserStore } from '@/Store/UserStore';
@@ -178,6 +165,7 @@
   const speed = ref(10);
   const userBalance = computed(() => userStore.user?.balance ?? 0);
   const successMessage = ref("");
+  const errorMessage = ref("");
 
   const rarityCosts = {
     common: 200, 
@@ -197,6 +185,7 @@
     const file = event.target.files[0];
   
     if (!file) {
+      fileError.value = "Please select a card image before creating.";
       return;
     }
 
@@ -307,11 +296,11 @@
 
   const rarityFonts = computed(() => {
     return {
-      common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.5vw", fontWeight: "400" },
-      rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.5vw", fontWeight: "500" },
-      epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "1.7vw", fontWeight: "600" },
-      legendary: { fontFamily: '"Marcellus", serif', fontSize: "1.9vw", fontWeight: "bold" }
-    }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.5vw", fontWeight: "500" };
+      common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.8rem", fontWeight: "400" },
+      rare: { fontFamily: '"Quicksand", sans-serif', fontSize: "1.8rem", fontWeight: "500" },
+      epic: { fontFamily: '"Fredoka", sans-serif', fontSize: "2rem", fontWeight: "600" },
+      legendary: { fontFamily: '"Marcellus", serif', fontSize: "2.2remm", fontWeight: "bold" }
+    }[selectedRarity.value] || { fontFamily: '"Kanit", sans-serif', fontSize: "1.8rem", fontWeight: "500" };
   });
 
   const createCard = async () => {
@@ -342,29 +331,40 @@
           Authorization: `Bearer ${token}`
         }
       });
-      const newBalance = userBalance.value - requiredBalance.value;
-      userStore.updateBalance(newBalance);
-      successMessage.value = "Card created successfully! It was added to your inventory.";
-      setTimeout(() => {
-            successMessage.value = "";
+      if (response.status === 201 || response.data.success) {
+        const newBalance = userBalance.value - requiredBalance.value;
+        userStore.updateBalance(newBalance);
+        successMessage.value = "Card created successfully! It was added to your inventory.";
+        setTimeout(() => {
+          successMessage.value = "";
         }, 5000);
+      }
     } catch (error) {
-      console.error('Error creating card:', error.response?.data || error);
+      errorMessage.value = "Something went wrong.";
+      setTimeout(() => {
+          errorMessage.value = "";
+        }, 5000);
     }
   };
 </script>
-  
+
 <style scoped>
 .banner {
   width: 100%;
-  margin-top: 10px;
+  height: 11vh;
+  margin-top: 0.6rem;
 }
 
 .create-card-container {
-  padding: 2vw;
+  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 2vw;
+}
+
+.card-customization {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 header {
@@ -372,68 +372,59 @@ header {
 }
 
 h1 {
-  font-size: 2vw;
-  margin-bottom: 1vw;
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
 p {
-  font-size: 0.85vw;
+  font-size: 1rem;
   color: #666;
-}
-
-.card-customization {
-  display: flex;
-  gap: 1.5vw;
 }
 
 .customization-wrapper {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   justify-content: space-between;
-  max-width: 70vw;
-  margin: 0 auto;
+  gap: 1rem;
 }
 
-.left-side,
-.right-side,
-.middle {
+.left,
+.right {
+  flex: 1;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
-  gap: 1vw;
-  height: 100%;
+  gap: 1rem;
 }
 
-.balance-card,
+.left {
+  align-items: center;
+  padding: 0;
+}
+
 .details-card,
 .preview-card {
   width: 100%;
-  padding: 1vw;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  margin-bottom: 1vw;
+  padding: 1rem;
+  border-radius: 0.625rem;
+  border: 0.0625rem solid #ccc;
 }
 
-.balance-card h3,
 .details-card h3,
 .preview-card h3 {
-  font-size: 1vw;
-  margin-bottom: 1.5vw;
-}
-
-/*Left Side*/
-.left-side {
-  width: 35%;
-  padding-right: 1vw;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .details-card input,
 .details-card select {
   width: 100%;
-  padding: 0.4vw;
-  margin: 0.5vw 0;
-  font-size: 0.85vw;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 0.4rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  border: 0.0625rem solid #ddd;
+  border-radius: 0.3125rem;
 }
 
 .details-card .stats-input {
@@ -441,37 +432,29 @@ p {
   gap: 1vw;
 }
 
-.details-card label {
-  display: block;
-  font-weight: bold;
-  margin-top: 0.4vw;
-  margin-bottom: 0.1vw;
-}
-
 .stat-input {
   flex: 1;
 }
 
-/* Rarity Option Styling*/
 .rarity-options {
   display: flex;
   flex-direction: column;
-  gap: 0.2vw;
+  gap: 0.2rem;
   align-items: flex-start;
 }
 
 .rarity-option {
   display: flex;
   align-items: center;
-  margin-left: 0;
+  white-space: nowrap;
 }
 
 .rarity-option input[type="radio"] {
-  margin-right: 0.5vw;
+  margin-right: 0.5rem;
 }
 
 .rarity-option label {
-  font-size: 0.8vw;
+  font-size: 1rem;
   cursor: pointer;
   font-weight: bold;
 }
@@ -493,18 +476,13 @@ p {
 }
 
 .rarity-option.selected label {
-  font-weight: bold;
   text-decoration: underline;
 }
 
-/*Middle*/
-.middle {
-  width: 40%;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding-left: 1.5vw;
-  padding-right: 1.5vw;
+.coin-icon {
+  width: 1rem;
+  vertical-align: middle;
+  border-radius: 1rem;
 }
 
 .preview-card-content {
@@ -513,46 +491,43 @@ p {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 18vw;
-  height: 27vw;
+  width: 100%;
+  min-height: 28rem;
+  max-height: 29rem;
+  min-width: 15rem;
+  max-width: 20rem;
   padding: 0.8vw;
   text-align: center;
-  box-sizing: border-box;
-  margin: 0 auto;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   overflow: hidden;
+  margin: 0 auto;
 }
 
 .preview-card-content img {
-  width: 14vw;
-  height: 15vw;
+  width: 14rem;
+  height: 15rem;
+  min-height: 17rem;
   object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 0.5vw;
+  border-radius: 0.625rem;
+  margin-bottom: 0.5rem;
 }
 
 .preview-card-content h4,
 .preview-card-content p {
-  margin: 5px 0;
+  margin: 0.3125rem 0;
 }
 
 .hp-display {
   position: absolute;
-  top: 0.6vw;
-  right: 0.6vw;
+  top: 0.1rem;
+  right: 0.6rem;
   font-style: italic;
-  font-size: 1vw;
+  font-size: 1rem;
   font-weight: bold;
-  padding: 5px 10px;
-  border-radius: 5px;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 0.3125rem;
 }
 
-.card-info {
-  padding: 0;
-  margin: 0;
-}
-
-/* Card effects*/
 .glow-effect {
   position: absolute;
   top: 50%;
@@ -560,7 +535,7 @@ p {
   width: 100%;
   height: 100%;
   background: rgba(255, 255, 0, 0.1);
-  box-shadow: 0 0 20px 10px rgba(255, 255, 0, 0.3);
+  box-shadow: 0 0 1.25rem 0.625rem rgba(255, 255, 0, 0.3);
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
@@ -568,9 +543,9 @@ p {
 }
 
 @keyframes glow-animation {
-  0% { box-shadow: 0 0 20px 10px rgba(255, 255, 0, 1); }
-  50% { box-shadow: 0 0 40px 20px rgba(255, 255, 0, 1); }
-  100% { box-shadow: 0 0 20px 10px rgba(255, 255, 0, 1); }
+  0% { box-shadow: 0 0 1.25rem 0.625rem rgba(255, 255, 0, 1); }
+  50% { box-shadow: 0 0 2.5rem 1.25rem rgba(255, 255, 0, 1); }
+  100% { box-shadow: 0 0 1.25rem 0.625rem rgba(255, 255, 0, 1); }
 }
 
 .shimmer-overlay {
@@ -582,7 +557,7 @@ p {
   background: var(--shimmer-background);
   background-size: 200% 100%;
   animation: shimmer 2.5s infinite linear !important;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   pointer-events: none;
   z-index: 2;
   opacity: 0.6;
@@ -604,48 +579,48 @@ p {
 @keyframes borderAnimation {
   0% {
     border-color: #ffd700;
-    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 1.25rem 0.625rem rgba(255, 215, 0, 0.6);
   }
   50% {
     border-color: #ff6347;
-    box-shadow: 0 0 20px 10px rgba(255, 99, 71, 0.6);
+    box-shadow: 0 0 1.25rem 0.625rem rgba(255, 99, 71, 0.6);
   }
   100% {
     border-color: #ffd700;
-    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 1.25rem 0.625rem rgba(255, 215, 0, 0.6);
   }
 }
 
-/*Right Side*/
-.right-side {
+.right {
   width: 30%;
-  padding-left: 1vw;
+  padding-left: 1rem;
 }
 
 .info-card {
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  width: 100%;
+  padding: 0.9375rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  border: 0.0625rem solid #ddd;
   text-align: left;
-  font-size: 0.8vw;
-  margin-bottom: 0.6vw;
+  font-size: 0.8rem;
+  margin-bottom: 0.6rem;
 }
 
 .info-card h3 {
-  font-size: 1vw;
+  font-size: 1rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 0.625rem;
   color: #333;
 }
 
 .info-card ul {
   list-style-type: disc;
-  padding-left: 20px;
+  padding-left: 1.25rem;
 }
 
 .info-card li {
-  margin-bottom: 5px;
+  margin-bottom: 0.3125rem;
   color: #666;
 }
 
@@ -653,42 +628,18 @@ p {
   color: #222;
 }
 
-.balance-card {
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 0.8vw;
-}
-
-.balance-card h3 {
-  margin-bottom: 10px;
-  font-size: 1vw;
-  font-weight: bold;
-}
-
-.balance-card p {
-  margin: 5px 0;
-}
-
-.balance-card p:nth-child(3) {
-  font-weight: bold;
-  color: #333;
-}
-
-.balance-card p:nth-child(4) {
-  font-weight: bold;
-  color: red;
-}
-
 .create-button {
-  padding: 15px;
   background-color: #4992f8;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   cursor: pointer;
-  font-size: 0.9vw;
-  margin-top: 15px;
+  margin-top: 0.9375rem;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  margin-top: 1rem;
+  align-self: center;
 }
 
 .create-button:disabled {
@@ -701,60 +652,117 @@ p {
   color: green;
 }
 
+.errormessage {
+  text-align: center;
+  color: red;
+}
+
 @media (max-width: 1024px) {
   .customization-wrapper {
-    flex-direction: column;
-    width: 90%;
-    margin: 0 auto;
-  }
-
-  .left-side, .middle {
-    width: 48%;
-    margin-bottom: 1.5vw;
-  }
-
-  .right-side {
-    display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    gap: 2vw;
-    width: 100%;
-    margin-top: 1.5vw;
+    flex-wrap: wrap;
   }
 
-  .info-card, .balance-card {
-    width: 48%;
+  .left,
+  .right {
+    width: 100%;
+    padding: 0;
+  }
+
+  .right {
+    width: 100%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .right {
+    width: 100%;
+  }
+
+  .info-card {
+    width: 100%;
+    margin-bottom: 0 !important;
   }
 
   .create-button {
     width: 100%;
-    margin-top: 2vw;
+    margin-top: 2rem;
+  }
+
+  .middle {
+    align-items: center;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .rarity-options {
+    align-items: flex-start !important;
+    text-align: left;
+  }
+
+  .rarity-option {
+    justify-content: flex-start !important;
+  }
+
+  .rarity-option label {
+    text-align: left;
+  }
+
+  .banner {
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 768px) {
+  .customization-wrapper {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    margin: 0 auto;
+    align-items: center;
+  }
+
+  .left,
+  .right {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+
+  .preview-card-content {
+    width: 100%;
+    height: auto;
+  }
+
+  .preview-card-content img {
+    width: 100%;
+    height: auto;
+  }
+
+  .info-card {
+    width: 100%;
+  }
+
+  .banner {
+    object-fit: cover;
   }
 }
 
 @media (max-width: 600px) {
   .create-card-container {
-    padding: 4vw;
+    padding: 2rem;
   }
 
   header h1 {
-    font-size: 4vw;
+    font-size: 2rem;
   }
 
   .card-customization {
     flex-direction: column;
-  }
-
-  .customization-wrapper {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .left-side, 
-  .middle, 
-  .right-side {
-    width: 100%;
-    margin-bottom: 1vw;
   }
 
   .next-button {
@@ -762,35 +770,10 @@ p {
     width: 100%;
   }
 
-  .details-card label, 
-  .details-card input, 
+  .details-card label,
+  .details-card input,
   .details-card select {
     font-size: 1rem;
-  }
-
-  .preview-card-content {
-    width: 80vw;
-    height: auto;
-  }
-
-  .preview-card-content img {
-    width: 70vw;
-    height: auto;
-  }
-
-  .info-card, 
-  .balance-card {
-    width: 100%;
-  }
-
-  .rarity-options {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .rarity-option {
-    flex: 1 0 48%;
-    margin-bottom: 1vw;
   }
 }
 </style>

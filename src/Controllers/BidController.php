@@ -97,7 +97,8 @@ class BidController {
 
     public function getAllBids(): void {
         try {
-            $bids = $this->bidService->getAllBids();
+            $bidsResult = $this->bidService->getAllBids();
+            $bids = $bidsResult['data'];
             ResponseHelper::success(['bids' => $bids], 'All bids retrieved successfully.');
         } catch (\Throwable $e) {
             ResponseHelper::error("An error occurred while fetching all bids: " . $e->getMessage(), 500);

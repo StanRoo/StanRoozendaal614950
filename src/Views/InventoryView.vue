@@ -1,11 +1,11 @@
 <template>
   <header>
-    <img class="banner" :src="InventoryBanner" alt="Inventory Banner"/>
+    <img class="banner" :src="InventoryBanner" alt="Inventory Banner" />
   </header>
-  
+
   <div class="card shadow-sm mb-4 p-3 filter-card">
     <div class="row g-3 align-items-center">
-      <div class="col-md-4">
+      <div class="col-md-4 col-12">
         <input 
           type="text" 
           v-model="searchQuery" 
@@ -14,7 +14,7 @@
         />
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <select class="form-select" v-model="selectedRarity">
           <option value="">All Rarities</option>
           <option value="Common">Common</option>
@@ -24,7 +24,7 @@
         </select>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <select class="form-select" v-model="selectedType">
           <option value="">All Types</option>
           <option value="Normal">Normal</option>
@@ -49,7 +49,7 @@
         </select>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-4 col-12">
         <select class="form-select" v-model="sortOption">
           <option value="name_asc">Sort by Name (A-Z)</option>
           <option value="created_desc">Newest First</option>
@@ -149,7 +149,8 @@ const filteredCards = computed(() => {
 <style scoped>
 .banner {
   width: 100%;
-  margin-top: 10px;
+  height: 11vh;
+  margin-top: 0.6rem;
 }
 
 .inventory-container {
@@ -159,23 +160,18 @@ const filteredCards = computed(() => {
 
 .inventory-grid {
   display: grid;
-  width: 80%;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1vw;
+  width: 100%;
+  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.2vw;
   justify-items: center;
-}
-
-.card .form-control,
-.card .form-select {
-  font-size: 0.95vw;
 }
 
 .inventory-card {
   background-color: #f8f9fa;
-  border-radius: 10px;
+  border-radius: 0.8rem;
   padding: 1.5vw;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 21vw;
+  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
 }
@@ -185,24 +181,9 @@ const filteredCards = computed(() => {
 }
 
 .empty-message {
-  font-size: 1.2vw;
+  font-size: 1.2rem;
   color: gray;
-  margin-top: 2vw;
-}
-
-.filters {
-  margin: 1.5vw auto;
-  display: flex;
-  justify-content: center;
-  gap: 1vw;
-  flex-wrap: wrap;
-}
-
-.filters select {
-  padding: 0.6vw 1vw;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1vw;
+  margin-top: 2rem;
 }
 
 .filter-card {
@@ -218,5 +199,39 @@ const filteredCards = computed(() => {
   background-color: white;
   color: black;
   border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 992px) {
+  .inventory-card {
+    width: 28vw;
+    padding: 1.8vw;
+  }
+
+  .empty-message {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner{
+    object-fit: cover;
+  }
+
+  .inventory-card {
+    width: 38vw;
+    padding: 2.2vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-card {
+    width: 75vw;
+    padding: 4vw;
+  }
+
+  .empty-message {
+    font-size: 1.1rem;
+  }
 }
 </style>

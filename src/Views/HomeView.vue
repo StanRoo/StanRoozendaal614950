@@ -18,42 +18,60 @@
 </template>
 
 <style scoped>
-  html, body {
-    margin: 0;
-    padding: 0;
-   overflow-x: hidden;
-   overflow-y: hidden;
-   width: 100%;
-   height: 100%;
-  }
+.banner {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  margin-top: -40px;
+}
 
-  header {
-    line-height: 1.5;
-  }
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  main{
-    flex: 1;
-  }
+.container {
+  width: 100%;
+  max-width: 50rem;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
 
-  .container {
-    width: 100%;
-  }
+h1 {
+  font-size: 2rem;
+  margin: 1.5rem 0 1rem;
+}
 
-  .banner {
-   width: 100%;
-   left: 0;
-   margin-top: -40px;
-  }
+.HomeText {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  margin-top: 0.5rem;
+  max-width: 100%;
+}
 
+@media (max-width: 768px) {
   h1 {
-   text-align: center;
-   width: 100%;
-   margin-top: 2vw;
+    font-size: 1.75rem;
   }
 
   .HomeText {
-    text-align: center;
-   margin-top: 1vw;
-    width: 100%;
+    font-size: 1rem;
+    padding: 0 0.5rem;
   }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .HomeText {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+}
 </style>

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
-use App\Utils\ResponseHelper;
 use Firebase\JWT\JWT;
 use App\Config;
 use App\Utils\Validator;
@@ -16,19 +15,19 @@ class AuthService {
         $this->userRepository = $userRepository;
     }
 
-    public function login($username, $password) {
+    public function login($username, $password): array {
         $user = $this->userRepository->getUserByUsername($username);
 
         if (!$user || !password_verify($password, $user->getPassword())) {
-            ResponseHelper::error('Invalid credentials.', 400);
+            return ['success' => false, 'message' => 'Invalid credentials.'];
         }
 
         if ($user->getStatus() === 'banned') {
-            ResponseHelper::error('Your account has been banned.', 403);
+            return ['success' => false, 'message' => 'Your account has been banned.'];
         }
-    
+
         if ($user->getStatus() === 'inactive') {
-            ResponseHelper::error('Your account is not active.', 403);
+            return ['success' => false, 'message' => 'Your account is not active.'];
         }
 
         $this->userRepository->updateLastLogin($user->getId());
@@ -50,53 +49,61 @@ class AuthService {
             'user_id' => $user->getId(),
             'user' => $userData,
             "iat" => time(),
-            "exp" => time() + (60 * 60)  // Expire in 1 hour
+            "exp" => time() + (60 * 60) // 1 hour expiration
         ];
 
         $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
 
-        ResponseHelper::success([
+        return [
+            'success' => true,
             'message' => 'Login successful',
-            'token' => $jwt,
-            'user' => $userData
-        ]);
+            'data' => [
+                'token' => $jwt,
+                'user' => $userData
+            ]
+        ];
     }
 
-    public function register($data) {
+    public function register($data): array {
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            ResponseHelper::error('Invalid username.', 400);
+            return ['success' => false, 'message' => 'Invalid username.'];
         }
 
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            ResponseHelper::error('Invalid Email.', 400);
+            return ['success' => false, 'message' => 'Invalid Email.'];
         }
 
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            ResponseHelper::error('Invalid password.', 400);
+            return ['success' => false, 'message' => 'Invalid password.'];
+        }
+
+        if ($this->userRepository->getUserByEmail($data['email'])) {
+            return ['success' => false, 'message' => 'Email is already registered.'];
         }
 
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
-
-        if ($this->userRepository->getUserByEmail($data['email'])) {
-            ResponseHelper::error('Email is already registered.', 400);
-        }
-
-        $newUser = $this->userRepository->createUser($data['username'], $data['email'], $hashedPassword, "I love Pokémon :)", "/images/profile.png");
+        $newUser = $this->userRepository->createUser(
+            $data['username'],
+            $data['email'],
+            $hashedPassword,
+            "I love Pokémon :)",
+            "/images/profile.png"
+        );
 
         if (!$newUser) {
-            ResponseHelper::error('Failed to create account.', 500);
+            return ['success' => false, 'message' => 'Failed to create account.'];
         }
 
-        ResponseHelper::success(null, 'Account created successfully!');
+        return ['success' => true, 'message' => 'Account created successfully!'];
     }
 
-    public function sendResetLink($email) {
+    public function sendResetLink($email): array {
         $user = $this->userRepository->getUserByEmail($email);
         if (!$user) {
-            return ['error' => true, 'message' => 'User not found.'];
+            return ['success' => false, 'message' => 'User not found.'];
         }
 
         $token = bin2hex(random_bytes(32));
@@ -111,20 +118,24 @@ class AuthService {
             . "<a href='{$resetLink}'>{$resetLink}</a><br><br>"
             . "If you didn't request this, you can ignore this email.";
 
-        return MailService::send($email, $user->getUsername(), $subject, $body);
-    } 
-    
-    public function resetPassword($token, $newPassword) {
+        $mailSent = MailService::send($email, $user->getUsername(), $subject, $body);
+
+        return $mailSent
+            ? ['success' => true, 'message' => 'Reset link sent successfully.']
+            : ['success' => false, 'message' => 'Failed to send reset link.'];
+    }
+
+    public function resetPassword($token, $newPassword): array {
         $reset = $this->userRepository->getResetToken($token);
-    
+
         if (!$reset || strtotime($reset['expires_at']) < time()) {
-            return ['error' => true, 'message' => 'Invalid or expired token.'];
+            return ['success' => false, 'message' => 'Invalid or expired token.'];
         }
-    
+
         $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
         $this->userRepository->updatePasswordByEmail($reset['email'], $hashedPassword);
         $this->userRepository->deleteResetToken($token);
-    
-        return ['success' => true];
+
+        return ['success' => true, 'message' => 'Password reset successfully.'];
     }
 }

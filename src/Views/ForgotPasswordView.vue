@@ -1,65 +1,173 @@
 <template>
-    <div class="forgot-password-container vh-100 d-flex align-items-center justify-content-center">
-      <div class="card p-4 shadow-lg">
-        <div class="text-center mb-4">
-          <img src="@/assets/icons/CubocardLogo.png" alt="Logo" style="width: 80px;" />
-        </div>
-        <h2 class="text-center mb-4">Forgot Password</h2>
-        <form @submit.prevent="handleForgotPassword">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              v-model="email"
-              class="form-control"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
-          <div class="text-center mt-3">
-            <router-link to="/" class="small">Back to Login</router-link>
-          </div>
-        </form>
+  <div class="forgot-password-container">
+    <div class="card forgot-password-card">
+      <div class="logo-container">
+        <img src="@/assets/icons/CubocardLogo.png" alt="Logo" class="logo" />
       </div>
+      <h2 class="text-center mb-4">Forgot Password</h2>
+      <form @submit.prevent="handleForgotPassword">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            class="form-control"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+
+        <div v-if="feedbackMessage" :class="feedbackMessageType" class="feedback-message">
+          {{ feedbackMessage }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Sending Reset Link...' : 'Send Reset Link' }}
+        </button>
+
+        <div class="text-center mt-3">
+          <router-link to="/" class="small">Back to Login</router-link>
+        </div>
+      </form>
     </div>
+  </div>
 </template>
-  
+
 <script>
-  export default {
-    name: "ForgotPassword",
-    data() {
-      return {
-        email: "", 
-      };
-    },
-    methods: {
-      async handleForgotPassword() {
-        if (this.email) {
-          try {
-            alert(`A password reset link has been sent to ${this.email}`);
-            this.email = "";
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Failed to send reset link. Please try again.");
-          }
+import axios from "axios";
+
+export default {
+  name: "ForgotPassword",
+  data() {
+    return {
+      email: "",
+      feedbackMessage: "",
+      feedbackMessageType: "",
+      isSubmitting: false,
+    };
+  },
+  methods: {
+    async handleForgotPassword() {
+      if (this.isSubmitting) return;
+      this.isSubmitting = true;
+      this.feedbackMessage = "";
+      this.feedbackMessageType = "";
+
+      try {
+        const response = await axios.post("/api/forgot-password", {
+          email: this.email,
+        });
+
+        if (response.status === 200) {
+          this.feedbackMessage = "A password reset link has been sent to your email address.";
+          this.feedbackMessageType = "text-success";
+          this.email = "";
+        } else {
+          this.feedbackMessage = response.data.message || "Failed to send reset link. Please try again.";
+          this.feedbackMessageType = "text-danger";
         }
-      },
+      } catch (error) {
+        console.error("Error sending reset link:", error);
+        this.feedbackMessage = "An error occurred. Please try again later.";
+        this.feedbackMessageType = "text-danger";
+      } finally {
+        this.isSubmitting = false;
+      }
     },
-  };
+  },
+};
 </script>
-  
+
 <style scoped>
-  .forgot-password-container {
-    background-color: #f8f9fa;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.forgot-password-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.forgot-password-card {
+  width: 100%;
+  max-width: 25rem;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 5rem;
+  max-width: 20vw;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+input.form-control {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+}
+
+input.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  outline: none;
+}
+
+.feedback-message {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .forgot-password-card {
+    padding: 1.5rem;
   }
-  
-  .card {
-    max-width: 400px;
-    width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  .logo {
+    width: 4rem;
   }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 0.9rem;
+  }
+  .forgot-password-card {
+    padding: 1.25rem;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}
 </style>

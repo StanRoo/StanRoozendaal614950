@@ -1,14 +1,14 @@
 <template>
-  <div class="login-container d-flex align-items-center justify-content-center vh-100">
-    <div class="card p-4 shadow-lg">
-      <div class="text-center mb-4">
-        <img src="@/assets/icons/CubocardLogo.png" alt="Logo" style="width: 80px;" />
+  <div class="login-container">
+    <div class="card login-card">
+      <div class="logo-container">
+        <img src="@/assets/icons/CubocardLogo.png" alt="Logo" class="logo" />
       </div>
       <h2 class="text-center mb-4">Login</h2>
 
       <form @submit.prevent="login">
-        <div class="mb-3">
-          <label for="username" class="form-label">Username</label>
+        <div class="form-group">
+          <label for="username">Username</label>
           <input
             type="text"
             id="username"
@@ -19,8 +19,8 @@
           />
         </div>
 
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
+        <div class="form-group">
+          <label for="password">Password</label>
           <input
             type="password"
             id="password"
@@ -42,13 +42,9 @@
           <p class="error">{{ errorMessage }}</p>
         </div>
 
-        <div class="text-center mt-3">
-          <router-link to="/forgotPassword" class="small text-primary">
-            Forgot password?
-          </router-link><br />
-          <router-link to="/createAccount" class="small text-primary">
-            Create an account
-          </router-link>
+        <div class="text-center mt-3 links">
+          <router-link to="/forgotPassword">Forgot password?</router-link><br />
+          <router-link to="/createAccount">Create an account</router-link>
         </div>
       </form>
     </div>
@@ -57,8 +53,8 @@
 
 <script>
 import axios from "axios";
-import { useUserStore } from '@/Store/UserStore';
-import { handleApiError } from '@/Utils/errorHandler';
+import { useUserStore } from "@/Store/UserStore";
+import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -108,37 +104,98 @@ export default {
 html, body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  width: 100%;
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
 }
 
 .login-container {
-  background-color: #f8f9fa;
-  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
 }
 
-.card {
+.login-card {
   width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
+  max-width: 25rem;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  background: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.card h2 {
-  font-weight: bold;
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.logo {
+  width: 5rem;
+  max-width: 20vw;
 }
 
-.form-control:focus {
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+input.form-control {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+}
+
+input.form-control:focus {
+  border-color: #86b7fe;
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  outline: none;
 }
 
 .error-container {
+  margin-top: 0.5rem;
   text-align: center;
-  margin-top: 10px;
 }
-
 .error {
   color: red;
   font-size: 0.9rem;
+}
+
+.links a {
+  font-size: 0.9rem;
+  color: #0d6efd;
+  text-decoration: none;
+}
+.links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 1.5rem;
+  }
+  .logo {
+    width: 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 0.9rem;
+  }
+  .login-card {
+    padding: 1.25rem;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+  }
 }
 </style>

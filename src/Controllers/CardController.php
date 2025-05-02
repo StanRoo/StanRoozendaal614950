@@ -24,12 +24,12 @@ class CardController {
             $data = $_POST;
             $image = $_FILES['image'] ?? null;
 
-            $user = $this->userService->getUserById($userId);
-            if (!$user) {
+            $userResult = $this->userService->getUserById($userId);
+            if (!$userResult) {
                 ResponseHelper::error('User not found.', 404);
                 return;
             }
-
+            $user = $userResult['data'];
             $balance = $user->getBalance();
             $requiredBalance = $data['required_balance'] ?? null;
 

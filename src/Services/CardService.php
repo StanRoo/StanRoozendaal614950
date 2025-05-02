@@ -4,10 +4,7 @@ namespace App\Services;
 
 use App\Repositories\CardRepository;
 use App\Models\CardModel;
-use App\Utils\Validator;
-use App\Utils\ResponseHelper;
 use App\Utils\ImageUploader;
-use Exception;
 
 class CardService {
     private CardRepository $cardRepository;
@@ -24,14 +21,14 @@ class CardService {
         return $this->cardRepository->getUserCards($userId);
     }
 
-    public function createCard($userId, $data, $image): void {
+    public function createCard($userId, $data, $image): array {
         if (empty($data['name']) || empty($data['type']) || empty($data['rarity'])) {
-            ResponseHelper::error('Missing required fields.', 400);
+            return ['success' => false, 'message' => 'Missing required fields.'];
         }
 
         $imagePath = ImageUploader::upload($image, 'cards');
         if (!$imagePath) {
-            ResponseHelper::error('Failed to upload image', 500);
+            return ['success' => false, 'message' => 'Failed to upload image.'];
         }
 
         $cardData = [
@@ -54,9 +51,13 @@ class CardService {
 
         if ($createdCard) {
             $cardModel = new CardModel($cardData);
-            ResponseHelper::success($cardModel->toArray(), 'Card created successfully');
+            return [
+                'success' => true,
+                'data' => $cardModel->toArray(),
+                'message' => 'Card created successfully.'
+            ];
         } else {
-            ResponseHelper::error('Failed to create card', 500);
+            return ['success' => false, 'message' => 'Failed to create card.'];
         }
     }
 
@@ -64,11 +65,11 @@ class CardService {
         $card = $this->cardRepository->getCardById($cardId);
 
         if (!$card || $card->user_id !== $userId || $card->is_listed) {
-            ResponseHelper::error('Card not found or cannot be deleted', 403);
+            \App\Utils\ResponseHelper::error('Card not found or cannot be deleted', 403);
         }
 
         $this->cardRepository->delete($cardId);
-        ResponseHelper::success(null, 'Card deleted successfully');
+        \App\Utils\ResponseHelper::success(null, 'Card deleted successfully');
     }
 
     public function updateCardOwner($cardId, $newOwnerId) {

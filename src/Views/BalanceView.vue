@@ -1,7 +1,7 @@
 <template>
-  <header>
-    <img class="banner" :src="BalanceBanner" alt="Inventory Banner"/>
-  </header>
+<header>
+  <img class="banner" :src="BalanceBanner" alt="Balance Banner" />
+</header>
 
   <div class="balance-page">
     <div class="balance-card">
@@ -110,24 +110,24 @@ watch(balance, () => {
 <style scoped>
 .banner {
   width: 100%;
-  margin-top: 10px;
+  height: 11vh;
+  margin-top: 0.6rem;
 }
 
 .balance-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(145deg, #f0f4ff, #ffffff);
-  padding: 3vw;
-  min-height: 95%;
+  padding: 2rem 1rem;
+  min-height: 70vh;
 }
 
 .balance-card {
   background: #fff;
-  padding: 3vw;
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-  max-width: 480px;
+  padding: 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.1);
+  max-width: 30rem;
   width: 100%;
   text-align: center;
 }
@@ -136,38 +136,46 @@ watch(balance, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1vw;
-  margin-bottom: 1.5vw;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .coin-icon {
-  width: 45px;
-  height: 45px;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .subtitle {
-  font-size: 1vw;
+  font-size: 1.1rem;
   color: #777;
+  margin-bottom: 0.5rem;
 }
 
 .balance-amount {
-  font-size: 3vw;
-  margin: 1vw 0 2vw;
+  font-size: 2.5rem;
+  margin: 1rem 0 1.5rem;
   color: #222;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .claim-button {
   background: linear-gradient(135deg, #ffc107, #ff9800);
   color: #fff;
-  padding: 1vw 2vw;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 12px;
-  font-size: 1vw;
+  border-radius: 0.75rem;
+  font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 12px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 0 0.75rem rgba(255, 152, 0, 0.4);
+  width: 100%;
+  max-width: 18.75rem;
+  margin: 0 auto;
 }
 
 .claim-button:hover {
@@ -180,14 +188,18 @@ watch(balance, () => {
   box-shadow: none;
 }
 
+.success,
+.error {
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
 .success {
   color: green;
-  margin-top: 1vw;
 }
 
 .error {
   color: red;
-  margin-top: 1vw;
 }
 
 .fade-enter-active,
@@ -197,5 +209,62 @@ watch(balance, () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .banner {
+    object-fit: cover;
+  }
+
+  .balance-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .balance-amount {
+    font-size: 2rem;
+  }
+
+  .claim-button {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .coin-icon {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    object-fit: cover;
+  }
+
+  .balance-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .balance-amount {
+    font-size: 1.8rem;
+  }
+
+  .claim-button {
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .coin-icon {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
 }
 </style>

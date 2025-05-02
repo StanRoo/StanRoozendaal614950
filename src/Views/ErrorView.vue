@@ -36,13 +36,82 @@
 </script>
   
 <style scoped>
-.error-image {
-  height: 20vw;
-  width: 20vw;
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  min-height: 70vh;
 }
 
-.error-container {
-  margin-top: 20px;
-  padding: 2rem;
+.error-image {
+  width: 50%;
+  max-width: 15.625rem;
+  height: auto;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #dc3545;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+p.lead {
+  font-size: 1.125rem;
+  max-width: 37.5rem;
+  margin: 0 auto;
+}
+
+.btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  p.lead {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+  }
+
+  p.lead {
+    font-size: 1rem;
+  }
+
+  .error-image {
+    width: 70%;
+  }
+
+  .btn {
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
+  }
 }
 </style>

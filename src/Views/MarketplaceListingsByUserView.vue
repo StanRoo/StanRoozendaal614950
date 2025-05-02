@@ -88,8 +88,8 @@
       >
         <CardDisplay :card="card" />
         <div class="price-container">
-          <span class="price">Price: {{ card.price }}</span>
-          <img src="@/assets/icons/coin.png" alt="Cubocoins" class="coin-icon" />
+          <span class="price">Price: <img src="@/assets/icons/coin.png" alt="Cubocoins" class="coin-icon" /> {{ card.price }}</span>
+          
         </div>
       </div>
     </section>
@@ -202,72 +202,69 @@
 </script>
   
 <style scoped>
-  .banner {
-    width: 100%;
-    margin-top: 10px;
-  }
-  
-  .my-listings-container {
-    padding: 2vw;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .page-title {
-    font-size: 2vw;
-    font-weight: bold;
-    margin-bottom: 2vw;
-  }
-  
-  .marketplace-grid {
-    display: grid;
-    width: auto;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2vw;
-    justify-items: center;
-  }
-  
-  .marketplace-card {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 1.5vw;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 21vw;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .marketplace-card:hover {
-    transform: scale(1.05);
-  }
-  
-  .price-container {
-    margin-top: 1vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .price {
-    font-size: 1.4vw;
-    font-weight: bold;
-    color: #007bff;
-  }
-  
-  .coin-icon {
-    width: 2vw;
-    margin-left: 0.5vw;
-  }
-  
-  .empty-message {
-    font-size: 1.2vw;
-    color: gray;
-    margin-top: 2vw;
-  }
+.banner {
+  width: 100%;
+  height: 11vh;
+  margin-top: 0.6rem;
+}
 
-  .filter-card {
+.my-listings-container {
+  padding: 2vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 2rem;
+  width: 100%;
+  justify-items: center;
+}
+
+.marketplace-card {
+  background-color: #f8f9fa;
+  border-radius: 0.6rem;
+  padding: 1.2rem;
+  box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 21rem;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.marketplace-card:hover {
+  transform: scale(1.05);
+}
+
+.price-container {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.coin-icon {
+  width: 1.6rem;
+  margin-left: 0.5rem;
+}
+
+.empty-message {
+  font-size: 1rem;
+  color: gray;
+  margin-top: 2rem;
+}
+
+.filter-card {
   background-color: #3366af;
   color: white;
   width: 100%;
@@ -283,17 +280,50 @@
 }
 
 .filters {
-  margin: 1.5vw auto;
+  margin: 2rem auto;
   display: flex;
   justify-content: center;
-  gap: 1vw;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .filters select {
-  padding: 0.6vw 1vw;
-  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
   border: 1px solid #ccc;
-  font-size: 1vw;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .banner {
+    object-fit: cover;
+  }
+  
+  .filter-card .row > div {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .price {
+    font-size: 1rem;
+  }
+
+  .coin-icon {
+    width: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .marketplace-grid {
+    gap: 1.2rem;
+  }
+
+  .price {
+    font-size: 0.95rem;
+  }
+
+  .coin-icon {
+    width: 1.2rem;
+  }
 }
 </style>  

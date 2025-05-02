@@ -6,7 +6,6 @@ use App\Models\BidModel;
 use App\Repositories\BidRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\MarketplaceRepository;
-use App\Utils\ResponseHelper;
 
 class BidService {
     private BidRepository $bidRepository;
@@ -23,59 +22,66 @@ class BidService {
         $this->marketplaceRepository = $marketplaceRepository;
     }
 
-    public function placeBid(BidModel $bid, float $minimumBid): void {
+    public function placeBid(BidModel $bid, float $minimumBid): array {
         $highestBid = $this->bidRepository->getHighestBidByListingId($bid->getListingId());
         $user = $this->userRepository->getUserById($bid->getBidderId());
         $listing = $this->marketplaceRepository->getListingById($bid->getListingId());
 
         if (!$user) {
-            ResponseHelper::error('User not found.', 404);
+            return ['success' => false, 'message' => 'User not found.'];
         }
 
         if (!$listing || $listing->status !== 'active') {
-            ResponseHelper::error('Listing is not available.', 400);
+            return ['success' => false, 'message' => 'Listing is not available.'];
         }
 
         if ($listing->user_id === $bid->getBidderId()) {
-            ResponseHelper::error('You cannot bid on your own listing.', 400);
+            return ['success' => false, 'message' => 'You cannot bid on your own listing.'];
         }
 
         if ($bid->getBidAmount() < $minimumBid) {
-            ResponseHelper::error("Bid must be at least {$minimumBid} CuboCoins.", 400);
+            return ['success' => false, 'message' => "Bid must be at least {$minimumBid} CuboCoins."];
         }
 
         if ($highestBid && $bid->getBidAmount() <= $highestBid->getBidAmount()) {
-            ResponseHelper::error('Your bid must be higher than the current highest bid.', 400);
+            return ['success' => false, 'message' => 'Your bid must be higher than the current highest bid.'];
         }
 
         if ($user->getBalance() < $bid->getBidAmount()) {
-            ResponseHelper::error('Insufficient balance.', 400);
+            return ['success' => false, 'message' => 'Insufficient balance.'];
         }
 
         $user->balance -= $bid->getBidAmount();
         $this->userRepository->updateBalance($user->getId(), $user->getBalance());
         $this->bidRepository->createBid($bid);
 
-        ResponseHelper::success(null, 'Bid placed successfully.');
+        return ['success' => true, 'message' => 'Bid placed successfully.'];
     }
 
-    public function getHighestBid(int $listingId): ?BidModel {
-        return $this->bidRepository->getHighestBidForListing($listingId);
+    public function getHighestBid(int $listingId): array {
+        $bid = $this->bidRepository->getHighestBidForListing($listingId);
+        return ['success' => true, 'data' => $bid];
     }
 
     public function getAllBidsForListing(int $listingId): array {
-        return $this->bidRepository->getAllBidsForListing($listingId);
+        $bids = $this->bidRepository->getAllBidsForListing($listingId);
+        return ['success' => true, 'data' => $bids];
     }
 
     public function getBidsByUser(int $userId): array {
-        return $this->bidRepository->getBidsByUserId($userId);
+        $bids = $this->bidRepository->getBidsByUserId($userId);
+        return ['success' => true, 'data' => $bids];
     }
 
     public function getAllBids(): array {
-        return $this->bidRepository->getAllBids();
+        $bids = $this->bidRepository->getAllBids();
+        return ['success' => true, 'data' => $bids];
     }
 
-    public function deleteBid(int $id): bool {
-        return $this->bidRepository->deleteBid($id);
+    public function deleteBid(int $id): array {
+        $deleted = $this->bidRepository->deleteBid($id);
+        return $deleted
+            ? ['success' => true, 'message' => 'Bid deleted successfully.']
+            : ['success' => false, 'message' => 'Failed to delete bid.'];
     }
 }

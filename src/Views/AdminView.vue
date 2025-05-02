@@ -4,14 +4,28 @@
   </header>
 
   <div class="admin-tabs">
-    <button 
-      v-for="tab in tabs" 
-      :key="tab" 
-      :class="{ active: activeTab === tab }" 
-      @click="activeTab = tab"
-    >
-      {{ tab }}
-    </button>
+    <div class="tab-buttons">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab" 
+        :class="{ active: activeTab === tab }" 
+        @click="activeTab = tab"
+      >
+        {{ tab }}
+      </button>
+    </div>
+
+    <div class="tab-dropdown">
+      <select v-model="activeTab">
+        <option 
+          v-for="tab in tabs" 
+          :key="tab" 
+          :value="tab"
+        >
+          {{ tab }}
+        </option>
+      </select>
+    </div>
   </div>
 
   <div class="admin-panel">
@@ -59,18 +73,25 @@ export default {
 <style scoped>
 .banner {
   width: 100%;
-  margin-top: 10px;
+  height: 11vh;
+  margin-top: 0.6rem;
 }
 
 .admin-tabs {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin: 20px;
+  flex-wrap: wrap;
+  margin: 1.5rem;
+  gap: 1rem;
 }
 
-.admin-tabs button {
-  padding: 10px 20px;
+.tab-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.tab-buttons button {
+  padding: 0.6rem 1.2rem;
   background-color: #eee;
   border: none;
   cursor: pointer;
@@ -78,8 +99,37 @@ export default {
   font-weight: bold;
 }
 
-.admin-tabs button.active {
+.tab-buttons button.active {
   background-color: #3366af;
   color: white;
+}
+
+.tab-dropdown {
+  display: none;
+}
+
+.tab-dropdown select {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #eee;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .banner {
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 600px) {
+  .tab-buttons {
+    display: none;
+  }
+
+  .tab-dropdown {
+    display: block;
+  }
 }
 </style>

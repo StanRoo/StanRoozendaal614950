@@ -8,7 +8,6 @@ use App\Repositories\UserRepository;
 use App\Repositories\BidRepository;
 use App\Models\MarketplaceListingModel;
 use App\Models\BidModel;
-use App\Utils\ResponseHelper;
 
 class MarketplaceService
 {
@@ -38,27 +37,27 @@ class MarketplaceService
         $this->transactionService = $transactionService;
     }
 
-    public function listCard(int $userId, int $cardId, float $price, float $minBid, ?string $expiresAt): void {
+    public function listCard(int $userId, int $cardId, float $price, float $minBid, ?string $expiresAt): array {
         $card = $this->cardRepository->getCardById($cardId);
 
         if (!$card) {
-            ResponseHelper::error('Card not found.', 404);
+            return ['success' => false, 'message' => 'Card not found.', 'data' => null];
         }
 
         if ($card->user_id !== $userId) {
-            ResponseHelper::error('Unauthorized: You do not own this card.', 403);
+            return ['success' => false, 'message' => 'Unauthorized: You do not own this card.', 'data' => null];
         }
 
         if ($card->is_listed) {
-            ResponseHelper::error('This card is already listed.', 400);
+            return ['success' => false, 'message' => 'This card is already listed.', 'data' => null];
         }
 
         $existingListing = $this->marketplaceRepository->getListingByCardId($cardId);
         if ($existingListing) {
-            ResponseHelper::error('This card already has a listing.', 400);
+            return ['success' => false, 'message' => 'This card already has a listing.', 'data' => null];
         }
 
-        $listingData = [
+        $listing = new MarketplaceListingModel([
             'card_id' => $cardId,
             'seller_id' => $userId,
             'price' => $price,
@@ -66,17 +65,16 @@ class MarketplaceService
             'listed_at' => date("Y-m-d H:i:s"),
             'min_bid_price' => $minBid,
             'expires_at' => $expiresAt ?? null,
-        ];
+        ]);
 
-        $listing = new MarketplaceListingModel($listingData);
         $created = $this->marketplaceRepository->createListing($listing);
 
         if ($created) {
             $this->cardRepository->setCardListedStatus($cardId, 1);
-            ResponseHelper::success($created->toArray(), 'Card listed successfully.');
+            return ['success' => true, 'message' => 'Card listed successfully.', 'data' => $created->toArray()];
         }
 
-        ResponseHelper::error('Failed to list card.', 500);
+        return ['success' => false, 'message' => 'Failed to list card.', 'data' => null];
     }
 
     public function getAllActiveListingsExceptUser($userId): array {
@@ -164,41 +162,40 @@ class MarketplaceService
         return $results;
     }
 
-    public function buyCard($listingId, $buyerId): void {
+    public function buyCard($listingId, $buyerId): array {
         $listing = $this->getListingById($listingId);
-    
+
         if (!$listing) {
-            ResponseHelper::error('Listing not found.', 404);
+            return ['success' => false, 'message' => 'Listing not found.', 'data' => null];
         }
-    
+
         if ($buyerId === $listing->getSellerId()) {
-            ResponseHelper::error('You cannot buy your own card.', 400);
+            return ['success' => false, 'message' => 'You cannot buy your own card.', 'data' => null];
         }
-    
+
         $cardId = $listing->getCardId();
         $sellerId = $listing->getSellerId();
         $price = $listing->getPrice();
-    
+
         $buyer = $this->userService->getUserById($buyerId);
-    
+
         if ($buyer->balance < $price) {
-            ResponseHelper::error('Insufficient balance.', 400);
+            return ['success' => false, 'message' => 'Insufficient balance.', 'data' => null];
         }
-    
+
         $this->userService->updateUserBalance($buyer->id, $price);
         $this->userService->addOwnerBalance($sellerId, $price);
         $this->marketplaceRepository->markListingAsSold($listingId);
         $this->cardService->updateCardOwner($cardId, $buyerId);
-    
+
         $transactionCreated = $this->transactionService->logTransaction($buyerId, $sellerId, $cardId, $price);
-    
+
         if ($transactionCreated) {
-            ResponseHelper::success(null, 'Card purchased successfully.');
+            return ['success' => true, 'message' => 'Card purchased successfully.', 'data' => null];
         } else {
-            ResponseHelper::error('Transaction failed.', 500);
+            return ['success' => false, 'message' => 'Transaction failed.', 'data' => null];
         }
     }
-    
 
     public function getAllListings(): array {
         return $this->marketplaceRepository->getAllListings();

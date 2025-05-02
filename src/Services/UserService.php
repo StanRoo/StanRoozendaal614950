@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
-use App\Utils\ResponseHelper;
 use App\Utils\Validator;
 
 class UserService {
@@ -16,48 +15,51 @@ class UserService {
     public function getUserById($userId) {
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
-            ResponseHelper::error('User not found.', 404);
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
         }
-        ResponseHelper::success(['user' => $user->toArray()]);
+
+        return ['success' => true, 'message' => 'User retrieved successfully.', 'data' => $user];
     }
 
     public function getAllUsers($decodedUser) {
         if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            ResponseHelper::error('Unauthorized: Admin access required.', 403);
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
         }
 
         $users = $this->userRepository->getAllUsers();
-        ResponseHelper::success($users);
+
+        return ['success' => true, 'message' => 'Users retrieved successfully.', 'data' => $users];
     }
 
     public function updateUser($userId, $data, $decodedUser) {
         if ($decodedUser->role === 'admin') {
             if (isset($data['role']) || isset($data['status'])) {
                 $this->userRepository->updateUser($userId, $data);
-                ResponseHelper::success(null, "User updated successfully.");
+                return ['success' => true, 'message' => "User updated successfully.", 'data' => null];
             }
         } elseif ($decodedUser->id == $userId) {
             unset($data['role'], $data['status']);
             $this->userRepository->updateUser($userId, $data);
-            ResponseHelper::success(null, "Profile updated successfully.");
+            return ['success' => true, 'message' => "Profile updated successfully.", 'data' => null];
         }
 
-        ResponseHelper::error('Unauthorized action.', 403);
+        return ['success' => false, 'message' => 'Unauthorized action.', 'data' => null];
     }
 
     public function deleteUser($userId, $decodedUser) {
         if ($decodedUser->role !== 'admin') {
-            ResponseHelper::error('Unauthorized: Admin access required.', 403);
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
         }
 
         $this->userRepository->deleteUser($userId);
-        ResponseHelper::success(null, "User deleted successfully.");
+
+        return ['success' => true, 'message' => "User deleted successfully.", 'data' => null];
     }
 
     public function updateProfilePicture($userId, $data, $file = null) {
         if (!empty($data['profile_picture_url'])) {
             $this->userRepository->updateProfilePicture($userId, $data['profile_picture_url']);
-            ResponseHelper::success(null, "Profile picture updated.");
+            return ['success' => true, 'message' => "Profile picture updated.", 'data' => null];
         }
 
         if ($file) {
@@ -68,17 +70,18 @@ class UserService {
             $allowedTypes = ["jpg", "jpeg", "png"];
 
             if (!in_array($fileType, $allowedTypes)) {
-                ResponseHelper::error('Invalid file type. Only JPG, JPEG, and PNG are allowed.', 400);
+                return ['success' => false, 'message' => 'Invalid file type. Only JPG, JPEG, and PNG are allowed.', 'data' => null];
             }
 
             if (move_uploaded_file($file["tmp_name"], $targetFilePath)) {
                 $this->userRepository->updateProfilePicture($userId, $targetFilePath);
-                ResponseHelper::success(null, "Profile picture uploaded successfully.");
+                return ['success' => true, 'message' => "Profile picture uploaded successfully.", 'data' => null];
             } else {
-                ResponseHelper::error('Failed to upload profile picture.', 500);
+                return ['success' => false, 'message' => 'Failed to upload profile picture.', 'data' => null];
             }
         }
-        ResponseHelper::error('No profile picture provided.', 400);
+
+        return ['success' => false, 'message' => 'No profile picture provided.', 'data' => null];
     }
 
     public function createAccount($data) {
@@ -86,14 +89,20 @@ class UserService {
         $emailValidation = Validator::validateEmail($data['email']);
         $passwordValidation = Validator::validatePassword($data['password']);
 
-        if ($usernameValidation !== true) ResponseHelper::error($usernameValidation, 400);
-        if ($emailValidation !== true) ResponseHelper::error($emailValidation, 400);
-        if ($passwordValidation !== true) ResponseHelper::error($passwordValidation, 400);
+        if ($usernameValidation !== true) {
+            return ['success' => false, 'message' => $usernameValidation, 'data' => null];
+        }
+        if ($emailValidation !== true) {
+            return ['success' => false, 'message' => $emailValidation, 'data' => null];
+        }
+        if ($passwordValidation !== true) {
+            return ['success' => false, 'message' => $passwordValidation, 'data' => null];
+        }
 
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $defaultBio = "I love Pokémon!";
         $defaultProfilePictureUrl = "/images/profile.png";
-        $defaultBalance = 1000.20;
+        $defaultBalance = 1000.00;
 
         $this->userRepository->createUser(
             $data['username'],
@@ -104,26 +113,26 @@ class UserService {
             $defaultBalance
         );
 
-        ResponseHelper::success(null, "Account created successfully.");
+        return ['success' => true, 'message' => "Account created successfully.", 'data' => null];
     }
 
     public function updateBalance($userId, $newBalance) {
         if ($newBalance < 0) {
-            ResponseHelper::error('Balance cannot be negative.', 400);
+            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
         }
 
         $result = $this->userRepository->updateBalance($userId, $newBalance);
         if (!$result) {
-            ResponseHelper::error('Failed to update balance.', 500);
+            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
         }
 
-        ResponseHelper::success(null, "Balance updated successfully.");
+        return ['success' => true, 'message' => "Balance updated successfully.", 'data' => null];
     }
 
     public function getBalance($userId) {
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
-            ResponseHelper::error('User not found.', 404);
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
         }
 
         $balance = $user->getBalance();
@@ -138,16 +147,13 @@ class UserService {
             $claimedToday = $lastClaimedDate->format('Y-m-d') === $today->format('Y-m-d');
         }
 
-        ResponseHelper::success([
-            'balance' => $balance,
-            'claimed_today' => $claimedToday
-        ]);
+        return ['success' => true, 'message' => 'Balance retrieved successfully.', 'data' => ['balance' => $balance, 'claimed_today' => $claimedToday]];
     }
 
     public function claimDailyReward($userId) {
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
-            ResponseHelper::error('User not found.', 404);
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
         }
 
         $lastClaimed = $this->userRepository->getLastClaimedTimestamp($userId);
@@ -161,7 +167,7 @@ class UserService {
             $lastClaimedDate->setTime(0, 0, 0);
 
             if ($lastClaimedDate->format('Y-m-d') === $today->format('Y-m-d')) {
-                ResponseHelper::error('Daily reward already claimed. Please try again tomorrow.', 400);
+                return ['success' => false, 'message' => 'Daily reward already claimed. Please try again tomorrow.', 'data' => null];
             }
         }
 
@@ -169,14 +175,10 @@ class UserService {
         $updateResult = $this->userRepository->updateBalanceAndClaimTime($userId, $newBalance, $now->format('Y-m-d'));
 
         if (!$updateResult) {
-            ResponseHelper::error('Failed to update balance. Please try again.', 500);
+            return ['success' => false, 'message' => 'Failed to update balance. Please try again.', 'data' => null];
         }
 
-        ResponseHelper::success([
-            "balance" => $newBalance,
-            "claimed_today" => true,
-            "message" => "You've successfully claimed 500 CuboCoins!"
-        ]);
+        return ['success' => true, 'message' => "You've successfully claimed 500 CuboCoins!", 'data' => ["balance" => $newBalance, "claimed_today" => true]];
     }
 
     public function updateUserBalance($userId, $price) {
@@ -185,30 +187,30 @@ class UserService {
         $newBalance = $currentBalance - $price;
 
         if ($newBalance < 0) {
-            ResponseHelper::error('Balance cannot be negative.', 400);
+            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
         }
 
         $result = $this->userRepository->updateBalance($userId, $newBalance);
         if (!$result) {
-            ResponseHelper::error('Failed to update balance.', 500);
+            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
         }
 
-        ResponseHelper::success(null, "User balance updated successfully.");
+        return ['success' => true, 'message' => "User balance updated successfully.", 'data' => null];
     }
 
     public function addOwnerBalance($userId, $amount) {
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
-            ResponseHelper::error('User not found.', 404);
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
         }
 
         $newBalance = $user->balance + $amount;
         $result = $this->userRepository->updateBalance($userId, $newBalance);
 
         if (!$result) {
-            ResponseHelper::error('Failed to add balance.', 500);
+            return ['success' => false, 'message' => 'Failed to add balance.', 'data' => null];
         }
 
-        ResponseHelper::success(null, "Balance added successfully.");
+        return ['success' => true, 'message' => "Balance added successfully.", 'data' => null];
     }
 }

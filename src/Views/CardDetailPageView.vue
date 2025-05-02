@@ -11,13 +11,26 @@
         <div class="marketplace-section">
           <h3>List Card on Marketplace</h3>
           <label for="price">Buy Now Price</label>
-          <input v-model="price" type="number" id="price" min="0" placeholder="Enter buy now price" />
+          <div class="input-wrapper">
+            <input v-model="price" type="number" id="price" min="0" placeholder="Enter buy now price" />
+          </div>
+
           <label for="minBidPrice">Minimum Bid Price</label>
-          <input v-model="minBidPrice" type="number" id="minBidPrice" min="0" placeholder="Enter minimum bid price" />
+          <div class="input-wrapper">
+            <input v-model="minBidPrice" type="number" id="minBidPrice" min="0" placeholder="Enter minimum bid price" />
+          </div>
+
           <label for="expiryDate">Expiry Date</label>
-          <input v-model="expiryDate" type="datetime-local" id="expiryDate" />
-          
-          <button @click="listOnMarketplace" :disabled="!price || !minBidPrice || listingComplete">Add to Marketplace</button>
+          <div class="input-wrapper">
+            <input v-model="expiryDate" type="datetime-local" id="expiryDate" />
+          </div>
+
+          <div class="marketplace-button-wrapper">
+            <button @click="listOnMarketplace" :disabled="!price || !minBidPrice || listingComplete">
+              Add to Marketplace
+            </button>
+          </div>
+
           <p v-if="listMessage" class="success">{{ listMessage }}</p>
           <p v-if="listError" class="error">{{ listError }}</p>
         </div>
@@ -85,12 +98,12 @@ const listOnMarketplace = async () => {
   listError.value = '';
 
   if (!price.value || !minBidPrice.value || !expiryDate.value) {
-  listError.value = 'Buy Now Price, Minimum Bid Price, and Expiry Date are required.';
-  setTimeout(() => {
-    listError.value = '';
-  }, 4000);
-  return;
-}
+    listError.value = 'Buy Now Price, Minimum Bid Price, and Expiry Date are required.';
+    setTimeout(() => {
+      listError.value = '';
+    }, 4000);
+    return;
+  }
 
   try {
     const token = localStorage.getItem('token');
@@ -148,12 +161,13 @@ const goBack = () => {
 
 <style scoped>
 .card-detail-container {
-  padding: 3vw 2vw;
+  padding: 6vh 2vw 2vw 2vw;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80vh;
+  min-height: 90vh;
   position: relative;
+  flex-direction: column;
 }
 
 .back-button {
@@ -162,12 +176,15 @@ const goBack = () => {
   left: 2vw;
   padding: 0.8vw 1.5vw;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   background-color: #007bff;
   color: white;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
+  z-index: 10;
 }
 
 .back-button:hover {
@@ -178,16 +195,17 @@ const goBack = () => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  max-width: 1200px;
+  max-width: 120vh;
   width: 100%;
+  padding-top: 1rem;
 }
 
-.left-column {
+.left-column,
+.right-column {
   width: 48%;
 }
 
 .right-column {
-  width: 48%;
   display: flex;
   flex-direction: column;
   gap: 1.5vw;
@@ -196,36 +214,46 @@ const goBack = () => {
 .marketplace-section {
   background: #f8f9fa;
   padding: 2vw;
-  border-radius: 10px;
+  border-radius: 0.625rem;
 }
 
 .marketplace-section label {
-  font-size: 1.2vw;
+  font-size: 1.2rem;
   padding-right: 1vw;
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  text-align: left;
+  width: 100%;
+}
+
+.input-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 60%;
 }
 
 .marketplace-section input {
-  padding: 0.5vw;
-  font-size: 1.1vw;
-  border-radius: 5px;
+  padding: 0.5rem;
+  font-size: 1.1rem;
+  border-radius: 0.3125rem;
   border: 1px solid #ccc;
-  margin-top: 1.2vw;
+  margin-bottom: 1.2rem;
+  width: 100%;
 }
 
-.min-bid-price {
-  font-size: 1.1vw;
-  color: #007bff;
-  font-weight: bold;
-  margin-top: 1.5vw;
+.marketplace-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 
 .marketplace-section button {
-  padding: 0.8vw 1.5vw;
-  margin-top: 1.5vw;
+  padding: 0.8rem 1.5rem;
   background-color: #28a745;
   color: white;
   font-weight: bold;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -241,11 +269,11 @@ const goBack = () => {
 }
 
 .delete-button {
-  padding: 0.8vw 1.5vw;
+  padding: 0.8rem 1.5rem;
   background-color: #dc3545;
   color: white;
   font-weight: bold;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -256,9 +284,10 @@ const goBack = () => {
 }
 
 .feedback p {
-  margin-top: 1vw;
+  margin-top: 1rem;
   font-weight: bold;
 }
+
 .success {
   color: green;
 }
@@ -282,9 +311,9 @@ const goBack = () => {
 .popup {
   background: #3366af;
   padding: 2.5vw 2vw;
-  border-radius: 12px;
-  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
-  width: 320px;
+  border-radius: 0.75rem;
+  box-shadow: 0px 1vh 2.5vh rgba(0, 0, 0, 0.2);
+  width: 21rem;
   text-align: center;
   animation: fadeIn 0.3s ease;
 }
@@ -292,7 +321,7 @@ const goBack = () => {
 .popup p {
   font-size: 1.1rem;
   color: #ffffff;
-  margin-bottom: 1.8vw;
+  margin-bottom: 1.8rem;
 }
 
 .popup-actions {
@@ -302,9 +331,9 @@ const goBack = () => {
 }
 
 .popup-actions button {
-  padding: 0.6vw 1.4vw;
+  padding: 0.6rem 1.4rem;
   font-size: 1rem;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-weight: bold;
   border: none;
   cursor: pointer;
@@ -341,7 +370,56 @@ const goBack = () => {
 }
 
 .loading {
-  font-size: 1.5vw;
+  font-size: 1.5rem;
   color: gray;
+}
+
+.banner {
+  width: 100%;
+  height: 11vh;
+  margin-top: 0.6rem;
+}
+
+@media (max-width: 768px) {
+  .back-button {
+    top: 3vh;
+    padding: 0.5rem;
+  }
+
+  .main-content {
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rem;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+
+  .left-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .input-wrapper {
+    width: 100%;
+  }
+
+  .banner {
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 480px) {
+  .back-button {
+    top: 3vh;
+  }
+
+  .banner {
+    object-fit: cover;
+  }
 }
 </style>

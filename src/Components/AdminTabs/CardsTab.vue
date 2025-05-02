@@ -140,10 +140,12 @@ export default {
 .admin-panel {
   padding: 20px;
   text-align: center;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
+  min-width: 1200px;
   border-collapse: collapse;
 }
 
@@ -151,7 +153,7 @@ th, td {
   padding: 10px;
   border: 1px solid #ddd;
   text-align: center;
-  vertical-align: middle;
+  white-space: nowrap;
 }
 
 th {
@@ -198,5 +200,11 @@ select {
   color: green;
   margin-top: 10px;
   font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .admin-panel {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 }
 </style>

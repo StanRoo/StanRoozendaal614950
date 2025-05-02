@@ -215,18 +215,19 @@ const filteredCards = computed(() => {
 <style scoped>
 .banner {
   width: 100%;
-  margin-top: 10px;
+  height: 11vh;
+  margin-top: 0.6rem;
 }
 
 .marketplace-header-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 1.2rem;
   padding-right: 2rem;
 }
 
 .my-listings-btn {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   padding: 0.75rem 2rem;
   border-radius: 0.5rem;
 }
@@ -238,18 +239,19 @@ const filteredCards = computed(() => {
 
 .marketplace-grid {
   display: grid;
-  width: 80%;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2vw;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1.5rem;
   justify-items: center;
+  width: 100%;
 }
 
 .marketplace-card {
   background-color: #f8f9fa;
-  border-radius: 10px;
-  padding: 1.5vw;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 21vw;
+  border-radius: 0.625rem;
+  padding: 1rem;
+  box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 20rem;
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
 }
@@ -259,27 +261,27 @@ const filteredCards = computed(() => {
 }
 
 .price-container {
-  margin-top: 1vw;
+  margin-top: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .price {
-  font-size: 1.4vw;
+  font-size: 1rem;
   font-weight: bold;
   color: #007bff;
 }
 
 .coin-icon {
-  width: 2vw;
-  margin-left: 0.5vw;
+  width: 1.2rem;
+  margin-left: 0.5rem;
 }
 
 .empty-message {
-  font-size: 1.2vw;
+  font-size: 1rem;
   color: gray;
-  margin-top: 2vw;
+  margin-top: 2rem;
 }
 
 .filter-card {
@@ -295,20 +297,55 @@ const filteredCards = computed(() => {
   background-color: white;
   color: black;
   border: 1px solid #ccc;
+  font-size: 1rem;
 }
 
 .filters {
-  margin: 1.5vw auto;
+  margin: 1.5rem auto;
   display: flex;
   justify-content: center;
-  gap: 1vw;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .filters select {
-  padding: 0.6vw 1vw;
-  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
   border: 1px solid #ccc;
-  font-size: 1vw;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .banner {
+    object-fit: cover;
+  }
+  
+  .marketplace-header-actions {
+    justify-content: center;
+    padding-right: 0;
+  }
+
+  .my-listings-btn {
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  .price {
+    font-size: 0.95rem;
+  }
+
+  .coin-icon {
+    width: 1rem;
+  }
+
+  .empty-message {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    object-fit: cover;
+  }
 }
 </style>

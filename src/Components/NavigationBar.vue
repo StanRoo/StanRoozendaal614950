@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { ref, computed , onMounted, onBeforeUnmount} from "vue";
 import { useUserStore } from "@/Store/UserStore";
 import CuboCard from "@/assets/icons/CubocardLogo.png";
 import CoinIcon from "@/assets/icons/coin.png";
@@ -10,7 +10,9 @@ const baseUrl = "http://localhost:8000/";
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisibleMarketplace = ref(false);
+const dropdownVisibleProfile = ref(false);
 const userBalance = computed(() => userStore.user?.balance ?? 0);
+const isHamburgerOpen = ref(false);
 
 const profilePicture = computed(() => {
   const url = userStore.user?.profile_picture_url;
@@ -31,6 +33,33 @@ const logout = () => {
   userStore.logout();
   window.location.href = "/";
 };
+
+const toggleHamburgerMenu = () => {
+  isHamburgerOpen.value = !isHamburgerOpen.value;
+};
+
+const toggleMarketplaceDropdown = () => {
+  dropdownVisibleMarketplace.value = !dropdownVisibleMarketplace.value;
+};
+
+const toggleProfileDropdown = () => {
+  dropdownVisibleProfile.value = !dropdownVisibleProfile.value;
+};
+
+const handleClickOutside = (event) => {
+  const dropdown = document.querySelector(".profile-dropdown");
+  if (dropdown && !dropdown.contains(event.target)) {
+    dropdownVisibleProfile.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <template>
@@ -39,43 +68,53 @@ const logout = () => {
       <router-link to="/home" class="nav-link logo">
         <img class="logoImage" :src="CuboCard" />
       </router-link>
-      <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
-      <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
-      <div
-        class="nav-link dropdown-wrapper"
-        @mouseenter="dropdownVisibleMarketplace = true"
-        @mouseleave="dropdownVisibleMarketplace = false"
-      >
-        <span class="dropdown-title">Marketplace &#11167;</span>
+      <div class="desktop-nav-left">
+        <router-link to="/home" class="nav-link" active-class="active">Home</router-link>
+        <router-link to="/inventory" class="nav-link" active-class="active">Inventory</router-link>
         <div
-          v-if="dropdownVisibleMarketplace"
-          class="marketplace-dropdown-menu"
+          class="nav-link dropdown-wrapper"
+          @mouseenter="dropdownVisibleMarketplace = true"
+          @mouseleave="dropdownVisibleMarketplace = false"
+          @click = "toggleMarketplaceDropdown"
         >
-          <router-link to="/marketplace" class="dropdown-item">Marketplace</router-link>
-          <router-link to="/myMarketplaceListings" class="dropdown-item">My Listings</router-link>
+          <span class="dropdown-title">Marketplace &#11167;</span>
+          <div v-if="dropdownVisibleMarketplace" class="marketplace-dropdown-menu">
+            <router-link to="/marketplace" class="dropdown-item">Marketplace</router-link>
+            <router-link to="/myMarketplaceListings" class="dropdown-item">My Listings</router-link>
+          </div>
         </div>
+        <router-link to="/createCard" class="nav-link" active-class="active">Create Card</router-link>
       </div>
-      <router-link to="/createCard" class="nav-link" active-class="active">Create Card</router-link>
     </div>
 
     <div class="nav-right">
       <router-link to="/balance" class="user-balance">
-        <img :src="CoinIcon" class="currency-icon" alt="Coin Icon" />
-        <span>{{ userBalance.toFixed(2) }}</span>
-      </router-link>
+          <img :src="CoinIcon" class="currency-icon" />
+          <span>{{ userBalance.toFixed(2) }}</span>
+        </router-link>
+      <div class="desktop-nav-right">
+        <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
 
-      <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="active">Admin Panel</router-link>
-
-      <div class="profile-dropdown profile-container nav-link">
-        <img
-          :src="profilePicture"
-          class="profile-pic"
-          alt="Profile Picture"
-        />
-        <div class="profile-dropdown-menu">
-          <router-link to="/profile" class="dropdown-item">My Profile</router-link>
-          <button @click="logout" class="dropdown-item">Logout</button>
+        <div class="profile-dropdown profile-container nav-link" @click="toggleProfileDropdown">
+          <img :src="profilePicture" class="profile-pic" />
+          <div class="profile-dropdown-menu">
+            <router-link to="/profile" class="dropdown-item">My Profile</router-link>
+            <button @click="logout" class="dropdown-item logout">Logout</button>
+          </div>
         </div>
+      </div>
+
+      <div class="hamburger-icon" @click="toggleHamburgerMenu">&#9776;</div>
+
+      <div v-if="isHamburgerOpen" class="mobile-menu">
+        <router-link to="/home" class="mobile-menu-item" @click="toggleHamburgerMenu">Home</router-link>
+        <router-link to="/inventory" class="mobile-menu-item" @click="toggleHamburgerMenu">Inventory</router-link>
+        <router-link to="/marketplace" class="mobile-menu-item" @click="toggleHamburgerMenu">Marketplace</router-link>
+        <router-link to="/myMarketplaceListings" class="mobile-menu-item" @click="toggleHamburgerMenu">My Listings</router-link>
+        <router-link to="/createCard" class="mobile-menu-item" @click="toggleHamburgerMenu">Create Card</router-link>
+        <router-link v-if="isAdmin" to="/admin" class="mobile-menu-item" @click="toggleHamburgerMenu">Admin Panel</router-link>
+        <router-link to="/profile" class="mobile-menu-item" @click="toggleHamburgerMenu">My Profile</router-link>
+        <button class="mobile-menu-item logout" @click="() => { toggleHamburgerMenu(); logout(); }">Logout</button>
       </div>
     </div>
   </nav>
@@ -97,7 +136,6 @@ const logout = () => {
 
 .nav-left {
   display: flex;
-  align-items: center;
   height: 100%;
 }
 
@@ -121,10 +159,34 @@ const logout = () => {
   color: white;
 }
 
-.dropdown-wrapper {
-  position: relative;
+.desktop-nav-left {
   display: flex;
   align-items: center;
+  height: 100%;
+}
+
+.desktop-nav-left .nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  transition: background 0.3s;
+}
+
+.desktop-nav-left .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.desktop-nav-left .active {
+  background: #4992f8;
+  color: white;
+}
+
+.dropdown-wrapper {
+  position: relative;
   height: 100%;
   padding: 0 20px;
   cursor: pointer;
@@ -141,13 +203,14 @@ const logout = () => {
   top: 100%;
   left: 0;
   background: #3366af;
+  font-size: 1.1rem;
   border-radius: 5px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
   display: flex;
   flex-direction: column;
   padding: 10px;
-  width: 8vw;
+  width: 100%;
   color: white;
 }
 
@@ -157,11 +220,17 @@ const logout = () => {
 
 .nav-right {
   display: flex;
+  padding: 0px;
+  height: 100%;
+}
+
+.desktop-nav-right {
+  display: flex;
   align-items: center;
   height: 100%;
 }
 
-.nav-right .nav-link {
+.desktop-nav-right .nav-link {
   color: white;
   text-decoration: none;
   font-size: 1.1rem;
@@ -172,11 +241,11 @@ const logout = () => {
   transition: background 0.3s;
 }
 
-.nav-right .nav-link:hover {
+.desktop-nav-right .nav-link:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.nav-right .active {
+.desktop-nav-right .active {
   background: #4992f8;
   color: white;
 }
@@ -235,8 +304,12 @@ const logout = () => {
   z-index: 100;
   flex-direction: column;
   padding: 10px;
-  width: 8vw;
+  width: 200%;
   color: white;
+}
+
+.profile-dropdown:hover .profile-dropdown-menu {
+  display: flex;
 }
 
 .dropdown-item {
@@ -258,7 +331,6 @@ const logout = () => {
 .logoImage {
   max-width: 55px;
   padding: 0;
-  float: left;
 }
 
 .item {
@@ -270,13 +342,16 @@ const logout = () => {
 .user-balance {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 5px 12px;
-  border-radius: 15px;
+  padding: 0 12px;
   font-weight: bold;
   font-size: 1.1rem;
   color: white;
   text-decoration: none;
+}
+
+.user-balance:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .currency-icon {
@@ -285,5 +360,87 @@ const logout = () => {
   margin-right: 6px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.logout {
+  background-color: red;
+}
+
+.logout:hover {
+  background-color: rgb(255, 101, 101);
+}
+
+.hamburger-icon {
+  display: none;
+}
+
+@media (max-width: 895px) {
+  .desktop-nav-left {
+    display: none;
+  }
+  
+  .desktop-nav-right{
+    display: none;
+  }
+
+  .hamburger-icon {
+    display: block;
+    font-size: 2rem;
+    color: white;
+    padding-right: 20px;
+    padding-top: 3px;
+    padding-left: 20px;
+    cursor: pointer;
+  }
+
+  .hamburger-icon:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-menu {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 100%;
+    background: #3366af;
+    display: flex;
+    flex-direction: column;
+    z-index: 999;
+  }
+
+  .mobile-menu-item {
+    color: white;
+    text-decoration: none;
+    padding: 1rem;
+    font-size: 1.1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    background: #3366af;
+    text-align: left;
+  }
+
+  .mobile-menu-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-dropdown {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-dropdown-title {
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    background: #3366af;
+  }
+
+  .logout {
+    background-color: red;
+  }
+
+  .logout:hover {
+    background-color: rgb(255, 101, 101);
+  }
 }
 </style>
