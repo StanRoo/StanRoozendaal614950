@@ -260,7 +260,7 @@
 
 .marketplace-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
   gap: 2rem;
   width: 100%;
   justify-items: center;

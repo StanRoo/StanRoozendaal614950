@@ -67,8 +67,8 @@ const getCardStyle = (card) => {
     height: "27vw",
     maxWidth: "20rem",
     maxHeight: "29rem",
-    minWidth: "15rem",
-    minHeight: "28rem"
+    minWidth: "16rem",
+    minHeight: "26rem"
   };
 };
 
@@ -132,8 +132,8 @@ const getCardImage = (imageUrl) => {
   width: 100%;
   height: 27vw;
   max-width: 20rem;
-  max-width: 15rem;
-  min-height: 28rem;
+  min-width: 16rem;
+  min-height: 26rem;
   max-height: 29rem;
   padding: 1rem;
 }
@@ -154,6 +154,7 @@ const getCardImage = (imageUrl) => {
 
 .card-info {
   margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .card-info p {

@@ -172,7 +172,7 @@ const selectCard = (card) => {
   display: grid;
   width: 100%;
   margin: 0 auto;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
   gap: 1.2vw;
   justify-items: center;
 }
