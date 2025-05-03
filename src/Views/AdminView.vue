@@ -16,7 +16,7 @@
     </div>
 
     <div class="tab-dropdown">
-      <select v-model="activeTab">
+      <select v-model="activeTab" class="input-small">
         <option 
           v-for="tab in tabs" 
           :key="tab" 
@@ -127,7 +127,7 @@ export default {
   .banner {
     height: 10vh;
   }
-  
+
   .tab-buttons {
     display: none;
   }
