@@ -315,11 +315,13 @@ const filteredCards = computed(() => {
   font-size: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .banner {
     object-fit: cover;
   }
-  
+}
+
+@media (max-width: 768px) { 
   .marketplace-header-actions {
     justify-content: center;
     padding-right: 0;
@@ -345,7 +347,7 @@ const filteredCards = computed(() => {
 
 @media (max-width: 480px) {
   .banner {
-    object-fit: cover;
+    height: 10vh;
   }
 }
 </style>

@@ -211,11 +211,13 @@ watch(balance, () => {
   opacity: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .banner {
     object-fit: cover;
   }
-
+}
+ 
+@media (max-width: 768px) {
   .balance-card {
     padding: 1.5rem 1rem;
   }
@@ -241,9 +243,9 @@ watch(balance, () => {
 
 @media (max-width: 480px) {
   .banner {
-    object-fit: cover;
+    height: 10vh;
   }
-
+  
   .balance-card {
     padding: 1.5rem 1rem;
   }

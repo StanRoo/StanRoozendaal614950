@@ -202,6 +202,12 @@ const filteredCards = computed(() => {
   font-size: 0.95rem;
 }
 
+@media (max-width: 1024px) {
+  .banner{
+    object-fit: cover;
+  }
+}
+
 @media (max-width: 992px) {
   .inventory-card {
     width: 28vw;
@@ -214,10 +220,6 @@ const filteredCards = computed(() => {
 }
 
 @media (max-width: 768px) {
-  .banner{
-    object-fit: cover;
-  }
-
   .inventory-card {
     width: 38vw;
     padding: 2.2vw;
@@ -225,6 +227,10 @@ const filteredCards = computed(() => {
 }
 
 @media (max-width: 480px) {
+  .banner {
+    height: 10vh;
+  }
+  
   .inventory-card {
     width: 75vw;
     padding: 4vw;

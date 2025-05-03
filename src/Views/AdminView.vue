@@ -117,13 +117,17 @@ export default {
   font-weight: bold;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .banner {
     object-fit: cover;
   }
 }
 
 @media (max-width: 600px) {
+  .banner {
+    height: 10vh;
+  }
+  
   .tab-buttons {
     display: none;
   }

@@ -329,6 +329,12 @@ export default {
   }
 }
 
+@media (max-width: 1024px) {
+  .banner {
+    object-fit: cover;
+  }
+}
+
 @media (max-width: 940px) {
   .profile-grid {
     grid-template-columns: 1fr;
@@ -336,10 +342,6 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .banner {
-    object-fit: cover;
-  }
-
   .profile-grid {
     grid-template-columns: 1fr;
   }
@@ -347,9 +349,9 @@ export default {
 
 @media (max-width: 480px) {
   .banner {
-    object-fit: cover;
+    height: 10vh;
   }
-
+  
   .card {
     padding: 1.5rem;
   }

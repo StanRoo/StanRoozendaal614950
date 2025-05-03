@@ -294,11 +294,13 @@
   font-size: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .banner {
     object-fit: cover;
   }
-  
+}
+
+@media (max-width: 768px) {
   .filter-card .row > div {
     flex: 0 0 100%;
     max-width: 100%;
@@ -314,6 +316,10 @@
 }
 
 @media (max-width: 480px) {
+  .banner {
+    height: 10vh;
+  }
+  
   .marketplace-grid {
     gap: 1.2rem;
   }

@@ -367,10 +367,6 @@
   flex-wrap: wrap;
 }
 
-header {
-  text-align: center;
-}
-
 h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -658,6 +654,10 @@ p {
 }
 
 @media (max-width: 1024px) {
+  .banner {
+    object-fit: cover;
+  }
+
   .customization-wrapper {
     flex-direction: row;
     flex-wrap: wrap;
@@ -711,10 +711,6 @@ p {
   .rarity-option label {
     text-align: left;
   }
-
-  .banner {
-    object-fit: cover;
-  }
 }
 
 @media (max-width: 768px) {
@@ -746,19 +742,15 @@ p {
   .info-card {
     width: 100%;
   }
-
-  .banner {
-    object-fit: cover;
-  }
 }
 
 @media (max-width: 600px) {
-  .create-card-container {
-    padding: 2rem;
+  .banner {
+    height: 10vh;
   }
 
-  header h1 {
-    font-size: 2rem;
+  .create-card-container {
+    padding: 2rem;
   }
 
   .card-customization {
