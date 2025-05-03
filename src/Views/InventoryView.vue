@@ -62,21 +62,21 @@
   <div class="inventory-container">
     <section v-if="cards.length > 0" class="inventory-grid">
       <CardDisplay 
-        v-for="card in filteredCards" 
+        v-for="card in cards" 
         :key="card.id" 
         :card="card"
         class="inventory-card"
         @click="selectCard(card)" 
       />
     </section>
-
     <p v-else class="empty-message">You haven't created any cards yet.</p>
+    <p v-if="loading" class="text-muted">Loading more cards...</p>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
 import InventoryBanner from '@/assets/images/Inventory_Banner.png'
@@ -86,64 +86,74 @@ defineEmits(['profileUpdated'])
 const router = useRouter();
 
 const cards = ref([]);
+const offset = ref(0)
+const limit = 20
+const hasMore = ref(true)
+const loading = ref(false)
 const selectedCard = ref(null);
 const searchQuery = ref('');
 const selectedRarity = ref('');
 const selectedType = ref('');
 const sortOption = ref('name_asc');
 
-onMounted(async () => {
-  await fetchCards();
-});
+onMounted(() => {
+  fetchCards()
+  window.addEventListener('scroll', handleScroll)
+})
 
 const fetchCards = async () => {
+  if (loading.value || !hasMore.value) return
+  loading.value = true
+
   try {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const token = localStorage.getItem('token')
+    if(!token) return;
+    const params = {
+      search: searchQuery.value,
+      rarity: selectedRarity.value,
+      type: selectedType.value,
+      sort: sortOption.value,
+      offset: offset.value,
+      limit
+    }
 
     const response = await axios.get(`/cards/user`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+      headers: { Authorization: `Bearer ${token}` },
+      params
+    })
 
-    cards.value = response.data.cards || [];
-  } catch (error) {
-    console.error('Error fetching inventory:', error.response?.data || error);
+    const newCards = response.data.cards || []
+    cards.value.push(...newCards)
+    offset.value += limit
+    if (newCards.length < limit) {
+      hasMore.value = false
+    }
+  } catch (err) {
+    console.error('Failed to load cards:', err.response?.data || err)
+  } finally {
+    loading.value = false
   }
-};
+}
+
+watch([searchQuery, selectedRarity, selectedType, sortOption], async () => {
+  cards.value = []
+  offset.value = 0
+  hasMore.value = true
+  await fetchCards()
+})
+
+
+const handleScroll = () => {
+  const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200
+  if (scrollBottom) {
+    fetchCards()
+  }
+}
 
 const selectCard = (card) => {
   selectedCard.value = card;
   router.push({ name: 'CardDetail', params: { id: card.id } });
 };
-
-const filteredCards = computed(() => {
-  let filtered = [...cards.value];
-
-  filtered = filtered.filter(card => card.is_listed === 0);
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(card => card.name.toLowerCase().includes(query));
-  }
-
-  if (selectedRarity.value) {
-    filtered = filtered.filter(card => card.rarity === selectedRarity.value);
-  }
-
-  if (selectedType.value) {
-    filtered = filtered.filter(card => card.type === selectedType.value);
-  }
-
-  if (sortOption.value === 'name_asc') {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortOption.value === 'created_desc') {
-    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  } else if (sortOption.value === 'created_asc') {
-    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  }
-
-  return filtered;
-});
 </script>
 
 <style scoped>
@@ -230,7 +240,7 @@ const filteredCards = computed(() => {
   .banner {
     height: 10vh;
   }
-  
+
   .inventory-card {
     width: 75vw;
     padding: 4vw;

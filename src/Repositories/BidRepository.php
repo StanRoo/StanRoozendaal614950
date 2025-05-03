@@ -55,20 +55,88 @@ class BidRepository {
         return $bids;
     }
 
-    public function getAllBids(): array {
-        $query = "SELECT b.id, b.listing_id, b.bidder_id, b.bid_amount, b.bid_time
-                  FROM bids b
-                  ORDER BY b.bid_time DESC";
+    public function getAllBids(int $limit, int $offset, array $filters = []): array
+    {
+        $sql = "SELECT b.id, b.listing_id, b.bidder_id, b.bid_amount, b.bid_time
+                FROM bids b";
+        $where = [];
+        $params = [];
 
-        $stmt = $this->pdo->query($query);
+        if (!empty($filters['listing_id'])) {
+            $where[] = 'b.listing_id = :listing_id';
+            $params[':listing_id'] = $filters['listing_id'];
+        }
+
+        if (!empty($filters['bidder_id'])) {
+            $where[] = 'b.bidder_id = :bidder_id';
+            $params[':bidder_id'] = $filters['bidder_id'];
+        }
+
+        if (!empty($filters['created_at'])) {
+            if ($filters['created_at'] === 'ascending') {
+                $where[] = 'b.bid_time ASC';
+            } else if ($filters['created_at'] === 'descending') {
+                $where[] = 'b.bid_time DESC';
+            }
+        }
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $sql .= " ORDER BY b.bid_time DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
         $bidsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
         $bids = [];
         foreach ($bidsData as $data) {
             $bids[] = new BidModel($data);
         }
 
         return $bids;
+    }
+
+    public function getBidsCount(array $filters = []): int
+    {
+        $sql = "SELECT COUNT(*) FROM bids";
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['listing_id'])) {
+            $where[] = 'listing_id = :listing_id';
+            $params[':listing_id'] = $filters['listing_id'];
+        }
+
+        if (!empty($filters['bidder_id'])) {
+            $where[] = 'bidder_id = :bidder_id';
+            $params[':bidder_id'] = $filters['bidder_id'];
+        }
+
+        if (!empty($filters['created_at'])) {
+            if ($filters['created_at'] === 'ascending') {
+                $where[] = 'created_at >= :created_at';
+            } else if ($filters['created_at'] === 'descending') {
+                $where[] = 'created_at <= :created_at';
+            }
+            $params[':created_at'] = date('Y-m-d H:i:s');
+        }
+
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
     }
 
     public function deleteBid(int $id): bool {

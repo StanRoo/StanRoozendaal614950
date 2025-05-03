@@ -77,12 +77,56 @@ class MarketplaceService
         return ['success' => false, 'message' => 'Failed to list card.', 'data' => null];
     }
 
-    public function getAllActiveListingsExceptUser($userId): array {
-        return $this->marketplaceRepository->getAllActiveListingsExceptUser($userId);
+    public function getFilteredListings(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
+    {
+        try {
+            $total = $this->marketplaceRepository->countFilteredListings($userId, $filters);
+            $listings = $this->marketplaceRepository->getFilteredListings($userId, $offset, $limit, $filters);
+
+            return [
+                'success' => true,
+                'message' => 'Marketplace listings retrieved successfully.',
+                'data' => $listings,
+                'pagination' => [
+                    'offset' => $offset,
+                    'limit' => $limit,
+                    'total' => $total,
+                    'hasMore' => ($offset + $limit) < $total
+                ]
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'An error occurred while fetching listings: ' . $e->getMessage(),
+                'data' => null
+            ];
+        }
     }
 
-    public function getUserListings(int $userId): array {
-        return $this->marketplaceRepository->getListingsByUserId($userId);
+    public function getUserFilteredListings(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
+    {
+        try {
+            $total = $this->marketplaceRepository->countFilteredUserListings($userId, $filters);
+            $listings = $this->marketplaceRepository->getFilteredUserListings($userId, $offset, $limit, $filters);
+
+            return [
+                'success' => true,
+                'message' => 'User listings retrieved successfully.',
+                'data' => $listings,
+                'pagination' => [
+                    'offset' => $offset,
+                    'limit' => $limit,
+                    'total' => $total,
+                    'hasMore' => ($offset + $limit) < $total,
+                ]
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'An error occurred while fetching user listings: ' . $e->getMessage(),
+                'data' => null
+            ];
+        }
     }
 
     public function getCardWithListing($cardId): ?array {
@@ -197,8 +241,25 @@ class MarketplaceService
         }
     }
 
-    public function getAllListings(): array {
-        return $this->marketplaceRepository->getAllListings();
+    public function getAllListings($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
+    {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
+        }
+        $offset = ($page - 1) * $limit;
+        $total = $this->marketplaceRepository->getListingsCount($filters);
+        $listings = $this->marketplaceRepository->getAllListings($limit, $offset, $filters);
+        return [
+            'success' => true,
+            'message' => 'Listings retrieved successfully.',
+            'data' => $listings,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function updateListing(int $id, array $data): void {

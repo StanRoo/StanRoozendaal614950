@@ -13,7 +13,7 @@ class UserModel {
     public ?string $bio;
     public ?string $created_at;
     public ?string $updated_at;
-    public ?string $lastLogin;
+    public ?string $last_login;
     public float $balance;
     public ?string $last_daily_claim;
 
@@ -28,7 +28,7 @@ class UserModel {
         $this->bio = $data['bio'] ?? null;
         $this->created_at = $data['created_at'] ?? null;
         $this->updated_at = $data['updated_at'] ?? null;
-        $this->lastLogin = $data['last_login'] ?? null;
+        $this->last_login = $data['last_login'] ?? null;
         $this->balance = $data['balance'] ?? 1000.00;
         $this->last_daily_claim = $data['last_daily_claim'] ?? null;
     }
@@ -78,7 +78,7 @@ class UserModel {
     }
 
     public function getLastLogin(): ?string {
-        return $this->lastLogin;
+        return $this->last_login;
     }
 
     public function getBalance(): float {

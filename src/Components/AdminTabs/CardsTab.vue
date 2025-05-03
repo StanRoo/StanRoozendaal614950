@@ -1,5 +1,39 @@
 <template>
   <div class="admin-panel">
+
+    <div class="filters">
+      <input
+        v-model="filters.owner_id"
+        @input="onFilterChange"
+        type="number"
+        placeholder="Filter by Owner ID"
+        class="filter-input"
+      />
+      <input
+        v-model="filters.name"
+        @input="onFilterChange"
+        placeholder="Filter by Name"
+        class="filter-input"
+      />
+      <select v-model="filters.rarity" @change="onFilterChange" class="filter-select">
+        <option value="">Filter by Rarity -None-</option>
+        <option value="common">Common</option>
+        <option value="rare">Rare</option>
+        <option value="epic">Epic</option>
+        <option value="legendary">Legendary</option>
+      </select>
+      <select v-model="filters.is_listed" @change="onFilterChange" class="filter-select">
+        <option value="">Filter by Listed -None-</option>
+        <option value="1">Listed</option>
+        <option value="0">Not Listed</option>
+      </select>
+      <select v-model="filters.created_at" @change="onFilterChange" class="filter-select">
+        <option value="">Created At -None-</option>
+        <option value="asc">Created At ↑</option>
+        <option value="desc">Created At ↓</option>
+      </select>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -46,6 +80,12 @@
       </tbody>
     </table>
 
+    <div class="pagination">
+      <button :disabled="page === 1" @click="changePage(page - 1)">Previous</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button :disabled="page === totalPages" @click="changePage(page + 1)">Next</button>
+    </div>
+
     <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
   </div>
@@ -59,6 +99,16 @@ export default {
   data() {
     return {
       cards: [],
+      page: 1,
+      limit: 10,
+      totalPages: 1,
+      filters: {
+        owner_id: '',
+        name: '',
+        rarity: '',
+        is_listed: '',
+        created_at: '',
+      },
       errorMessage: '',
       successMessage: '',
     }
@@ -72,11 +122,27 @@ export default {
         const token = localStorage.getItem('token')
         const response = await axios.get('/admin/cards', {
           headers: { Authorization: `Bearer ${token}` },
+          params: {
+            page: this.page,
+            limit: this.limit,
+            ...this.filters,
+          }
         })
-        this.cards = response.data.cards
+        const { cards, pagination } = response.data
+        this.cards = cards
+        this.totalPages = pagination.totalPages
       } catch (error) {
         this.errorMessage = handleApiError(error)
       }
+    },
+    onFilterChange() {
+      this.page = 1
+      this.fetchCards()
+    },
+    changePage(newPage) {
+      if (newPage < 1 || newPage > this.totalPages) return
+      this.page = newPage
+      this.fetchCards()
     },
     async updateCard(card) {
       try {
@@ -143,13 +209,36 @@ export default {
   overflow-x: auto;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 14.8%;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #3366af;
+}
+
 table {
   width: 100%;
   min-width: 1200px;
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 10px;
   border: 1px solid #ddd;
   text-align: center;
@@ -171,6 +260,7 @@ input[type='checkbox'] {
   width: 40px;
   height: auto;
   border-radius: 6px;
+  object-fit: cover;
 }
 
 .input-small {
@@ -182,12 +272,40 @@ select {
   padding: 4px;
 }
 
+input {
+  padding: 5px;
+  width: 100px;
+}
+
 .delete-btn {
   background-color: red;
   color: white;
   padding: 5px 10px;
   border: none;
   cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #3366af;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .error-message {
@@ -205,6 +323,16 @@ select {
 @media (max-width: 768px) {
   .admin-panel {
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filter-input,
+  .filter-select {
+    width: 90%;
   }
 }
 </style>

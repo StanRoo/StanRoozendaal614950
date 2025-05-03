@@ -1,5 +1,31 @@
 <template>
   <div class="admin-panel">
+
+    <div class="filters">
+      <input v-model="filters.id" placeholder="Filter by ID" @input="onFilterChange" type="number" class="filter-input" />
+      <input v-model="filters.username" placeholder="Filter by Username" @input="onFilterChange" class="filter-input" />
+      <input v-model="filters.email" placeholder="Filter by Email" @input="onFilterChange" class="filter-input" />
+      
+      <select v-model="filters.status" @change="onFilterChange" class="filter-select">
+        <option value="">Filter by Status -None-</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="banned">Banned</option>
+      </select>
+
+      <select v-model="filters.role" @change="onFilterChange" class="filter-select">
+        <option value="">Filter by Role -None-</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <select v-model="filters.last_login" @change="onFilterChange" class="filter-select">
+        <option value="">Filter by Last Login -None-</option>
+        <option value="asc">Last Login ↑</option>
+        <option value="desc">Last Login ↓</option>
+      </select>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -54,6 +80,24 @@
       </tbody>
     </table>
 
+    <div class="pagination">
+      <button 
+        :disabled="page === 1" 
+        @click="changePage(page - 1)"
+      >
+        Previous
+      </button>
+
+      <span>Page {{ page }} of {{ totalPages }}</span>
+
+      <button 
+        :disabled="page === totalPages" 
+        @click="changePage(page + 1)"
+      >
+        Next
+      </button>
+    </div>
+
     <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
   </div>
@@ -67,6 +111,17 @@ export default {
   data() {
     return {
       users: [],
+      page: 1,
+      limit: 10,
+      totalPages: 1,
+      filters: {
+        id: '',
+        username: '',
+        email: '',
+        status: '',
+        role: '',
+        last_login: ''
+      },
       errorMessage: '',
       successMessage: '',
     }
@@ -80,11 +135,28 @@ export default {
         const token = localStorage.getItem('token')
         const response = await axios.get('/users', {
           headers: { Authorization: `Bearer ${token}` },
+          params: {
+            page: this.page,
+            limit: this.limit,
+            id: this.filters.id,
+            username: this.filters.username,
+            email: this.filters.email,
+            status: this.filters.status,
+            role: this.filters.role,
+            last_login: this.filters.last_login
+          }
         })
-        this.users = response.data.users;
+
+        const { users, pagination } = response.data
+        this.users = users
+        this.totalPages = pagination.totalPages
       } catch (error) {
         this.errorMessage = handleApiError(error)
       }
+    },
+    onFilterChange() {
+      this.page = 1
+      this.fetchUsers()
     },
     async updateUser(user) {
       try {
@@ -116,6 +188,11 @@ export default {
         this.errorMessage = handleApiError(error)
       }
     },
+    changePage(newPage) {
+      if (newPage < 1 || newPage > this.totalPages) return
+      this.page = newPage
+      this.fetchUsers()
+    },
   },
 }
 </script>
@@ -125,6 +202,28 @@ export default {
   padding: 20px;
   text-align: center;
   overflow-x: auto;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 14.8%;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #3366af;
 }
 
 table {
@@ -169,6 +268,28 @@ input {
   cursor: pointer;
 }
 
+.pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #3366af;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .error-message {
   color: red;
   margin-top: 10px;
@@ -182,6 +303,16 @@ input {
 @media (max-width: 768px) {
   .admin-panel {
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filter-input,
+  .filter-select {
+    width: 90%;
   }
 }
 </style>

@@ -15,25 +15,37 @@ class TransactionController {
         $this->authMiddleware = $authMiddleware;
     }
 
-    public function getAllTransactions(): void {
+    public function getAllTransactions(): void
+    {
         try {
-            $transactions = $this->transactionService->getAllTransactions();
-            
-            $formattedTransactions = array_map(function($transaction) {
-                return [
-                    'id' => $transaction->getId(),
-                    'buyer_username' => $transaction->getBuyerUsername(),
-                    'seller_username' => $transaction->getSellerUsername(),
-                    'card_name' => $transaction->getCardName(),
-                    'card_image_url' => $transaction->getCardImageUrl(),
-                    'card_rarity' => $transaction->getCardRarity(),
-                    'price' => $transaction->getPrice(),
-                    'transaction_date' => $transaction->getTransactionDate(),
-                    'status' => $transaction->getStatus()
-                ];
-            }, $transactions);
+            $decodedUser = $this->authMiddleware->verifyToken();
 
-            ResponseHelper::success(['transactions' => $formattedTransactions], 'Transactions fetched successfully.');
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
+
+            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+
+            $filters = [
+                'buyer' => $_GET['buyer'] ?? null,
+                'seller' => $_GET['seller'] ?? null,
+                'status' => $_GET['status'] ?? null,
+                'date' => $_GET['date'] ?? null
+            ];
+
+            $result = $this->transactionService->getAllTransactions($decodedUser, $page, $limit, $filters);
+
+            if (!$result['success']) {
+                ResponseHelper::error($result['message'], 500);
+                return;
+            }
+
+            ResponseHelper::success([
+                'transactions' => $result['data'],
+                'pagination' => $result['pagination']
+            ], 'Transactions fetched successfully.');
         } catch (\Throwable $e) {
             ResponseHelper::error('Failed to fetch transactions: ' . $e->getMessage(), 500);
         }

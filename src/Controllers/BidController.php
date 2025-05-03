@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Middleware\AuthMiddleware;
 use App\Models\BidModel;
 use App\Services\BidService;
 use App\Services\MarketplaceService;
@@ -10,10 +11,12 @@ use App\Utils\ResponseHelper;
 class BidController {
     private BidService $bidService;
     private MarketplaceService $marketplaceService;
+    private AuthMiddleware $authMiddleware;
 
-    public function __construct(BidService $bidService, MarketplaceService $marketplaceService) {
+    public function __construct(BidService $bidService, MarketplaceService $marketplaceService, AuthMiddleware $authMiddleware) {
         $this->bidService = $bidService;
         $this->marketplaceService = $marketplaceService;
+        $this->authMiddleware = $authMiddleware;
     }
 
     public function placeBid($userId): void {
@@ -97,11 +100,35 @@ class BidController {
 
     public function getAllBids(): void {
         try {
-            $bidsResult = $this->bidService->getAllBids();
-            $bids = $bidsResult['data'];
-            ResponseHelper::success(['bids' => $bids], 'All bids retrieved successfully.');
+            $decodedUser = $this->authMiddleware->verifyToken();
+    
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
+    
+            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+    
+            $filters = [
+                'listing_id' => $_GET['listing_id'] ?? null,
+                'bidder_id' => $_GET['bidder_id'] ?? null,
+                'created_at' => $_GET['created_at'] ?? null,
+            ];
+
+            $bidsResult = $this->bidService->getAllBids($decodedUser, $page, $limit, $filters);
+
+            if (!$bidsResult['success']) {
+                ResponseHelper::error($bidsResult['message'], 500);
+                return;
+            }
+
+            ResponseHelper::success([
+                'bids' => $bidsResult['data'],
+                'pagination' => $bidsResult['pagination']
+            ], 'Bids fetched successfully.');
         } catch (\Throwable $e) {
-            ResponseHelper::error("An error occurred while fetching all bids: " . $e->getMessage(), 500);
+            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
         }
     }
 

@@ -21,14 +21,27 @@ class UserService {
         return ['success' => true, 'message' => 'User retrieved successfully.', 'data' => $user];
     }
 
-    public function getAllUsers($decodedUser) {
+    public function getAllUsers($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
+    {
         if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
             return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
         }
-
-        $users = $this->userRepository->getAllUsers();
-
-        return ['success' => true, 'message' => 'Users retrieved successfully.', 'data' => $users];
+    
+        $offset = ($page - 1) * $limit;
+        $total = $this->userRepository->getUsersCount($filters);
+        $users = $this->userRepository->getAllUsers($limit, $offset, $filters);
+    
+        return [
+            'success' => true,
+            'message' => 'Users retrieved successfully.',
+            'data' => $users,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function updateUser($userId, $data, $decodedUser) {

@@ -105,7 +105,7 @@ switch (true) {
         $cardController->getAllCards();
         break;
 
-    // Get all cards created by the user
+    // Get all cards owned by the user
     case $requestUri === '/api/cards/user' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $cardController->getUserCards($decodedUser->id);

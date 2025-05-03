@@ -17,8 +17,30 @@ class CardService {
         return $this->cardRepository->getCardById($id);
     }
 
-    public function getUserCards($userId) {
-        return $this->cardRepository->getUserCards($userId);
+    public function getUserCards(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
+    {
+        try {
+            $total = $this->cardRepository->getUserCardsCount($userId, $filters);
+            $cards = $this->cardRepository->getUserCards($userId, $offset, $limit, $filters);
+
+            return [
+                'success' => true,
+                'message' => 'User cards retrieved successfully.',
+                'data' => $cards,
+                'pagination' => [
+                    'offset' => $offset,
+                    'limit' => $limit,
+                    'total' => $total,
+                    'hasMore' => ($offset + $limit) < $total
+                ]
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'An error occurred while fetching cards: ' . $e->getMessage(),
+                'data' => null
+            ];
+        }
     }
 
     public function createCard($userId, $data, $image): array {
@@ -80,8 +102,27 @@ class CardService {
         return $this->cardRepository->setCardListedStatus($cardId, $status);
     }
 
-    public function getAllCards(): array {
-        return $this->cardRepository->getAllCards();
+    public function getAllCards($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
+    {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
+        }
+
+        $offset = ($page - 1) * $limit;
+        $total = $this->cardRepository->getCardsCount($filters);
+        $cards = $this->cardRepository->getAllCards($limit, $offset, $filters);
+
+        return [
+            'success' => true,
+            'message' => 'Cards retrieved successfully.',
+            'data' => $cards,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function updateCard(int $id, array $data): void {

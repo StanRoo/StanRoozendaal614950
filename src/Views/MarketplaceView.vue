@@ -5,7 +5,7 @@
 
   <div class="card shadow-sm mb-4 p-3 filter-card">
     <div class="row g-3 align-items-center">
-      <div class="col-md-3">
+      <div class="col-md-4 col-12">
         <input 
           type="text" 
           v-model="searchQuery" 
@@ -14,7 +14,7 @@
         />
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <select class="form-select" v-model="selectedRarity">
           <option value="">All Rarities</option>
           <option value="Common">Common</option>
@@ -24,7 +24,7 @@
         </select>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <select class="form-select" v-model="selectedType">
           <option value="">All Types</option>
           <option value="Normal">Normal</option>
@@ -49,24 +49,7 @@
         </select>
       </div>
 
-      <div class="col-md-3">
-        <div class="input-group">
-          <input 
-            type="number" 
-            v-model.number="minPrice" 
-            class="form-control" 
-            placeholder="Min Price" 
-          />
-          <input 
-            type="number" 
-            v-model.number="maxPrice" 
-            class="form-control" 
-            placeholder="Max Price" 
-          />
-        </div>
-      </div>
-
-      <div class="col-md-2">
+      <div class="col-md-4 col-12">
         <select class="form-select" v-model="sortOption">
           <option value="name_asc">Sort by Name (A-Z)</option>
           <option value="price_asc">Lowest Price</option>
@@ -87,7 +70,7 @@
   <div class="marketplace-container">
     <section v-if="cards.length > 0" class="marketplace-grid">
       <div
-        v-for="card in filteredCards"
+        v-for="card in cards"
         :key="card.id"
         class="marketplace-card"
         @click="selectCard(card)"
@@ -101,12 +84,13 @@
     </section>
 
     <p v-else class="empty-message">No cards listed on the marketplace yet.</p>
+    <p v-if="loading" class="text-muted">Loading more cards...</p>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
 import MarketplaceBanner from '@/assets/images/Marketplace_Banner.png';
@@ -115,28 +99,43 @@ defineEmits(['profileUpdated']);
 const router = useRouter();
 
 const cards = ref([]);
+const offset = ref(0);
+const limit = 20;
+const hasMore = ref(true);
+const loading = ref(false);
 const searchQuery = ref('');
 const selectedRarity = ref('');
 const selectedType = ref('');
-const minPrice = ref(null);
-const maxPrice = ref(null);
 const sortOption = ref('name_asc');
 
-onMounted(async () => {
-  await fetchMarketplaceCards();
+onMounted(() => {
+  fetchMarketplaceCards();
+  window.addEventListener('scroll', handleScroll);
 });
 
 const fetchMarketplaceCards = async () => {
+  if (loading.value || !hasMore.value) return;
+  loading.value = true;
+
   try {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const listingsResponse = await axios.get('/marketplace/list', {
+    const params = {
+      search: searchQuery.value,
+      rarity: selectedRarity.value,
+      type: selectedType.value,
+      sort: sortOption.value,
+      offset: offset.value,
+      limit,
+    };
+
+    const response = await axios.get('/marketplace/list', {
       headers: { Authorization: `Bearer ${token}` },
+      params,
     });
 
-    const listings = listingsResponse.data.listings || [];
-
+    const listings = response.data.listings || [];
     const cardsWithDetails = await Promise.all(
       listings.map(async (listing) => {
         const cardResponse = await axios.get(`/cards/${listing.card_id}`, {
@@ -151,9 +150,30 @@ const fetchMarketplaceCards = async () => {
       })
     );
 
-    cards.value = cardsWithDetails;
+    cards.value.push(...cardsWithDetails);
+    offset.value += limit;
+
+    if (cardsWithDetails.length < limit) {
+      hasMore.value = false;
+    }
   } catch (error) {
     console.error('Error fetching marketplace cards:', error.response?.data || error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+watch([searchQuery, selectedRarity, selectedType, sortOption], async () => {
+  cards.value = [];
+  offset.value = 0;
+  hasMore.value = true;
+  await fetchMarketplaceCards();
+});
+
+const handleScroll = () => {
+  const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+  if (scrollBottom) {
+    fetchMarketplaceCards();
   }
 };
 
@@ -164,53 +184,7 @@ const selectCard = (card) => {
 const goToMyListings = () => {
   router.push({ name: 'MyMarketplaceListings' });
 };
-
-const filteredCards = computed(() => {
-  let filtered = [...cards.value];
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(card => card.name.toLowerCase().includes(query));
-  }
-
-  if (selectedRarity.value) {
-    filtered = filtered.filter(card => card.rarity === selectedRarity.value);
-  }
-
-  if (selectedType.value) {
-    filtered = filtered.filter(card => card.type === selectedType.value);
-  }
-
-  if (minPrice.value !== null) {
-    filtered = filtered.filter(card => card.price >= minPrice.value);
-  }
-
-  if (maxPrice.value !== null) {
-    filtered = filtered.filter(card => card.price <= maxPrice.value);
-  }
-
-  switch (sortOption.value) {
-    case 'name_asc':
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-      break;
-    case 'price_asc':
-      filtered.sort((a, b) => a.price - b.price);
-      break;
-    case 'price_desc':
-      filtered.sort((a, b) => b.price - a.price);
-      break;
-    case 'created_desc':
-      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      break;
-    case 'created_asc':
-      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      break;
-  }
-
-  return filtered;
-});
 </script>
-
 
 <style scoped>
 .banner {
@@ -296,21 +270,6 @@ const filteredCards = computed(() => {
 .filter-card .form-select {
   background-color: white;
   color: black;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.filters {
-  margin: 1.5rem auto;
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.filters select {
-  padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
   border: 1px solid #ccc;
   font-size: 1rem;
 }

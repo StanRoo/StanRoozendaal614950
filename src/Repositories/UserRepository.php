@@ -13,11 +13,114 @@ class UserRepository {
         $this->pdo = $pdo;
     }
 
-    public function getAllUsers(): array {
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, last_login, balance, last_daily_claim FROM users");
+    public function getAllUsers(int $limit, int $offset, array $filters = []): array
+    {
+        $sql = "
+            SELECT id, username, email, password, role, profile_picture_url, status, bio, last_login, created_at, updated_at, balance, last_daily_claim
+            FROM users
+        ";
+
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['id'])) {
+            $where[] = 'id = :id';
+            $params[':id'] = $filters['id'];
+        }
+
+        if (!empty($filters['username'])) {
+            $where[] = 'username LIKE :username';
+            $params[':username'] = '%' . $filters['username'] . '%';
+        }
+
+        if (!empty($filters['email'])) {
+            $where[] = 'email LIKE :email';
+            $params[':email'] = '%' . $filters['email'] . '%';
+        }
+
+        if (!empty($filters['status'])) {
+            $where[] = 'status = :status';
+            $params[':status'] = $filters['status'];
+        }
+
+        if (!empty($filters['role'])) {
+            $where[] = 'role = :role';
+            $params[':role'] = $filters['role'];
+        }
+
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        if (!empty($filters['last_login'])) {
+            $direction = strtoupper($filters['last_login']) === 'ASC' ? 'ASC' : 'DESC';
+            $sql .= " ORDER BY last_login $direction";
+        } else {
+            $sql .= " ORDER BY created_at DESC";
+        }
+
+        $sql .= " LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+
         $stmt->execute();
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC); 
-        return array_map(fn($user) => new UserModel($user), $users);
+
+        $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        return array_map(fn($user) => new \App\Models\UserModel($user), $users);
+    }
+    
+    public function getUsersCount(array $filters = []): int
+    {
+        $sql = "SELECT COUNT(*) FROM users";
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['id'])) {
+            $where[] = 'id = :id';
+            $params[':id'] = $filters['id'];
+        }
+
+        if (!empty($filters['username'])) {
+            $where[] = 'username LIKE :username';
+            $params[':username'] = '%' . $filters['username'] . '%';
+        }
+
+        if (!empty($filters['email'])) {
+            $where[] = 'email LIKE :email';
+            $params[':email'] = '%' . $filters['email'] . '%';
+        }
+
+        if (!empty($filters['status'])) {
+            $where[] = 'status = :status';
+            $params[':status'] = $filters['status'];
+        }
+
+        if (!empty($filters['role'])) {
+            $where[] = 'role = :role';
+            $params[':role'] = $filters['role'];
+        }
+
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
     }
 
     public function getUserById($userId): ?UserModel {

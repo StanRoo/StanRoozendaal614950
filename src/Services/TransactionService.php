@@ -22,9 +22,32 @@ class TransactionService
         return $this->transactionRepository->getById($id);
     }
 
-    public function getAllTransactions(): array
+    public function getAllTransactions($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
     {
-        return $this->transactionRepository->getAllTransactions();
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return [
+                'success' => false,
+                'message' => 'Unauthorized: Admin access required.',
+                'data' => null
+            ];
+        }
+
+        $offset = ($page - 1) * $limit;
+
+        $total = $this->transactionRepository->getTransactionsCount($filters);
+        $transactions = $this->transactionRepository->getAllTransactions($limit, $offset, $filters);
+
+        return [
+            'success' => true,
+            'message' => 'Transactions retrieved successfully.',
+            'data' => $transactions,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function logTransaction(int $buyerId, int $sellerId, int $cardId, float $price): bool

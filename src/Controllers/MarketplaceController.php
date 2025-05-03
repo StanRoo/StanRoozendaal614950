@@ -53,47 +53,66 @@ class MarketplaceController
         ], $result['message']);
     }
 
-    public function getMarketplaceCards($userId)
-    {
-        $listings = $this->marketplaceService->getAllActiveListingsExceptUser($userId);
-
-        $listingsData = array_map(function ($listing) {
-            return [
-                'id' => $listing->getId(),
-                'card_id' => $listing->getCardId(),
-                'seller_id' => $listing->getSellerId(),
-                'price' => $listing->getPrice(),
-                'listed_at' => $listing->getListedAt(),
-                'status' => $listing->getStatus(),
-            ];
-        }, $listings);
-
-        ResponseHelper::success([
-            'listings' => $listingsData
-        ], empty($listingsData) ? "No cards listed on the marketplace." : "Marketplace listings retrieved successfully.");
-    }
-
-    public function getUserListings($userId)
+    public function getMarketplaceCards($userId): void
     {
         try {
-            $listings = $this->marketplaceService->getUserListings($userId);
-
-            $listingsData = array_map(function ($listing) {
-                return [
-                    'id' => $listing->getId(),
-                    'card_id' => $listing->getCardId(),
-                    'seller_id' => $listing->getSellerId(),
-                    'price' => $listing->getPrice(),
-                    'listed_at' => $listing->getListedAt(),
-                    'status' => $listing->getStatus(),
-                ];
-            }, $listings);
-
+            $decodedUser = $this->authMiddleware->verifyToken();
+            if ($decodedUser->id != $userId) {
+                ResponseHelper::error('Unauthorized access.', 403);
+                return;
+            }
+            $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+            $filters = [
+                'search' => $_GET['search'] ?? null,
+                'rarity' => $_GET['rarity'] ?? null,
+                'type' => $_GET['type'] ?? null,
+                'sort' => $_GET['sort'] ?? 'lowest_price',
+            ];
+            $result = $this->marketplaceService->getFilteredListings($userId, $offset, $limit, $filters);
+            if (!$result['success']) {
+                ResponseHelper::error($result['message'], 500);
+                return;
+            }
             ResponseHelper::success([
-                'listings' => $listingsData
-            ], empty($listingsData) ? "You have no active listings." : "Your listings retrieved successfully.");
-        } catch (\Exception $e) {
-            ResponseHelper::error('Failed to fetch your listings.', 500);
+                'listings' => $result['data'],
+                'pagination' => $result['pagination']
+            ], 'Marketplace listings retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error('An error occurred while fetching marketplace listings: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function getUserListings($userId): void
+    {
+        try {
+            $decodedUser = $this->authMiddleware->verifyToken();
+            if ($decodedUser->id != $userId) {
+                ResponseHelper::error('Unauthorized access.', 403);
+                return;
+            }
+            $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+            $filters = [
+                'search'     => $_GET['search'] ?? null,
+                'rarity'     => $_GET['rarity'] ?? null,
+                'type'       => $_GET['type'] ?? null,
+                'min_price'  => isset($_GET['min_price']) ? (float) $_GET['min_price'] : null,
+                'max_price'  => isset($_GET['max_price']) ? (float) $_GET['max_price'] : null,
+                'sort'       => $_GET['sort'] ?? 'lowest_price',
+            ];
+            $result = $this->marketplaceService->getUserFilteredListings($userId, $offset, $limit, $filters);
+            if (!$result['success']) {
+                ResponseHelper::error($result['message'], 500);
+                return;
+            }
+            ResponseHelper::success([
+                'listings'   => $result['data'],
+                'pagination' => $result['pagination']
+            ], 'Your listings retrieved successfully.');
+
+        } catch (\Throwable $e) {
+            ResponseHelper::error('An error occurred while fetching your listings: ' . $e->getMessage(), 500);
         }
     }
 
@@ -157,11 +176,29 @@ class MarketplaceController
                 return;
             }
 
-            $listings = $this->marketplaceService->getAllListings();
+            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+
+            $filters = [
+                'card_id' => $_GET['card_id'] ?? null,
+                'seller_id' => $_GET['seller_id'] ?? null,
+                'listed_at' => $_GET['listed_at'] ?? null,
+                'expires_at' => $_GET['expires_at'] ?? null,
+                'status' => $_GET['status'] ?? null,
+            ];
+
+            $listingsResult = $this->marketplaceService->getAllListings($decodedUser, $page, $limit, $filters);
+
+            if (!$listingsResult['success']) {
+                ResponseHelper::error($listingsResult['message'], 500);
+                return;
+            }
 
             ResponseHelper::success([
-                'listings' => $listings
-            ]);
+                'listings' => $listingsResult['data'],
+                'pagination' => $listingsResult['pagination']
+            ], 'Listings fetched successfully.');
+
         } catch (\Exception $e) {
             ResponseHelper::error('Failed to fetch listings: ' . $e->getMessage(), 500);
         }

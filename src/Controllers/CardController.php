@@ -61,18 +61,31 @@ class CardController {
         }
     }
 
-    public function getUserCards($userId): void {
+    public function getUserCards($userId): void
+    {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
-
             if ($decodedUser->id != $userId) {
                 ResponseHelper::error('Unauthorized access.', 403);
                 return;
             }
-
-            $cards = $this->cardService->getUserCards($userId);
-
-            ResponseHelper::success(['cards' => $cards], 'User cards retrieved successfully.');
+            $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+            $filters = [
+                'search' => $_GET['search'] ?? null,
+                'rarity' => $_GET['rarity'] ?? null,
+                'type' => $_GET['type'] ?? null,
+                'sort' => $_GET['sort'] ?? 'name_asc',
+            ];
+            $cardsResult = $this->cardService->getUserCards($userId, $offset, $limit, $filters);
+            if (!$cardsResult['success']) {
+                ResponseHelper::error($cardsResult['message'], 500);
+                return;
+            }
+            ResponseHelper::success([
+                'cards' => $cardsResult['data'],
+                'pagination' => $cardsResult['pagination']
+            ], 'User cards retrieved successfully.');
         } catch (\Throwable $e) {
             ResponseHelper::error('An error occurred while fetching user cards: ' . $e->getMessage(), 500);
         }
@@ -108,13 +121,38 @@ class CardController {
         }
     }
 
-    public function getAllCards(): void {
-        try {
-            $cards = $this->cardService->getAllCards();
-            ResponseHelper::success(['cards' => $cards], 'All cards retrieved successfully.');
-        } catch (\Throwable $e) {
-            ResponseHelper::error('Failed to fetch cards: ' . $e->getMessage(), 500);
+    public function getAllCards(): void
+    {
+        $decodedUser = $this->authMiddleware->verifyToken();
+
+        if ($decodedUser->role !== 'admin') {
+            ResponseHelper::error('Access denied. Admins only.', 403);
+            return;
         }
+
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+
+        $filters = [
+            'id' => $_GET['id'] ?? null,
+            'owner_id' => $_GET['owner_id'] ?? null,
+            'name' => $_GET['name'] ?? null,
+            'rarity' => $_GET['rarity'] ?? null,
+            'is_listed' => isset($_GET['is_listed']) ? filter_var($_GET['is_listed'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+            'created_at' => $_GET['created_at'] ?? null,
+        ];
+
+        $cardsResult = $this->cardService->getAllCards($decodedUser, $page, $limit, $filters);
+
+        if (!$cardsResult['success']) {
+            ResponseHelper::error($cardsResult['message'], 500);
+            return;
+        }
+
+        ResponseHelper::success([
+            'cards' => $cardsResult['data'],
+            'pagination' => $cardsResult['pagination']
+        ], 'Cards fetched successfully.');
     }
     
     public function updateCard($id): void {

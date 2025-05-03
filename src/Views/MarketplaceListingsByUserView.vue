@@ -99,7 +99,7 @@
   
 <script setup>
   import { useRouter } from 'vue-router';
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, watch } from 'vue';
   import axios from 'axios';
   import CardDisplay from '@/Components/CardDisplay.vue';
   import MyListingsBanner from '@/assets/images/My_Listings_Banner.png';
@@ -108,6 +108,10 @@
 
   const router = useRouter();
   const cards = ref([]);
+  const offset = ref(0);
+  const limit = ref(20);
+  const isLoading = ref(false);
+  const hasMore = ref(true);
  
   const searchQuery = ref('');
   const selectedRarity = ref('');
@@ -116,27 +120,54 @@
   const maxPrice = ref(null);
   const sortOption = ref('name_asc');
   
-  onMounted(async () => {
-    await fetchMyMarketplaceCards();
+  onMounted(() => {
+    fetchMyMarketplaceCards();
+    window.addEventListener('scroll', handleScroll);
   });
+
+  watch([searchQuery, selectedRarity, selectedType, minPrice, maxPrice, sortOption], () => {
+    offset.value = 0;
+    hasMore.value = true;
+    fetchMyMarketplaceCards();
+  });
+
+  const handleScroll = () => {
+    const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+    if (scrollBottom && hasMore.value) {
+      fetchMyMarketplaceCards();
+    }
+  };
   
   const fetchMyMarketplaceCards = async () => {
+    if (isLoading.value || !hasMore.value) return;
+
+    isLoading.value = true;
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-  
-      const listingsResponse = await axios.get('/marketplace/userListings', {
+
+      const response = await axios.get('/marketplace/userListings', {
         headers: { Authorization: `Bearer ${token}` },
+        params: {
+          offset: offset.value,
+          limit: limit.value,
+          search: searchQuery.value,
+          rarity: selectedRarity.value,
+          type: selectedType.value,
+          min_price: minPrice.value,
+          max_price: maxPrice.value,
+          sort: sortOption.value,
+        },
       });
-  
-      const listings = listingsResponse.data.listings || [];
-  
+
+      const newListings = response.data.listings || [];
+
       const cardsWithDetails = await Promise.all(
-        listings.map(async (listing) => {
+        newListings.map(async (listing) => {
           const cardResponse = await axios.get(`/cards/${listing.card_id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-  
+
           return {
             ...cardResponse.data.card,
             price: listing.price,
@@ -144,10 +175,20 @@
           };
         })
       );
-  
-      cards.value = cardsWithDetails;
+
+      if (offset.value === 0) {
+        cards.value = cardsWithDetails;
+      } else {
+        cards.value.push(...cardsWithDetails);
+      }
+
+      offset.value += limit.value;
+      hasMore.value = cardsWithDetails.length === limit.value;
+
     } catch (error) {
       console.error('Error fetching your listings:', error.response?.data || error);
+    } finally {
+      isLoading.value = false;
     }
   };
   
@@ -319,7 +360,7 @@
   .banner {
     height: 10vh;
   }
-  
+
   .marketplace-grid {
     gap: 1.2rem;
   }

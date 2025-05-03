@@ -73,9 +73,26 @@ class BidService {
         return ['success' => true, 'data' => $bids];
     }
 
-    public function getAllBids(): array {
-        $bids = $this->bidRepository->getAllBids();
-        return ['success' => true, 'data' => $bids];
+    public function getAllBids($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
+        }
+
+        $offset = ($page - 1) * $limit;
+        $total = $this->bidRepository->getBidsCount($filters);
+        $bids = $this->bidRepository->getAllBids($limit, $offset, $filters);
+
+        return [
+            'success' => true,
+            'message' => 'Bids retrieved successfully.',
+            'data' => $bids,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function deleteBid(int $id): array {

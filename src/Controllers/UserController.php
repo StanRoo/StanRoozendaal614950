@@ -38,16 +38,38 @@ class UserController {
         ], 'User fetched successfully.');
     }
 
-    public function getAllUsers(): void {
+    public function getAllUsers(): void
+    {
         $decodedUser = $this->authMiddleware->verifyToken();
 
         if ($decodedUser->role !== 'admin') {
             ResponseHelper::error('Access denied. Admins only.', 403);
+            return;
         }
 
-        $usersResult = $this->userService->getAllUsers($decodedUser);
-        $users = $usersResult['data'];
-        ResponseHelper::success(['users' => $users], 'Users fetched successfully.');
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+
+        $filters = [
+            'id' => $_GET['id'] ?? null,
+            'username' => $_GET['username'] ?? null,
+            'email' => $_GET['email'] ?? null,
+            'status' => $_GET['status'] ?? null,
+            'role' => $_GET['role'] ?? null,
+            'last_login' => $_GET['last_login'] ?? null,
+        ];
+
+        $usersResult = $this->userService->getAllUsers($decodedUser, $page, $limit, $filters);
+
+        if (!$usersResult['success']) {
+            ResponseHelper::error($usersResult['message'], 500);
+            return;
+        }
+
+        ResponseHelper::success([
+            'users' => $usersResult['data'],
+            'pagination' => $usersResult['pagination']
+        ], 'Users fetched successfully.');
     }
 
     public function updateUser($userId): void {
