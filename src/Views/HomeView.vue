@@ -1,6 +1,8 @@
 <script setup>
 import CuboCardBanner from '@/assets/icons/CuboCardBanner.png'
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const goToCreateCard = () => {
   router.push({ name: 'CreateCard' });
 };
