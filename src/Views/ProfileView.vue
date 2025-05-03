@@ -82,6 +82,7 @@ import { handleApiError } from "@/Utils/errorHandler";
 import ProfileBanner from '@/assets/images/Profile_Banner.png'
 
 export default {
+  emits: ['profileUpdated'],
   data() {
     return {
       user: { ...useUserStore().user },
@@ -351,7 +352,7 @@ export default {
   .banner {
     height: 10vh;
   }
-  
+
   .card {
     padding: 1.5rem;
   }

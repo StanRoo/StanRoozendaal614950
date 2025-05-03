@@ -17,8 +17,8 @@ class UserController {
     }
 
     public function getUser($userId): void {
-        $user = $this->userService->getUserById($userId);
-
+        $userResult = $this->userService->getUserById($userId);
+        $user = $userResult['data'];
         if (!$user) {
             ResponseHelper::error('User not found.', 404);
         }
@@ -164,13 +164,15 @@ class UserController {
 
     public function claimDailyCuboCoins(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
-
         $result = $this->userService->claimDailyReward($decodedUser->id);
-
+    
         if ($result['success']) {
+            $balance = $result['data']['balance'];
+            $claimed_today = $result['data']['claimed_today'];
             ResponseHelper::success([
                 'message' => $result['message'],
-                'balance' => $result['balance']
+                'balance' => $balance,
+                'claimed_today' => $claimed_today
             ], 'Daily reward claimed successfully.');
         } else {
             ResponseHelper::error($result['message'], 400);

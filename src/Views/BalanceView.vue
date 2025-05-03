@@ -67,9 +67,11 @@ const claimDaily = async () => {
     const response = await axios.post('/user/claim-daily', {}, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    balance.value = response.data.balance.balance;
-    hasClaimedToday.value = response.data.balance.claimed_today;
-    userStore.updateBalance(response.data.balance.balance);
+    console.log(response.data)
+    balance.value = response.data.balance;
+    hasClaimedToday.value = response.data.claimed_today;
+    userStore.updateBalance(response.data.balance);
+    animateBalance();
     successMessage.value = 'You claimed 500 CuboCoins!'
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Something went wrong.'
@@ -245,7 +247,7 @@ watch(balance, () => {
   .banner {
     height: 10vh;
   }
-  
+
   .balance-card {
     padding: 1.5rem 1rem;
   }

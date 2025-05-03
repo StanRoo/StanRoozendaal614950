@@ -42,6 +42,7 @@ import BidsTab from '@/Components/AdminTabs/BidsTab.vue'
 import TransactionsTab from '@/Components/AdminTabs/TransactionsTab.vue'
 
 export default {
+  emits: ['profileUpdated'],
   components: {
     UsersTab,
     CardsTab,
