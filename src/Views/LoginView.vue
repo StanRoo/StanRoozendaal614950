@@ -65,7 +65,17 @@ export default {
       errorMessage: "",
     };
   },
+  mounted() {
+    const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
 
+    if (savedToken && savedUser) {
+      const userStore = useUserStore();
+      userStore.setToken(savedToken);
+      userStore.setUser(JSON.parse(savedUser));
+      this.$router.push("/home");
+    }
+  },
   methods: {
     async login() {
       this.errorMessage = "";
@@ -73,6 +83,7 @@ export default {
         const response = await axios.post("/login", {
           username: this.username,
           password: this.password,
+          remember: this.rememberMe,
         });
 
         if (response.status === 200 && response.data.token && response.data.user) {

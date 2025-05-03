@@ -23,8 +23,9 @@ class AuthController {
 
             $username = $data['username'];
             $password = $data['password'];
-
-            $result = $this->authService->login($username, $password);
+            $rememberMe = isset($data['rememberMe']) ? (bool)$data['rememberMe'] : false;
+    
+            $result = $this->authService->login($username, $password, $rememberMe);
 
             if (isset($result['error'])) {
                 ResponseHelper::error($result['message'], 401);

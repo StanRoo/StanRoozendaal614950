@@ -15,17 +15,15 @@ class AuthService {
         $this->userRepository = $userRepository;
     }
 
-    public function login($username, $password): array {
+    public function login($username, $password, $rememberMe = false): array {
         $user = $this->userRepository->getUserByUsername($username);
 
         if (!$user || !password_verify($password, $user->getPassword())) {
             return ['success' => false, 'message' => 'Invalid credentials.'];
         }
-
         if ($user->getStatus() === 'banned') {
             return ['success' => false, 'message' => 'Your account has been banned.'];
         }
-
         if ($user->getStatus() === 'inactive') {
             return ['success' => false, 'message' => 'Your account is not active.'];
         }
@@ -45,11 +43,13 @@ class AuthService {
             "last_login" => $user->getLastLogin(),
         ];
 
+        $expirationTime = $rememberMe ? (60 * 60 * 24 * 30) : (60 * 60 * 2); // 30 days vs 2 hours
+
         $payload = [
             'user_id' => $user->getId(),
             'user' => $userData,
-            "iat" => time(),
-            "exp" => time() + (60 * 60) // 1 hour expiration
+            'iat' => time(),
+            'exp' => time() + $expirationTime
         ];
 
         $jwt = JWT::encode($payload, Config::JWT_SECRET, 'HS256');
