@@ -274,7 +274,8 @@ class MarketplaceService
         $sellerId = $listing->getSellerId();
         $price = $listing->getPrice();
 
-        $buyer = $this->userService->getUserById($buyerId);
+        $result = $this->userService->getUserById($buyerId);
+        $buyer = $result['data'];
 
         if ($buyer->balance < $price) {
             return ['success' => false, 'message' => 'Insufficient balance.', 'data' => null];
