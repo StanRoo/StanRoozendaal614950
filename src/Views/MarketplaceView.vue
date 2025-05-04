@@ -304,7 +304,7 @@ const goToMyListings = () => {
   }
 
   .my-listings-btn {
-    width: 100%;
+    width: 90%;
     font-size: 1.1rem;
   }
 

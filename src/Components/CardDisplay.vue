@@ -66,7 +66,7 @@ const getCardStyle = (card) => {
     width: "100%",
     height: "27vw",
     maxWidth: "20rem",
-    maxHeight: "29rem",
+    maxHeight: "26rem",
     minWidth: "16rem",
     minHeight: "26rem"
   };
@@ -124,6 +124,9 @@ const getCardImage = (imageUrl) => {
 
 <style scoped>
 .inventory-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   position: relative;
   border-radius: 1rem;
   overflow: hidden;
@@ -134,7 +137,7 @@ const getCardImage = (imageUrl) => {
   max-width: 20rem;
   min-width: 16rem;
   min-height: 26rem;
-  max-height: 29rem;
+  max-height: 26rem;
   padding: 1rem;
 }
 
@@ -146,15 +149,16 @@ const getCardImage = (imageUrl) => {
 
 .card-image {
   width: 100%;
-  aspect-ratio: 20 / 21;
+  height: auto;
   object-fit: cover;
   border-radius: 0.6rem;
   margin-bottom: 0.6rem;
+  flex-shrink: 1;
 }
 
 .card-info {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+  margin-top: auto;
+  margin-bottom: 0.2rem;
 }
 
 .card-info p {
@@ -216,33 +220,11 @@ const getCardImage = (imageUrl) => {
   }
 }
 
-@media (max-width: 1750px) {
-  .card-image {
-    aspect-ratio: 30 / 31;
-  }
-}
-
-@media (max-width: 1650px) {
-  .card-image {
-    aspect-ratio: 80 / 81;
-  }
-}
-
-@media (max-width: 1024px) {
-  .card-image {
-    aspect-ratio: 80 / 81;
-  }
-}
-
 @media (max-width: 768px) {
   .inventory-card {
     width: 80vw;
     height: auto;
     padding: 1rem;
-  }
-
-  .card-image {
-    aspect-ratio: 80 / 81;
   }
 
   .inventory-card h4 {
@@ -254,7 +236,7 @@ const getCardImage = (imageUrl) => {
   }
 
   .card-info p {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 
   .hp-display {
@@ -267,10 +249,6 @@ const getCardImage = (imageUrl) => {
     width: 90vw;
     height: auto;
     padding: 1rem;
-  }
-
-  .card-image {
-    aspect-ratio: 30 / 31;
   }
 
   .inventory-card h4 {
