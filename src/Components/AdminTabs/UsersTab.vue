@@ -133,6 +133,9 @@ export default {
     async fetchUsers() {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         const response = await axios.get('/users', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -161,6 +164,9 @@ export default {
     async updateUser(user) {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.put(`/users/${user.id}`, {
           role: user.role,
           status: user.status,
@@ -178,6 +184,9 @@ export default {
 
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.delete(`/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })

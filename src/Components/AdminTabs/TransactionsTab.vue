@@ -101,6 +101,9 @@ export default {
     async fetchTransactions() {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         const response = await axios.get('/admin/transactions', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -129,6 +132,9 @@ export default {
 
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.delete(`/admin/transactions/${transactionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })

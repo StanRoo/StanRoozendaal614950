@@ -76,7 +76,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import CardDisplay from '@/Components/CardDisplay.vue';
 import InventoryBanner from '@/assets/images/Inventory_Banner.png'
@@ -107,7 +107,9 @@ const fetchCards = async () => {
 
   try {
     const token = localStorage.getItem('token')
-    if(!token) return;
+    if (!token) {
+      router.push("/");
+    }
     const params = {
       search: searchQuery.value,
       rarity: selectedRarity.value,

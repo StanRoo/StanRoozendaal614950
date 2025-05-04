@@ -75,6 +75,9 @@ export default {
     async fetchBids() {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         const response = await axios.get('/admin/bids', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -96,6 +99,9 @@ export default {
 
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.delete(`/admin/bids/${bidId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })

@@ -33,6 +33,9 @@ import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import BalanceBanner from '@/assets/images/Balance_Banner.png';
 import { useUserStore } from '@/Store/UserStore';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 const userStore = useUserStore();
 
 const balance = ref(0)
@@ -47,6 +50,9 @@ defineEmits(['profileUpdated'])
 const fetchBalance = async () => {
   try {
     const token = localStorage.getItem('token')
+    if (!token) {
+      router.push("/");
+    }
     const response = await axios.get('/user/balance', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -64,6 +70,9 @@ const claimDaily = async () => {
 
   try {
     const token = localStorage.getItem('token')
+    if (!token) {
+      router.push("/");
+    }
     const response = await axios.post('/user/claim-daily', {}, {
       headers: { Authorization: `Bearer ${token}` },
     })

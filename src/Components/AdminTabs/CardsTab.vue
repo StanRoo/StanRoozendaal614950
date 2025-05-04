@@ -120,6 +120,9 @@ export default {
     async fetchCards() {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         const response = await axios.get('/admin/cards', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -147,6 +150,9 @@ export default {
     async updateCard(card) {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.put(`/admin/cards/${card.id}`, {
           owner_id: card.owner_id,
           is_listed: card.is_listed,
@@ -164,6 +170,9 @@ export default {
       if (!confirm('Are you sure you want to delete this card?')) return
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.delete(`/admin/cards/${cardId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -184,6 +193,9 @@ export default {
     async toggleListed(card) {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         card.is_listed = card.is_listed ? 0 : 1
         await axios.put(`/admin/cards/${card.id}`, {
           owner_id: card.owner_id,

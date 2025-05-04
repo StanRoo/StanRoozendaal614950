@@ -151,8 +151,10 @@
   import { ref, computed } from 'vue';
   import { useUserStore } from '@/Store/UserStore';
   import CreateCardBanner from '@/assets/images/Create_Card_Banner.png';
-  
+  import { useRouter } from 'vue-router';
+
   defineEmits(['profileUpdated'])
+  const router = useRouter();
   const userStore = useUserStore();
   const selectedRarity = ref('common');
   const cardName = ref('[name]');
@@ -324,7 +326,9 @@
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) return this.redirectToLogin();
+      if (!token) {
+        router.push("/");
+      }
       const response = await axios.post('/cards', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

@@ -144,7 +144,9 @@
     isLoading.value = true;
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        router.push("/");
+      }
 
       const response = await axios.get('/marketplace/userListings', {
         headers: { Authorization: `Bearer ${token}` },

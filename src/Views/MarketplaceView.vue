@@ -119,7 +119,9 @@ const fetchMarketplaceCards = async () => {
 
   try {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      router.push("/");
+    }
 
     const params = {
       search: searchQuery.value,

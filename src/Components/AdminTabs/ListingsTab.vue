@@ -101,6 +101,9 @@ export default {
     async fetchListings() {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         const response = await axios.get('/admin/listings', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -128,6 +131,9 @@ export default {
     async updateListing(listing) {
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.put(`/admin/listings/${listing.id}`, {
           status: listing.status
         }, {
@@ -143,6 +149,9 @@ export default {
 
       try {
         const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push("/");
+        }
         await axios.delete(`/admin/listings/${listingId}`, {
           headers: { Authorization: `Bearer ${token}` }
         })

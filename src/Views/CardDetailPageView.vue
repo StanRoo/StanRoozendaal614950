@@ -81,6 +81,9 @@ const showConfirmDelete = ref(false);
 
 onMounted(async () => {
   const token = localStorage.getItem('token');
+  if (!token) {
+    router.push("/");
+  }
   const id = route.params.id;
 
   try {
@@ -107,6 +110,9 @@ const listOnMarketplace = async () => {
 
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      router.push("/");
+    }
     await axios.post('/marketplace/list', {
       card_id: card.value.id,
       price: price.value,
@@ -141,6 +147,9 @@ const confirmDelete = () => {
 const deleteCard = async () => {
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      router.push("/");
+    }
     await axios.delete(`/cards/${card.value.id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });

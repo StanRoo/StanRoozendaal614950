@@ -128,7 +128,9 @@ export default {
   methods: {
     async fetchUserProfile() {
       const token = localStorage.getItem("token");
-      if (!token) return this.redirectToLogin();
+      if (!token) {
+        this.$router.push("/");
+      }
 
       try {
         const response = await axios.get("/user", {
@@ -158,6 +160,9 @@ export default {
 
     async updateProfilePicture() {
       const token = localStorage.getItem("token");
+      if (!token) {
+        this.$router.push("/");
+      }
       const headers = { Authorization: `Bearer ${token}` };
       let payload;
 
@@ -187,7 +192,9 @@ export default {
 
     async updateProfileInfo() {
       const token = localStorage.getItem("token");
-      if (!token) return this.redirectToLogin();
+      if (!token) {
+        this.$router.push("/");
+      }
  
       try {
         const response = await axios.put("/user", this.user, {
@@ -212,12 +219,7 @@ export default {
     handleError(error, field) {
       this[field] = error.response?.data?.error || "An error occurred.";
       this[field + "Class"] = "alert alert-danger";
-      if (error.response?.status === 401) this.redirectToLogin();
     },
-
-    redirectToLogin() {
-      this.$router.push("/");
-    }
   }
 };
 </script>

@@ -88,6 +88,9 @@ onMounted(() => {
 
 const fetchCardDetails = async () => {
   const token = localStorage.getItem('token');
+  if (!token) {
+    router.push("/");
+  }
   const cardId = route.params.id;
 
   try {
@@ -126,7 +129,9 @@ const goBack = () => {
 
 const buyNow = async () => {
   const token = localStorage.getItem('token');
-  if (!token) return;
+  if (!token) {
+    router.push("/");
+  }
 
   successMessage.value = '';
   errorMessage.value = '';
@@ -151,7 +156,9 @@ const buyNow = async () => {
 
 const placeBid = async () => {
   const token = localStorage.getItem('token');
-  if (!token) return;
+  if (!token) {
+    router.push("/");
+  }
 
   bidMessage.value = '';
   bidError.value = '';
