@@ -44,18 +44,23 @@ class AuthController {
         try {
             $data = json_decode(file_get_contents("php://input"), true);
 
-            if (!isset($data['username'], $data['email'], $data['password'])) {
-                ResponseHelper::error('Username, Email and Password are required.', 400);
+            if (!isset($data['username'], $data['email'], $data['password'], $data['confirmPassword'])) {
+                ResponseHelper::error('Username, Email, Password and Confirm Password are required.', 400);
+                return;
+            }
+            
+            if ($data['password'] !== $data['confirmPassword']) {
+                ResponseHelper::error('Passwords do not match.', 400);
                 return;
             }
 
             $result = $this->authService->register($data);
 
-            if (isset($result['error'])) {
+            if (!$result['success']) {
                 ResponseHelper::error($result['message'], 400);
-            } else {
-                ResponseHelper::success(null, "Account created successfully!");
+                return;
             }
+            ResponseHelper::success(null, "Account created successfully!");
         } catch (\Throwable $e) {
             ResponseHelper::error("An error occurred during registration: " . $e->getMessage(), 500);
         }

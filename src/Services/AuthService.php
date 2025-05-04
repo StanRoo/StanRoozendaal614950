@@ -67,23 +67,23 @@ class AuthService {
     public function register($data): array {
         $usernameValidation = Validator::validateUsername($data['username']);
         if ($usernameValidation !== true) {
-            return ['success' => false, 'message' => 'Invalid username.'];
+            return ['success' => false, 'message' => $usernameValidation];
         }
-
+    
         $emailValidation = Validator::validateEmail($data['email']);
         if ($emailValidation !== true) {
-            return ['success' => false, 'message' => 'Invalid Email.'];
+            return ['success' => false, 'message' => $emailValidation];
         }
-
+    
         $passwordValidation = Validator::validatePassword($data['password']);
         if ($passwordValidation !== true) {
-            return ['success' => false, 'message' => 'Invalid password.'];
+            return ['success' => false, 'message' => $passwordValidation];
         }
-
+    
         if ($this->userRepository->getUserByEmail($data['email'])) {
-            return ['success' => false, 'message' => 'Email is already registered.'];
+            return ['success' => false, 'message' => ['Email is already registered.']];
         }
-
+    
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $newUser = $this->userRepository->createUser(
             $data['username'],
@@ -92,13 +92,13 @@ class AuthService {
             "I love Pokémon :)",
             "/images/profile.png"
         );
-
+    
         if (!$newUser) {
-            return ['success' => false, 'message' => 'Failed to create account.'];
+            return ['success' => false, 'message' => ['Failed to create account.']];
         }
-
+    
         return ['success' => true, 'message' => 'Account created successfully!'];
-    }
+    }    
 
     public function sendResetLink($email): array {
         $user = $this->userRepository->getUserByEmail($email);

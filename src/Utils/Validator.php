@@ -33,14 +33,24 @@ class Validator {
     }
 
     public static function validatePassword($password) {
+    
         if (empty($password)) {
             return "Password is required.";
+        } else {
+            if (strlen($password) < 8) {
+                return "Password must be at least 8 characters long.";
+            }
+            if (!preg_match("/[A-Z]/", $password)) {
+                return "Password must contain at least one uppercase letter.";
+            }
+            if (!preg_match("/\d/", $password)) {
+                return "Password must contain at least one number.";
+            }
+            if (!preg_match("/[\W_]/", $password)) {
+                return "Password must contain at least one special character.";
+            }
         }
-
-        if (!preg_match("/^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/", $password)) {
-            return "Password must meet the following criteria:\n• At least 8 characters long\n• At least 1 uppercase letter\n• At least 1 number\n• At least 1 special character.";
-        }
-
+    
         return true;
     }
 

@@ -89,6 +89,13 @@ export default {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
 
+      if (this.password !== this.confirmPassword) {
+        this.errorMessage = "Passwords do not match.";
+        this.isSubmitting = false;
+        setTimeout(() => { this.errorMessage = ""; }, 3000);
+        return;
+      }
+
       try {
         const response = await axios.post("/register", {
           username: this.username,
