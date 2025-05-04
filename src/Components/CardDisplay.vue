@@ -65,7 +65,7 @@ const getCardStyle = (card) => {
     padding: "1rem",
     width: "100%",
     height: "27vw",
-    maxWidth: "20rem",
+    maxWidth: "18rem",
     maxHeight: "26rem",
     minWidth: "16rem",
     minHeight: "26rem"
@@ -134,7 +134,7 @@ const getCardImage = (imageUrl) => {
   box-shadow: 0 0 1.25rem 0.3rem rgba(0, 0, 0, 0.1);
   width: 100%;
   height: 27vw;
-  max-width: 20rem;
+  max-width: 18rem;
   min-width: 16rem;
   min-height: 26rem;
   max-height: 26rem;
@@ -236,7 +236,7 @@ const getCardImage = (imageUrl) => {
   }
 
   .card-info p {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 
   .hp-display {
@@ -256,7 +256,7 @@ const getCardImage = (imageUrl) => {
   }
 
   .card-info p {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .hp-display {
