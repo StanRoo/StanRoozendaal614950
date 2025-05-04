@@ -4,7 +4,6 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../src/logs/php-error.log');
 
-// Set headers for API responses
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -22,11 +21,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include autoloader and bootstrap file
 require_once __DIR__ . '/../vendor/autoload.php';   // Composer autoloader
 require_once __DIR__ . '/../src/bootstrap.php';     // Include the bootstrap file to initialize the app
-
-// Include the routes
-require_once __DIR__ . '/../src/Routes/apiRoutes.php';  
+require_once __DIR__ . '/../src/Routes/apiRoutes.php';  // Routes
 
 exit();

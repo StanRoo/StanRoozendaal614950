@@ -6,15 +6,14 @@ import CoinIcon from "@/assets/icons/coin.png";
 
 const userStore = useUserStore();
 const baseUrl = "http://localhost:8000/";
-
-const user = computed(() => userStore.user);
 const isAdmin = computed(() => userStore.user?.role === "admin");
 const dropdownVisibleMarketplace = ref(false);
 const dropdownVisibleProfile = ref(false);
 const hasClickedMarketplace = ref(false);
 const hasClickedProfile = ref(false);
-const userBalance = computed(() => userStore.user?.balance ?? 0);
 const isHamburgerOpen = ref(false);
+const userBalance = computed(() => userStore.user?.balance ?? 0);
+
 
 const profilePicture = computed(() => {
   const url = userStore.user?.profile_picture_url;
@@ -66,6 +65,7 @@ onBeforeUnmount(() => {
 
 <template>
   <nav class="navbar sticky-top">
+    <!--Left Side-->
     <div class="nav-left">
       <router-link to="/home" class="nav-link logo">
         <img class="logoImage" :src="CuboCard" />
@@ -92,6 +92,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <!--Right Side-->
     <div class="nav-right">
       <router-link to="/balance" class="user-balance">
           <img :src="CoinIcon" class="currency-icon" />
@@ -116,6 +117,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <!--Tablet/Mobile-->
       <div class="hamburger-icon" @click="toggleHamburgerMenu">&#9776;</div>
 
       <div v-if="isHamburgerOpen" class="mobile-menu">

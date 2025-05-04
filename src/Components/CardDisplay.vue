@@ -48,6 +48,7 @@ defineProps({
   }
 });
 
+// Style of the Card
 const getCardStyle = (card) => {
   const typeColors = getTypeColors(card.type);
   return {
@@ -72,6 +73,7 @@ const getCardStyle = (card) => {
   };
 };
 
+// Get colored shimmer
 const getShimmerStyle = (card) => {
   const typeColors = getTypeColors(card.type);
   const shimmerGradient = `linear-gradient(110deg, ${typeColors.glow} 20%, ${typeColors.border} 40%, ${typeColors.glow} 80%)`;
@@ -81,6 +83,7 @@ const getShimmerStyle = (card) => {
   };
 };
 
+// Get color based on Card Type
 const getTypeColors = (type) => {
   const colors = {
     Normal: { border: "#A8A77A", text: "#6D6D4E", glow: "rgba(168, 167, 122, 0.5)" },
@@ -102,6 +105,7 @@ const getTypeColors = (type) => {
   return colors[type] || colors["Normal"];
 };
 
+// Get font based on Card Rarity
 const getFontStyle = (card) => {
   const style = {
     Common: { fontFamily: '"Raleway", sans-serif', fontSize: "1.8rem", fontWeight: "400" },
@@ -116,6 +120,7 @@ const getFontStyle = (card) => {
   return style;
 };
 
+// Set correct imagepath
 const getCardImage = (imageUrl) => {
   if (!imageUrl) return "/default-card.png";
   return `http://localhost:8000/uploads/${imageUrl}`;

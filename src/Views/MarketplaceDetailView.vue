@@ -3,8 +3,13 @@
     <button @click="goBack" class="back-button">← Back</button>
 
     <div class="main-content">
+
+      <!--Left Column-->
       <div class="left-column">
+
+        <!--CardDisplay Component-->
         <CardDisplay :card="card" />
+
         <button @click="buyNow" class="buy-now-button" :disabled="isBuyingNow || isOwner">
           <template v-if="isBuyingNow">
             Buying...
@@ -15,11 +20,16 @@
             {{ listingInfo.price }}
           </template>
         </button>
+
+        <!--User Feedback-->
         <p v-if="successMessageBuyNow" class="succes">{{ successMessageBuyNow }}</p>
         <p v-if="errorMessageBuyNow" class="error">{{ errorMessageBuyNow }}</p>
       </div>
 
+      <!--Right Column-->
       <div class="right-column">
+
+        <!--Info Card-->
         <div class="info-card">
           <h3>Seller Info</h3>
           <p><strong>Seller:</strong> {{ listingInfo.seller_username }}</p>
@@ -28,6 +38,7 @@
           <p><strong>Price:</strong><img src="@/assets/icons/coin.png" class="coin-icon" /> {{ listingInfo.price }} </p>
         </div>
 
+        <!--Bid Section-->
         <div class="info-card bid-section" v-if="listingInfo && !isOwnListing">
           <h3>Place a Bid</h3>
 
@@ -47,6 +58,7 @@
             {{ formatPrice(listingInfo.min_bid_price) }}
           </p>
 
+          <!--Form-->
           <form @submit.prevent="placeBid">
             <input
               v-model="bidAmount"
@@ -61,10 +73,12 @@
             </button>
           </form>
 
+          <!--User Feedback-->
           <p v-if="successMessageBid" class="succes">{{ successMessageBid }}</p>
           <p v-if="errorMessageBid" class="error">{{ errorMessageBid }}</p>
         </div>
 
+        <!--Bid Section (if owner)-->
         <div class="info-card bid-section" v-if="listingInfo && isOwnListing">
           <h3>Place a Bid</h3>
           <p>You cannot bid on your own listing.</p>
@@ -73,7 +87,10 @@
     </div>
   </div>
 
+  <!--Loading State-->
   <div v-else class="loading-message">Loading card details...</div>
+
+  <!--User Feedback-->
   <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 </template>
 

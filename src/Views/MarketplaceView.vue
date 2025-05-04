@@ -3,6 +3,7 @@
     <img class="banner" :src="MarketplaceBanner" alt="Marketplace Banner" />
   </header>
 
+  <!--Filters-->
   <div class="card shadow-sm mb-4 p-3 filter-card">
     <div class="row g-3 align-items-center">
       <div class="col-md-4 col-12">
@@ -61,12 +62,14 @@
     </div>
   </div>
 
+  <!--My Listings Button-->
   <div class="marketplace-header-actions">
     <button @click="goToMyListings" class="btn btn-primary my-listings-btn">
       My Listings
     </button>
   </div>
 
+  <!--Marketplace Grid-->
   <div class="marketplace-container" v-if="cards">
     <section v-if="cards.length > 0" class="marketplace-grid">
       <div
@@ -75,17 +78,23 @@
         class="marketplace-card"
         @click="selectCard(card)"
       >
+
+        <!--CardDisplay Component-->
         <CardDisplay :card="card" />
+
         <div class="price-container">
           <span class="price">Price: {{ card.price }}</span>
           <img src="@/assets/icons/coin.png" alt="Cubocoins" class="coin-icon" />
         </div>
       </div>
     </section>
-
     <p v-else class="empty-message">No cards listed on the marketplace yet.</p>
-    <p v-if="isLoading" class="text-muted">Loading more cards...</p>
+
+    <!--User Feedback-->
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+    <!--Loading State-->
+    <p v-if="isLoading" class="text-muted">Loading more cards...</p>
   </div>
   <div v-else class="loading">Loading marketplace details...</div>
 </template>

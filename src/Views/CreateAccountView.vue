@@ -1,10 +1,15 @@
 <template>
   <div class="create-account-container">
     <div class="card create-account-card">
+
+      <!--Logo-->
       <div class="logo-container">
         <img src="@/assets/icons/CubocardLogo.png" alt="Logo" class="logo" />
       </div>
+
       <h2 class="text-center mb-4">Create an Account</h2>
+
+      <!--Form-->
       <form @submit.prevent="handleCreateAccount">
         <div class="form-group">
           <label for="username">Username</label>
@@ -63,6 +68,8 @@
           <router-link to="/" class="small">Back to Login</router-link>
         </div>
       </form>
+
+      <!--User Feedback-->
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <p v-if="successMessage" class="succes">{{ successMessage }}</p>
     </div>

@@ -1,11 +1,14 @@
 <template>
   <div class="login-container">
     <div class="card login-card">
+
+      <!--Logo-->
       <div class="logo-container">
         <img src="@/assets/icons/CubocardLogo.png" alt="Logo" class="logo" />
       </div>
       <h2 class="text-center mb-4">Login</h2>
 
+      <!--Form-->
       <form @submit.prevent="login">
         <div class="form-group">
           <label for="username">Username</label>
@@ -40,15 +43,16 @@
           {{ isSubmitting ? "Logging in..." : "Login" }}
         </button>
 
-        <div v-if="errorMessage" class="error-container">
-          <p class="error">{{ errorMessage }}</p>
-        </div>
-
         <div class="text-center mt-3 links">
           <router-link to="/forgotPassword">Forgot password?</router-link><br />
           <router-link to="/createAccount">Create an account</router-link>
         </div>
       </form>
+
+      <!--User Feedback-->
+      <div v-if="errorMessage" class="error-container">
+        <p class="error">{{ errorMessage }}</p>
+      </div>
     </div>
   </div>
 </template>

@@ -4,6 +4,7 @@
 </header>
 
   <div class="balance-page" v-if="balance">
+    <!--Balance Card-->
     <div class="balance-card">
       <div class="balance-header">
       </div>
@@ -18,10 +19,13 @@
         {{ hasClaimedToday ? '✅ Claimed Today' : '🎁 Claim 500 Daily' }}
       </button>
 
+      <!--User Feedback-->
       <p v-if="successMessage" class="succes">{{ successMessage }}</p>
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </div>
+
+  <!--Loading State-->
   <div v-else class="loading">Loading balance details...</div>
 </template>
 

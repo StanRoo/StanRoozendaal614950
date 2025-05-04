@@ -3,6 +3,7 @@
     <img class="banner" :src="InventoryBanner" alt="Inventory Banner" />
   </header>
 
+  <!--Filters-->
   <div class="card shadow-sm mb-4 p-3 filter-card">
     <div class="row g-3 align-items-center">
       <div class="col-md-4 col-12">
@@ -59,8 +60,11 @@
     </div>
   </div>
 
+  <!--Inventory Grid-->
   <div class="inventory-container" v-if="cards">
     <section v-if="cards.length > 0" class="inventory-grid">
+
+      <!--CardDisplay Component-->
       <CardDisplay 
         v-for="card in cards" 
         :key="card.id" 
@@ -70,7 +74,11 @@
       />
     </section>
     <p v-else class="empty-message">You haven't created any cards yet.</p>
+    
+    <!--User Feedback-->
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
+    <!--Loading State-->
     <p v-if="isLoading" class="text-muted">Loading more cards...</p>
   </div>
   <div v-else class="loading">Loading inventory details...</div>

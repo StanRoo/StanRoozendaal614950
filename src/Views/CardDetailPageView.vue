@@ -3,10 +3,13 @@
     <button @click="goBack" class="back-button">← Back</button>
 
     <div class="main-content">
+      <!--Left Column-->
       <div class="left-column">
+        <!--CardDisplay Component-->
         <CardDisplay :card="card" />
       </div>
 
+      <!--Right Column-->
       <div class="right-column">
         <div class="marketplace-section">
           <h3>List Card on Marketplace</h3>
@@ -31,17 +34,18 @@
             </button>
           </div>
 
+          <!--User Feedback-->
           <p v-if="successMessageList" class="succes">{{ successMessageList }}</p>
           <p v-if="errorMessageList" class="error">{{ errorMessageList }}</p>
         </div>
 
         <button @click="confirmDelete" class="danger delete-button">Delete Card</button>
 
-        <div class="feedback">
-          <p v-if="successMessageDelete" class="succes">{{ successMessageDelete }}</p>
-          <p v-if="errorMessageDelete" class="error">{{ errorMessageDelete }}</p>
-        </div>
+        <!--User Feedback-->
+        <p v-if="successMessageDelete" class="succes">{{ successMessageDelete }}</p>
+        <p v-if="errorMessageDelete" class="error">{{ errorMessageDelete }}</p>
 
+        <!--Pop Up-->
         <div v-if="showConfirmDelete" class="popup-overlay">
           <div class="popup">
             <p>Are you sure you want to delete this card?</p>
@@ -55,7 +59,10 @@
     </div>
   </div>
 
+  <!--Loading State-->
   <div v-else class="loading">Loading card details...</div>
+
+  <!--User Feedback-->
   <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 </template>
 
@@ -73,7 +80,6 @@ const minBidPrice = ref(null);
 const expiryDate = ref('');
 const listingComplete = ref(false);
 const showConfirmDelete = ref(false);
-
 const successMessageList = ref('');
 const errorMessageList = ref('');
 const successMessageDelete = ref('');

@@ -1,5 +1,7 @@
 <template>
   <div class="admin-panel" v-if="listings">
+
+    <!--Filters-->
     <div class="filters">
       <input v-model="filters.card_id" placeholder="Filter by Card ID" @input="onFilterChange" class="filter-input" />
       <input v-model="filters.seller_id" placeholder="Filter by Seller ID" @input="onFilterChange" class="filter-input" />
@@ -24,6 +26,7 @@
       </select>
     </div>
 
+    <!--Table-->
     <table>
       <thead>
         <tr>
@@ -61,15 +64,19 @@
       </tbody>
     </table>
 
+    <!--Pagination-->
     <div class="pagination">
       <button :disabled="page === 1" @click="changePage(page - 1)">Previous</button>
       <span>Page {{ page }} of {{ totalPages }}</span>
       <button :disabled="page === totalPages" @click="changePage(page + 1)">Next</button>
     </div>
 
+    <!--User Feedback-->
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     <p v-if="successMessage" class="succes">{{ successMessage }}</p>
   </div>
+
+  <!--Loading State-->
   <div v-else class="loading">Loading admin details...</div>
 </template>
 

@@ -6,7 +6,10 @@
     <section class="card-customization">
       <div class="customization-wrapper">
 
+        <!--Left Column-->
         <div class="left">
+
+          <!--Info Card-->
           <div class="info-card">
             <h3>Important Information</h3>
             <ul>
@@ -17,6 +20,8 @@
               <li>Please refrain from using offensive images. This will result in a ban.</li>
             </ul>
           </div>
+
+          <!--Preview Card-->
           <div class="preview-card">
             <h3>Card Preview</h3>
             <div class="preview-card-content" :style="cardStyle" :class="{ 'legendary-card': selectedRarity === 'legendary' }">
@@ -45,10 +50,14 @@
           </div>
         </div>
 
+        <!--Right Column-->
         <div class="right">
+
+          <!--Details Card-->
           <div class="details-card">
             <h3>Card Details</h3>
 
+            <!--Rarity Selection-->
             <label>Rarity</label>
             <div class="rarity-options">
               <div
@@ -57,7 +66,7 @@
                 @click="selectRarity('common')"
               >
                 <input type="radio" :checked="selectedRarity === 'common'" />
-                <label>Common (<img src="@/assets/icons/coin.png" class="coin-icon" /> 250)</label>
+                <label>Common (<img src="@/assets/icons/coin.png" class="coin-icon" /> 200)</label>
               </div>
               <div
                 class="rarity-option rare"
@@ -85,6 +94,7 @@
               </div>
             </div>
 
+            <!--CArd Details input-->
             <label>Card Name</label>
             <input v-model="cardName" type="text" placeholder="Enter card name" class="input-small" />
 
@@ -137,6 +147,8 @@
             <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance || isSubmitting" class="create-button">
               {{ isSubmitting ? "Creating Card..." : "Create Card" }}
             </button>
+
+            <!--User Feedback-->
             <p v-if="successMessage" class="succes">{{ successMessage }}</p>
             <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
           </div>

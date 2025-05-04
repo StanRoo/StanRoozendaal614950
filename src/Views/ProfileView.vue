@@ -3,9 +3,11 @@
     <img class="banner" :src="ProfileBanner" alt="Profile Banner"/>
   </header>
   
+  <!--Profile Grid-->
   <div class="container profile-container" v-if="user">
     <div class="profile-grid">
       <div class="card-wrapper">
+
         <!-- Profile Picture Section -->
         <div class="card shadow-sm">
           <div class="card-body text-center">
@@ -43,8 +45,8 @@
         </div>
       </div>
 
-      <div class="card-wrapper">
-        <!-- Profile Info Section -->
+      <!-- Profile Info Section -->
+      <div class="card-wrapper"> 
         <div class="card shadow-sm">
           <div class="card-body user-information">
             <div class="user-info">
@@ -69,6 +71,7 @@
                 </button>
               </div>
 
+              <!--User Feedback-->
               <div class="profile-feedback">
                 <p v-if="errorMessageProfile" class="error">{{ errorMessageProfile }}</p>
                 <p v-if="successMessageProfile" class="succes">{{ successMessageProfile }}</p>
@@ -79,6 +82,8 @@
       </div>
     </div>
   </div>
+  
+  <!--Loading State-->
   <div v-else class="loading">Loading profile details...</div>
 </template>
 

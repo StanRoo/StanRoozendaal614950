@@ -3,6 +3,7 @@
     <img class="banner" :src="AdminPanelBanner" alt="Admin Panel Banner" />
   </header>
 
+  <!--Admin Tabs (Desktop)-->
   <div class="admin-tabs">
     <div class="tab-buttons">
       <button 
@@ -15,6 +16,7 @@
       </button>
     </div>
 
+    <!--Admin Dropdown (Tablet/Mobile)-->
     <div class="tab-dropdown">
       <select v-model="activeTab" class="input-small">
         <option 

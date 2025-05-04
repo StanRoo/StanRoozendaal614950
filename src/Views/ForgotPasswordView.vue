@@ -1,10 +1,15 @@
 <template>
   <div class="forgot-password-container">
     <div class="card forgot-password-card">
+
+      <!--Logo-->
       <div class="logo-container">
         <img src="@/assets/icons/CubocardLogo.png" alt="Logo" class="logo" />
       </div>
+
       <h2 class="text-center mb-4">Forgot Password</h2>
+
+      <!--Form-->
       <form @submit.prevent="handleForgotPassword">
         <div class="form-group">
           <label for="email">Email Address</label>
@@ -26,6 +31,8 @@
           <router-link to="/" class="small">Back to Login</router-link>
         </div>
       </form>
+
+      <!--User Feedback-->
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <p v-if="successMessage" class="succes">{{ successMessage }}</p>
     </div>
