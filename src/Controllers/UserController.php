@@ -16,28 +16,6 @@ class UserController {
         $this->authMiddleware = $authMiddleware;
     }
 
-    public function getUser($userId): void {
-        $userResult = $this->userService->getUserById($userId);
-        $user = $userResult['data'];
-        if (!$user) {
-            ResponseHelper::error('User not found.', 404);
-        }
-
-        ResponseHelper::success([
-            'user' => [
-                'id' => $user->getId(),
-                'username' => $user->getUsername(),
-                'email' => $user->getEmail(),
-                'profile_picture_url' => $user->getProfilePictureUrl(),
-                'bio' => $user->getBio(),
-                'status' => $user->getStatus(),
-                'created_at' => $user->getCreatedAt(),
-                'updated_at' => $user->getUpdatedAt(),
-                'balance' => $user->getBalance(),
-            ]
-        ], 'User fetched successfully.');
-    }
-
     public function getAllUsers(): void
     {
         $decodedUser = $this->authMiddleware->verifyToken();
@@ -72,6 +50,36 @@ class UserController {
         ], 'Users fetched successfully.');
     }
 
+    public function getUserById($userId): void {
+        $userResult = $this->userService->getUserById($userId);
+        $user = $userResult['data'];
+        if (!$user) {
+            ResponseHelper::error('User not found.', 404);
+        }
+
+        ResponseHelper::success([
+            'user' => [
+                'id' => $user->getId(),
+                'username' => $user->getUsername(),
+                'email' => $user->getEmail(),
+                'profile_picture_url' => $user->getProfilePictureUrl(),
+                'bio' => $user->getBio(),
+                'status' => $user->getStatus(),
+                'created_at' => $user->getCreatedAt(),
+                'updated_at' => $user->getUpdatedAt(),
+                'balance' => $user->getBalance(),
+            ]
+        ], 'User fetched successfully.');
+    }
+
+    public function getUserBalance(): void {
+        $decodedUser = $this->authMiddleware->verifyToken();
+
+        $balanceResult = $this->userService->getBalance($decodedUser->id);
+        $balance = $balanceResult['data'];
+        ResponseHelper::success(['balance' => $balance], 'Balance fetched successfully.');
+    }
+
     public function updateUser($userId): void {
         $decodedUser = $this->authMiddleware->verifyToken();
         $data = json_decode(file_get_contents("php://input"), true);
@@ -89,16 +97,22 @@ class UserController {
         ResponseHelper::success(null, 'User updated successfully.');
     }
 
-    public function deleteUser($id): void {
+    public function updateProfilePicture($userId): void {
         $decodedUser = $this->authMiddleware->verifyToken();
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        $result = $this->userService->deleteUser($id, $decodedUser);
-
-        if ($result === null) {
-            ResponseHelper::error('Access denied. Admins only.', 403);
+        if ($decodedUser->id !== $userId) {
+            ResponseHelper::error('Unauthorized', 403);
         }
 
-        ResponseHelper::success(null, 'User deleted successfully!');
+        $file = $_FILES['profile_picture'] ?? null;
+        $result = $this->userService->updateProfilePicture($userId, $data, $file);
+
+        if ($result) {
+            ResponseHelper::success(null, 'Profile picture updated successfully');
+        } else {
+            ResponseHelper::error('Failed to update profile picture', 500);
+        }
     }
 
     public function createAccount(): void {
@@ -136,32 +150,6 @@ class UserController {
         }
     }
 
-    public function updateProfilePicture($userId): void {
-        $decodedUser = $this->authMiddleware->verifyToken();
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if ($decodedUser->id !== $userId) {
-            ResponseHelper::error('Unauthorized', 403);
-        }
-
-        $file = $_FILES['profile_picture'] ?? null;
-        $result = $this->userService->updateProfilePicture($userId, $data, $file);
-
-        if ($result) {
-            ResponseHelper::success(null, 'Profile picture updated successfully');
-        } else {
-            ResponseHelper::error('Failed to update profile picture', 500);
-        }
-    }
-
-    public function getUserBalance(): void {
-        $decodedUser = $this->authMiddleware->verifyToken();
-
-        $balanceResult = $this->userService->getBalance($decodedUser->id);
-        $balance = $balanceResult['data'];
-        ResponseHelper::success(['balance' => $balance], 'Balance fetched successfully.');
-    }
-
     public function claimDailyCuboCoins(): void {
         $decodedUser = $this->authMiddleware->verifyToken();
         $result = $this->userService->claimDailyReward($decodedUser->id);
@@ -177,5 +165,17 @@ class UserController {
         } else {
             ResponseHelper::error($result['message'], 400);
         }
+    }
+
+    public function deleteUser($id): void {
+        $decodedUser = $this->authMiddleware->verifyToken();
+
+        $result = $this->userService->deleteUser($id, $decodedUser);
+
+        if ($result === null) {
+            ResponseHelper::error('Access denied. Admins only.', 403);
+        }
+
+        ResponseHelper::success(null, 'User deleted successfully!');
     }
 }

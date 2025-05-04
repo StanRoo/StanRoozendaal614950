@@ -20,39 +20,6 @@ class MarketplaceController
         $this->errorHandler = $errorHandler;
     }
 
-    public function listCard($userId)
-    {
-        $data = json_decode(file_get_contents('php://input'), true);
-        $cardId = $data['card_id'] ?? null;
-        $price = $data['price'] ?? null;
-        $minimumBid = $data['min_bid_price'] ?? null;
-        $expiresAt = $data['expires_at'] ?? null;
-
-        if (!$cardId || !$price || !$minimumBid || !$expiresAt) {
-            ResponseHelper::error("Card ID, Price, Minimum Bid and Expire Date are required.", 400);
-            return;
-        }
-        if (!is_numeric($price) || $price <= 0 || !is_numeric($minimumBid) || $minimumBid < 0) {
-            ResponseHelper::error("Price or Mimimum Bid cannot be negative numbers.", 400);
-            return;
-        }
-        if (!strtotime($expiresAt)) {
-            ResponseHelper::error("Invalid Expiry Date.", 400);
-            return;
-        }
-
-        $result = $this->marketplaceService->listCard($userId, $cardId, $price, $minimumBid, $expiresAt);
-
-        if (!$result['success']) {
-            ResponseHelper::error($result['message'], 500);
-            return;
-        }
-
-        ResponseHelper::success([
-            'listing' => $result['data']
-        ], $result['message']);
-    }
-
     public function getMarketplaceCards($userId): void
     {
         try {
@@ -80,6 +47,42 @@ class MarketplaceController
             ], 'Marketplace listings retrieved successfully.');
         } catch (\Throwable $e) {
             ResponseHelper::error('An error occurred while fetching marketplace listings: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function getAllListings($decodedUser)
+    {
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('You are not authorized to view listings.', 403);
+                return;
+            }
+
+            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+
+            $filters = [
+                'card_id' => $_GET['card_id'] ?? null,
+                'seller_id' => $_GET['seller_id'] ?? null,
+                'listed_at' => $_GET['listed_at'] ?? null,
+                'expires_at' => $_GET['expires_at'] ?? null,
+                'status' => $_GET['status'] ?? null,
+            ];
+
+            $listingsResult = $this->marketplaceService->getAllListings($decodedUser, $page, $limit, $filters);
+
+            if (!$listingsResult['success']) {
+                ResponseHelper::error($listingsResult['message'], 500);
+                return;
+            }
+
+            ResponseHelper::success([
+                'listings' => $listingsResult['data'],
+                'pagination' => $listingsResult['pagination']
+            ], 'Listings fetched successfully.');
+
+        } catch (\Exception $e) {
+            ResponseHelper::error('Failed to fetch listings: ' . $e->getMessage(), 500);
         }
     }
 
@@ -149,6 +152,24 @@ class MarketplaceController
         }
     }
 
+    public function updateListing($decodedUser, $listingId)
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        try {
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('You are not authorized to update listing status.', 403);
+                return;
+            }
+
+            $this->marketplaceService->updateListing($listingId, $input);
+
+            ResponseHelper::success(null, 'Listing status updated successfully.');
+        } catch (\Exception $e) {
+            ResponseHelper::error('Failed to update listing status', 400);
+        }
+    }
+
     public function finalizeExpiredListings()
     {
         try {
@@ -173,58 +194,37 @@ class MarketplaceController
         }
     }
 
-    public function getAllListings($decodedUser)
+    public function listCard($userId)
     {
-        try {
-            if ($decodedUser->role !== 'admin') {
-                ResponseHelper::error('You are not authorized to view listings.', 403);
-                return;
-            }
+        $data = json_decode(file_get_contents('php://input'), true);
+        $cardId = $data['card_id'] ?? null;
+        $price = $data['price'] ?? null;
+        $minimumBid = $data['min_bid_price'] ?? null;
+        $expiresAt = $data['expires_at'] ?? null;
 
-            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
-
-            $filters = [
-                'card_id' => $_GET['card_id'] ?? null,
-                'seller_id' => $_GET['seller_id'] ?? null,
-                'listed_at' => $_GET['listed_at'] ?? null,
-                'expires_at' => $_GET['expires_at'] ?? null,
-                'status' => $_GET['status'] ?? null,
-            ];
-
-            $listingsResult = $this->marketplaceService->getAllListings($decodedUser, $page, $limit, $filters);
-
-            if (!$listingsResult['success']) {
-                ResponseHelper::error($listingsResult['message'], 500);
-                return;
-            }
-
-            ResponseHelper::success([
-                'listings' => $listingsResult['data'],
-                'pagination' => $listingsResult['pagination']
-            ], 'Listings fetched successfully.');
-
-        } catch (\Exception $e) {
-            ResponseHelper::error('Failed to fetch listings: ' . $e->getMessage(), 500);
+        if (!$cardId || !$price || !$minimumBid || !$expiresAt) {
+            ResponseHelper::error("Card ID, Price, Minimum Bid and Expire Date are required.", 400);
+            return;
         }
-    }
-
-    public function updateListing($decodedUser, $listingId)
-    {
-        $input = json_decode(file_get_contents('php://input'), true);
-
-        try {
-            if ($decodedUser->role !== 'admin') {
-                ResponseHelper::error('You are not authorized to update listing status.', 403);
-                return;
-            }
-
-            $this->marketplaceService->updateListing($listingId, $input);
-
-            ResponseHelper::success(null, 'Listing status updated successfully.');
-        } catch (\Exception $e) {
-            ResponseHelper::error('Failed to update listing status', 400);
+        if (!is_numeric($price) || $price <= 0 || !is_numeric($minimumBid) || $minimumBid < 0) {
+            ResponseHelper::error("Price or Mimimum Bid cannot be negative numbers.", 400);
+            return;
         }
+        if (!strtotime($expiresAt)) {
+            ResponseHelper::error("Invalid Expiry Date.", 400);
+            return;
+        }
+
+        $result = $this->marketplaceService->listCard($userId, $cardId, $price, $minimumBid, $expiresAt);
+
+        if (!$result['success']) {
+            ResponseHelper::error($result['message'], 500);
+            return;
+        }
+
+        ResponseHelper::success([
+            'listing' => $result['data']
+        ], $result['message']);
     }
 
     public function deleteListing($decodedUser, $listingId)

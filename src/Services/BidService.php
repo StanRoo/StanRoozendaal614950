@@ -22,42 +22,6 @@ class BidService {
         $this->marketplaceRepository = $marketplaceRepository;
     }
 
-    public function placeBid(BidModel $bid, float $minimumBid): array {
-        $highestBid = $this->bidRepository->getHighestBidByListingId($bid->getListingId());
-        $user = $this->userRepository->getUserById($bid->getBidderId());
-        $listing = $this->marketplaceRepository->getListingById($bid->getListingId());
-
-        if (!$user) {
-            return ['success' => false, 'message' => 'User not found.'];
-        }
-
-        if (!$listing || $listing->status !== 'active') {
-            return ['success' => false, 'message' => 'Listing is not available.'];
-        }
-
-        if ($listing->seller_id === $bid->getBidderId()) {
-            return ['success' => false, 'message' => 'You cannot bid on your own listing.'];
-        }
-
-        if ($bid->getBidAmount() < $minimumBid) {
-            return ['success' => false, 'message' => "Bid must be at least {$minimumBid} CuboCoins."];
-        }
-
-        if ($highestBid && $bid->getBidAmount() <= $highestBid->getBidAmount()) {
-            return ['success' => false, 'message' => 'Your bid must be higher than the current highest bid.'];
-        }
-
-        if ($user->getBalance() < $bid->getBidAmount()) {
-            return ['success' => false, 'message' => 'Insufficient balance.'];
-        }
-
-        $user->balance -= $bid->getBidAmount();
-        $this->userRepository->updateBalance($user->getId(), $user->getBalance());
-        $this->bidRepository->createBid($bid);
-
-        return ['success' => true, 'message' => 'Bid placed successfully.'];
-    }
-
     public function getHighestBid(int $listingId): array {
         $bid = $this->bidRepository->getHighestBidForListing($listingId);
         return ['success' => true, 'data' => $bid];
@@ -93,6 +57,42 @@ class BidService {
                 'totalPages' => ceil($total / $limit)
             ]
         ];
+    }
+
+    public function placeBid(BidModel $bid, float $minimumBid): array {
+        $highestBid = $this->bidRepository->getHighestBidByListingId($bid->getListingId());
+        $user = $this->userRepository->getUserById($bid->getBidderId());
+        $listing = $this->marketplaceRepository->getListingById($bid->getListingId());
+
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found.'];
+        }
+
+        if (!$listing || $listing->status !== 'active') {
+            return ['success' => false, 'message' => 'Listing is not available.'];
+        }
+
+        if ($listing->seller_id === $bid->getBidderId()) {
+            return ['success' => false, 'message' => 'You cannot bid on your own listing.'];
+        }
+
+        if ($bid->getBidAmount() < $minimumBid) {
+            return ['success' => false, 'message' => "Bid must be at least {$minimumBid} CuboCoins."];
+        }
+
+        if ($highestBid && $bid->getBidAmount() <= $highestBid->getBidAmount()) {
+            return ['success' => false, 'message' => 'Your bid must be higher than the current highest bid.'];
+        }
+
+        if ($user->getBalance() < $bid->getBidAmount()) {
+            return ['success' => false, 'message' => 'Insufficient balance.'];
+        }
+
+        $user->balance -= $bid->getBidAmount();
+        $this->userRepository->updateBalance($user->getId(), $user->getBalance());
+        $this->bidRepository->createBid($bid);
+
+        return ['success' => true, 'message' => 'Bid placed successfully.'];
     }
 
     public function deleteBid(int $id): array {

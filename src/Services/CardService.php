@@ -17,6 +17,29 @@ class CardService {
         return $this->cardRepository->getCardById($id);
     }
 
+    public function getAllCards($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
+    {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
+        }
+
+        $offset = ($page - 1) * $limit;
+        $total = $this->cardRepository->getCardsCount($filters);
+        $cards = $this->cardRepository->getAllCards($limit, $offset, $filters);
+
+        return [
+            'success' => true,
+            'message' => 'Cards retrieved successfully.',
+            'data' => $cards,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
+    }
+
     public function getUserCards(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
     {
         try {
@@ -41,6 +64,18 @@ class CardService {
                 'data' => null
             ];
         }
+    }
+
+    public function updateCardOwner($cardId, $newOwnerId) {
+        return $this->cardRepository->updateCardOwner($cardId, $newOwnerId);
+    }
+
+    public function setCardListingStatus($cardId, bool $status) {
+        return $this->cardRepository->setCardListedStatus($cardId, $status);
+    }
+
+    public function updateCard(int $id, array $data): void {
+        $this->cardRepository->updateCard($id, $data);
     }
 
     public function createCard($userId, $data, $image): array {
@@ -83,50 +118,15 @@ class CardService {
         }
     }
 
-    public function deleteCard($userId, $cardId): void {
+    public function deleteCard($userId, $cardId): array {
         $card = $this->cardRepository->getCardById($cardId);
 
         if (!$card || $card->user_id !== $userId || $card->is_listed) {
-            \App\Utils\ResponseHelper::error('Card not found or cannot be deleted', 403);
+            return ['success' => false, 'message' => 'Card not found or cannot be deleted'];
         }
 
         $this->cardRepository->delete($cardId);
-        \App\Utils\ResponseHelper::success(null, 'Card deleted successfully');
-    }
-
-    public function updateCardOwner($cardId, $newOwnerId) {
-        return $this->cardRepository->updateCardOwner($cardId, $newOwnerId);
-    }
-
-    public function setCardListingStatus($cardId, bool $status) {
-        return $this->cardRepository->setCardListedStatus($cardId, $status);
-    }
-
-    public function getAllCards($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
-    {
-        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
-        }
-
-        $offset = ($page - 1) * $limit;
-        $total = $this->cardRepository->getCardsCount($filters);
-        $cards = $this->cardRepository->getAllCards($limit, $offset, $filters);
-
-        return [
-            'success' => true,
-            'message' => 'Cards retrieved successfully.',
-            'data' => $cards,
-            'pagination' => [
-                'page' => $page,
-                'limit' => $limit,
-                'total' => $total,
-                'totalPages' => ceil($total / $limit)
-            ]
-        ];
-    }
-
-    public function updateCard(int $id, array $data): void {
-        $this->cardRepository->updateCard($id, $data);
+        return ['success' => true, 'message' => 'Card deleted successfully'];
     }
 
     public function adminDeleteCard(int $id): void {

@@ -19,6 +19,74 @@ class BidController {
         $this->authMiddleware = $authMiddleware;
     }
 
+    public function getAllBids(): void {
+        try {
+            $decodedUser = $this->authMiddleware->verifyToken();
+    
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
+    
+            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+    
+            $filters = [
+                'listing_id' => $_GET['listing_id'] ?? null,
+                'bidder_id' => $_GET['bidder_id'] ?? null,
+                'created_at' => $_GET['created_at'] ?? null,
+            ];
+
+            $bidsResult = $this->bidService->getAllBids($decodedUser, $page, $limit, $filters);
+
+            if (!$bidsResult['success']) {
+                ResponseHelper::error($bidsResult['message'], 500);
+                return;
+            }
+
+            ResponseHelper::success([
+                'bids' => $bidsResult['data'],
+                'pagination' => $bidsResult['pagination']
+            ], 'Bids fetched successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function getBidsForListing(): void {
+        try {
+            $listingId = $_GET['listing_id'] ?? null;
+
+            if (!$listingId) {
+                ResponseHelper::error('Something went wrong.', 400);
+                return;
+            }
+
+            $bids = $this->bidService->getAllBidsForListing((int)$listingId);
+
+            ResponseHelper::success(['bids' => $bids], 'Bids retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function getMyBids(): void {
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+
+            if (!$userId) {
+                ResponseHelper::error('Not logged in.', 401);
+                return;
+            }
+
+            $bids = $this->bidService->getBidsByUser((int)$userId);
+
+            ResponseHelper::success(['bids' => $bids], 'Your bids retrieved successfully.');
+        } catch (\Throwable $e) {
+            ResponseHelper::error("An error occurred while fetching your bids: " . $e->getMessage(), 500);
+        }
+    }
+
     public function placeBid($userId): void {
         try {
             $data = json_decode(file_get_contents("php://input"), true);
@@ -61,74 +129,6 @@ class BidController {
             }
         } catch (\Throwable $e) {
             ResponseHelper::error("An error occurred while placing the bid: " . $e->getMessage(), 500);
-        }
-    }
-
-    public function getBidsForListing(): void {
-        try {
-            $listingId = $_GET['listing_id'] ?? null;
-
-            if (!$listingId) {
-                ResponseHelper::error('Something went wrong.', 400);
-                return;
-            }
-
-            $bids = $this->bidService->getAllBidsForListing((int)$listingId);
-
-            ResponseHelper::success(['bids' => $bids], 'Bids retrieved successfully.');
-        } catch (\Throwable $e) {
-            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
-        }
-    }
-
-    public function getMyBids(): void {
-        try {
-            $userId = $_SESSION['user_id'] ?? null;
-
-            if (!$userId) {
-                ResponseHelper::error('Not logged in.', 401);
-                return;
-            }
-
-            $bids = $this->bidService->getBidsByUser((int)$userId);
-
-            ResponseHelper::success(['bids' => $bids], 'Your bids retrieved successfully.');
-        } catch (\Throwable $e) {
-            ResponseHelper::error("An error occurred while fetching your bids: " . $e->getMessage(), 500);
-        }
-    }
-
-    public function getAllBids(): void {
-        try {
-            $decodedUser = $this->authMiddleware->verifyToken();
-    
-            if ($decodedUser->role !== 'admin') {
-                ResponseHelper::error('Access denied. Admins only.', 403);
-                return;
-            }
-    
-            $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
-    
-            $filters = [
-                'listing_id' => $_GET['listing_id'] ?? null,
-                'bidder_id' => $_GET['bidder_id'] ?? null,
-                'created_at' => $_GET['created_at'] ?? null,
-            ];
-
-            $bidsResult = $this->bidService->getAllBids($decodedUser, $page, $limit, $filters);
-
-            if (!$bidsResult['success']) {
-                ResponseHelper::error($bidsResult['message'], 500);
-                return;
-            }
-
-            ResponseHelper::success([
-                'bids' => $bidsResult['data'],
-                'pagination' => $bidsResult['pagination']
-            ], 'Bids fetched successfully.');
-        } catch (\Throwable $e) {
-            ResponseHelper::error("An error occurred while fetching bids: " . $e->getMessage(), 500);
         }
     }
 

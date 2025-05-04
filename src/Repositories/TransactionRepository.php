@@ -12,6 +12,7 @@ class TransactionRepository {
         $this->pdo = $pdo;
     }
 
+    // -------- GET ----------
     public function getTransactionById($id): ?TransactionModel {
         $stmt = $this->pdo->prepare("SELECT id, buyer_id, seller_id, card_id, price, transaction_date, status FROM transactions WHERE id = ?");
         $stmt->execute([$id]);
@@ -102,6 +103,7 @@ class TransactionRepository {
         return (int) $stmt->fetchColumn();
     }
 
+    // --------- POST --------
     public function createTransaction(TransactionModel $transaction): bool {
         $stmt = $this->pdo->prepare("INSERT INTO transactions (buyer_id, seller_id, card_id, price, transaction_date, status) VALUES (:buyer_id, :seller_id, :card_id, :price, :transaction_date, :status)");
         $stmt->bindValue(':buyer_id', $transaction->getBuyerId(), PDO::PARAM_INT);
@@ -113,6 +115,7 @@ class TransactionRepository {
         return $stmt->execute();
     }
 
+    // -------- DELETE ----------
     public function deleteTransaction($transactionId)
     {
         $stmt = $this->pdo->prepare("DELETE FROM transactions WHERE id = :id");

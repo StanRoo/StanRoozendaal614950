@@ -38,44 +38,25 @@ class MarketplaceService
         $this->transactionService = $transactionService;
     }
 
-    public function listCard(int $userId, int $cardId, float $price, float $minBid, ?string $expiresAt): array {
-        $card = $this->cardRepository->getCardById($cardId);
-
-        if (!$card) {
-            return ['success' => false, 'message' => 'Card not found.', 'data' => null];
+    public function getAllListings($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
+    {
+        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
         }
-
-        if ($card->user_id !== $userId) {
-            return ['success' => false, 'message' => 'Unauthorized: You do not own this card.', 'data' => null];
-        }
-
-        if ($card->is_listed) {
-            return ['success' => false, 'message' => 'This card is already listed.', 'data' => null];
-        }
-
-        $existingListing = $this->marketplaceRepository->getListingByCardId($cardId);
-        if ($existingListing) {
-            return ['success' => false, 'message' => 'This card already has a listing.', 'data' => null];
-        }
-
-        $listing = new MarketplaceListingModel([
-            'card_id' => $cardId,
-            'seller_id' => $userId,
-            'price' => $price,
-            'status' => 'active',
-            'listed_at' => date("Y-m-d H:i:s"),
-            'min_bid_price' => $minBid,
-            'expires_at' => $expiresAt ?? null,
-        ]);
-
-        $created = $this->marketplaceRepository->createListing($listing);
-
-        if ($created) {
-            $this->cardRepository->setCardListedStatus($cardId, 1);
-            return ['success' => true, 'message' => 'Card listed successfully.', 'data' => $created->toArray()];
-        }
-
-        return ['success' => false, 'message' => 'Failed to list card.', 'data' => null];
+        $offset = ($page - 1) * $limit;
+        $total = $this->marketplaceRepository->getListingsCount($filters);
+        $listings = $this->marketplaceRepository->getAllListings($limit, $offset, $filters);
+        return [
+            'success' => true,
+            'message' => 'Listings retrieved successfully.',
+            'data' => $listings,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'totalPages' => ceil($total / $limit)
+            ]
+        ];
     }
 
     public function getFilteredListings(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
@@ -162,10 +143,6 @@ class MarketplaceService
         return $this->marketplaceRepository->getListingById($listingId);
     }
 
-    public function markListingAsSold($listingId): bool {
-        return $this->marketplaceRepository->markListingAsSold($listingId);
-    }
-
     public function getHighestBidForListing(int $listingId): ?array {
         $bid = $this->bidRepository->getHighestBidByListingId($listingId);
 
@@ -191,6 +168,54 @@ class MarketplaceService
 
     public function getHighestBidder(int $userId): ?UserModel {
         return $this->userRepository->getUserById($userId);
+    }
+
+    public function updateListing(int $id, array $data): void {
+        $this->marketplaceRepository->updateListing($id, $data);
+    }
+
+    public function markListingAsSold($listingId): bool {
+        return $this->marketplaceRepository->markListingAsSold($listingId);
+    }
+
+    public function listCard(int $userId, int $cardId, float $price, float $minBid, ?string $expiresAt): array {
+        $card = $this->cardRepository->getCardById($cardId);
+
+        if (!$card) {
+            return ['success' => false, 'message' => 'Card not found.', 'data' => null];
+        }
+
+        if ($card->user_id !== $userId) {
+            return ['success' => false, 'message' => 'Unauthorized: You do not own this card.', 'data' => null];
+        }
+
+        if ($card->is_listed) {
+            return ['success' => false, 'message' => 'This card is already listed.', 'data' => null];
+        }
+
+        $existingListing = $this->marketplaceRepository->getListingByCardId($cardId);
+        if ($existingListing) {
+            return ['success' => false, 'message' => 'This card already has a listing.', 'data' => null];
+        }
+
+        $listing = new MarketplaceListingModel([
+            'card_id' => $cardId,
+            'seller_id' => $userId,
+            'price' => $price,
+            'status' => 'active',
+            'listed_at' => date("Y-m-d H:i:s"),
+            'min_bid_price' => $minBid,
+            'expires_at' => $expiresAt ?? null,
+        ]);
+
+        $created = $this->marketplaceRepository->createListing($listing);
+
+        if ($created) {
+            $this->cardRepository->setCardListedStatus($cardId, 1);
+            return ['success' => true, 'message' => 'Card listed successfully.', 'data' => $created->toArray()];
+        }
+
+        return ['success' => false, 'message' => 'Failed to list card.', 'data' => null];
     }
 
     public function finalizeExpiredListings(): array {
@@ -267,31 +292,6 @@ class MarketplaceService
         } else {
             return ['success' => false, 'message' => 'Transaction failed.', 'data' => null];
         }
-    }
-
-    public function getAllListings($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
-    {
-        if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
-            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
-        }
-        $offset = ($page - 1) * $limit;
-        $total = $this->marketplaceRepository->getListingsCount($filters);
-        $listings = $this->marketplaceRepository->getAllListings($limit, $offset, $filters);
-        return [
-            'success' => true,
-            'message' => 'Listings retrieved successfully.',
-            'data' => $listings,
-            'pagination' => [
-                'page' => $page,
-                'limit' => $limit,
-                'total' => $total,
-                'totalPages' => ceil($total / $limit)
-            ]
-        ];
-    }
-
-    public function updateListing(int $id, array $data): void {
-        $this->marketplaceRepository->updateListing($id, $data);
     }
 
     public function deleteListing(int $id): void {

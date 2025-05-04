@@ -44,6 +44,27 @@ class UserService {
         ];
     }
 
+    public function getBalance($userId) {
+        $user = $this->userRepository->getUserById($userId);
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
+        }
+
+        $balance = $user->getBalance();
+        $lastClaimed = $user->getLastClaimed();
+
+        $claimedToday = false;
+        if ($lastClaimed) {
+            $today = new \DateTime();
+            $today->setTime(0, 0, 0);
+            $lastClaimedDate = new \DateTime($lastClaimed);
+            $lastClaimedDate->setTime(0, 0, 0);
+            $claimedToday = $lastClaimedDate->format('Y-m-d') === $today->format('Y-m-d');
+        }
+
+        return ['success' => true, 'message' => 'Balance retrieved successfully.', 'data' => ['balance' => $balance, 'claimed_today' => $claimedToday]];
+    }
+
     public function updateUser($userId, $data, $decodedUser) {
         if ($decodedUser->role === 'admin') {
             if (isset($data['role']) || isset($data['status'])) {
@@ -57,16 +78,6 @@ class UserService {
         }
 
         return ['success' => false, 'message' => 'Unauthorized action.', 'data' => null];
-    }
-
-    public function deleteUser($userId, $decodedUser) {
-        if ($decodedUser->role !== 'admin') {
-            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
-        }
-
-        $this->userRepository->deleteUser($userId);
-
-        return ['success' => true, 'message' => "User deleted successfully.", 'data' => null];
     }
 
     public function updateProfilePicture($userId, $data, $file = null) {
@@ -95,6 +106,52 @@ class UserService {
         }
 
         return ['success' => false, 'message' => 'No profile picture provided.', 'data' => null];
+    }
+
+    public function updateBalance($userId, $newBalance) {
+        if ($newBalance < 0) {
+            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
+        }
+
+        $result = $this->userRepository->updateBalance($userId, $newBalance);
+        if (!$result) {
+            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
+        }
+
+        return ['success' => true, 'message' => "Balance updated successfully.", 'data' => null];
+    }
+
+    public function updateUserBalance($userId, $price) {
+        $user = $this->userRepository->getUserById($userId);
+        $currentBalance = $user->getBalance();
+        $newBalance = $currentBalance - $price;
+
+        if ($newBalance < 0) {
+            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
+        }
+
+        $result = $this->userRepository->updateBalance($userId, $newBalance);
+        if (!$result) {
+            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
+        }
+
+        return ['success' => true, 'message' => "User balance updated successfully.", 'data' => null];
+    }
+
+    public function addOwnerBalance($userId, $amount) {
+        $user = $this->userRepository->getUserById($userId);
+        if (!$user) {
+            return ['success' => false, 'message' => 'User not found.', 'data' => null];
+        }
+
+        $newBalance = $user->balance + $amount;
+        $result = $this->userRepository->updateBalance($userId, $newBalance);
+
+        if (!$result) {
+            return ['success' => false, 'message' => 'Failed to add balance.', 'data' => null];
+        }
+
+        return ['success' => true, 'message' => "Balance added successfully.", 'data' => null];
     }
 
     public function createAccount($data) {
@@ -129,40 +186,6 @@ class UserService {
         return ['success' => true, 'message' => "Account created successfully.", 'data' => null];
     }
 
-    public function updateBalance($userId, $newBalance) {
-        if ($newBalance < 0) {
-            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
-        }
-
-        $result = $this->userRepository->updateBalance($userId, $newBalance);
-        if (!$result) {
-            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
-        }
-
-        return ['success' => true, 'message' => "Balance updated successfully.", 'data' => null];
-    }
-
-    public function getBalance($userId) {
-        $user = $this->userRepository->getUserById($userId);
-        if (!$user) {
-            return ['success' => false, 'message' => 'User not found.', 'data' => null];
-        }
-
-        $balance = $user->getBalance();
-        $lastClaimed = $user->getLastClaimed();
-
-        $claimedToday = false;
-        if ($lastClaimed) {
-            $today = new \DateTime();
-            $today->setTime(0, 0, 0);
-            $lastClaimedDate = new \DateTime($lastClaimed);
-            $lastClaimedDate->setTime(0, 0, 0);
-            $claimedToday = $lastClaimedDate->format('Y-m-d') === $today->format('Y-m-d');
-        }
-
-        return ['success' => true, 'message' => 'Balance retrieved successfully.', 'data' => ['balance' => $balance, 'claimed_today' => $claimedToday]];
-    }
-
     public function claimDailyReward($userId) {
         $user = $this->userRepository->getUserById($userId);
         if (!$user) {
@@ -194,36 +217,13 @@ class UserService {
         return ['success' => true, 'message' => "You've successfully claimed 500 CuboCoins!", 'data' => ["balance" => $newBalance, "claimed_today" => true]];
     }
 
-    public function updateUserBalance($userId, $price) {
-        $user = $this->userRepository->getUserById($userId);
-        $currentBalance = $user->getBalance();
-        $newBalance = $currentBalance - $price;
-
-        if ($newBalance < 0) {
-            return ['success' => false, 'message' => 'Balance cannot be negative.', 'data' => null];
+    public function deleteUser($userId, $decodedUser) {
+        if ($decodedUser->role !== 'admin') {
+            return ['success' => false, 'message' => 'Unauthorized: Admin access required.', 'data' => null];
         }
 
-        $result = $this->userRepository->updateBalance($userId, $newBalance);
-        if (!$result) {
-            return ['success' => false, 'message' => 'Failed to update balance.', 'data' => null];
-        }
+        $this->userRepository->deleteUser($userId);
 
-        return ['success' => true, 'message' => "User balance updated successfully.", 'data' => null];
-    }
-
-    public function addOwnerBalance($userId, $amount) {
-        $user = $this->userRepository->getUserById($userId);
-        if (!$user) {
-            return ['success' => false, 'message' => 'User not found.', 'data' => null];
-        }
-
-        $newBalance = $user->balance + $amount;
-        $result = $this->userRepository->updateBalance($userId, $newBalance);
-
-        if (!$result) {
-            return ['success' => false, 'message' => 'Failed to add balance.', 'data' => null];
-        }
-
-        return ['success' => true, 'message' => "Balance added successfully.", 'data' => null];
+        return ['success' => true, 'message' => "User deleted successfully.", 'data' => null];
     }
 }

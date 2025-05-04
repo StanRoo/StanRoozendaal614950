@@ -10,12 +10,10 @@ use App\Config;
 class AuthMiddleware {
     private $userRepository;
 
-    // Constructor to receive the UserRepository via Dependency Injection
     public function __construct(UserRepository $userRepository) {
         $this->userRepository = $userRepository;
     }
 
-    // Verify the token and return the authenticated user
     public function verifyToken() {
         try {
             $headers = getallheaders();
@@ -57,9 +55,7 @@ class AuthMiddleware {
             ErrorHandler::handleException($e);
         }
     }
-    
 
-    // Ensure that the user has an admin role
     public function requireAdmin() {
         if (empty($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
             ErrorHandler::respondWithError(403, "Forbidden: Admin access required.");

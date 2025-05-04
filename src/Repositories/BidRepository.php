@@ -12,18 +12,7 @@ class BidRepository {
         $this->pdo = $pdo;
     }
 
-    public function createBid(BidModel $bid): bool {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO bids (listing_id, bidder_id, bid_amount, bid_time)
-            VALUES (:listing_id, :bidder_id, :bid_amount, NOW())
-        ");
-        return $stmt->execute([
-            'listing_id' => $bid->getListingId(),
-            'bidder_id' => $bid->getBidderId(),
-            'bid_amount' => $bid->getBidAmount()
-        ]);
-    }
-
+    // --------- GET ----------
     public function getHighestBidByListingId(int $listingId): ?BidModel {
         $sql = "SELECT * FROM bids WHERE listing_id = :listing_id ORDER BY bid_amount DESC LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
@@ -139,6 +128,20 @@ class BidRepository {
         return (int) $stmt->fetchColumn();
     }
 
+    // --------- POST ----------
+    public function createBid(BidModel $bid): bool {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO bids (listing_id, bidder_id, bid_amount, bid_time)
+            VALUES (:listing_id, :bidder_id, :bid_amount, NOW())
+        ");
+        return $stmt->execute([
+            'listing_id' => $bid->getListingId(),
+            'bidder_id' => $bid->getBidderId(),
+            'bid_amount' => $bid->getBidAmount()
+        ]);
+    }
+
+    // --------- DELETE ----------
     public function deleteBid(int $id): bool {
         $stmt = $this->pdo->prepare("DELETE FROM bids WHERE id = ?");
         return $stmt->execute([$id]);

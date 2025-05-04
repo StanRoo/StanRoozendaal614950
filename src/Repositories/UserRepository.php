@@ -13,6 +13,7 @@ class UserRepository {
         $this->pdo = $pdo;
     }
 
+    // --------- GET ----------
     public function getAllUsers(int $limit, int $offset, array $filters = []): array
     {
         $sql = "
@@ -150,17 +151,20 @@ class UserRepository {
         return $userData ? new UserModel($userData) : null;
     }
 
-    public function createUser($username, $email, $password, $bio, $profilePictureUrl, $balance): ?UserModel {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO users (username, email, password, bio, profile_picture_url, balance) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        ");
-        if ($stmt->execute([$username, $email, $password, $bio, $profilePictureUrl, $balance])) {
-            return $this->getUserById($this->pdo->lastInsertId());
-        }
-        return null;
+    public function getLastClaimedTimestamp($userId): ?string {
+        $stmt = $this->pdo->prepare("SELECT last_daily_claim FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['last_daily_claim'] : null;
     }
 
+    public function getResetToken($token) {
+        $stmt = $this->db->prepare("SELECT * FROM password_resets WHERE token = ?");
+        $stmt->execute([$token]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }  
+
+    // -------- UPDATE --------
     public function updateUser($userId, $data): bool {
         $allowedFields = ['username', 'email', 'bio', 'profile_picture_url', 'status'];
         $fields = [];
@@ -185,25 +189,12 @@ class UserRepository {
         return $stmt->execute([$profilePictureUrl, $userId]);
     }
 
-    public function deleteUser($userId): bool {
-        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
-        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
-        return $stmt->execute();
-    }
-
     public function updateBalance($userId, $newBalance): bool {
         $sql = "UPDATE users SET balance = :balance, updated_at = NOW() WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':balance', $newBalance);
         $stmt->bindParam(':id', $userId);
         return $stmt->execute();
-    }
-
-    public function getLastClaimedTimestamp($userId): ?string {
-        $stmt = $this->pdo->prepare("SELECT last_daily_claim FROM users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? $result['last_daily_claim'] : null;
     }
 
     public function updateBalanceAndClaimTime($userId, $balance, $claimTime): bool {
@@ -221,17 +212,30 @@ class UserRepository {
         $stmt = $this->db->prepare("UPDATE users SET password = ? WHERE email = ?");
         $stmt->execute([$hashedPassword, $email]);
     }
+
+    // -------- POST ----------
+    public function createUser($username, $email, $password, $bio, $profilePictureUrl, $balance): ?UserModel {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users (username, email, password, bio, profile_picture_url, balance) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        if ($stmt->execute([$username, $email, $password, $bio, $profilePictureUrl, $balance])) {
+            return $this->getUserById($this->pdo->lastInsertId());
+        }
+        return null;
+    }
     
     public function storeResetToken($email, $token, $expiresAt) {
         $stmt = $this->db->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
         $stmt->execute([$email, $token, $expiresAt]);
     }
-    
-    public function getResetToken($token) {
-        $stmt = $this->db->prepare("SELECT * FROM password_resets WHERE token = ?");
-        $stmt->execute([$token]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
-    }  
+
+    // -------- DELETE --------
+    public function deleteUser($userId): bool {
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
     
     public function deleteResetToken($token) {
         $stmt = $this->db->prepare("DELETE FROM password_resets WHERE token = ?");
