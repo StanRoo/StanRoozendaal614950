@@ -62,7 +62,7 @@ class MarketplaceService
     public function getFilteredListings(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
     {
         try {
-            $total = $this->marketplaceRepository->countFilteredListings($userId, $filters);
+            $total = $this->marketplaceRepository->getFilteredListingsCount($userId, $filters);
             $listings = $this->marketplaceRepository->getFilteredListings($userId, $offset, $limit, $filters);
 
             return [
@@ -88,7 +88,7 @@ class MarketplaceService
     public function getUserFilteredListings(int $userId, int $offset = 0, int $limit = 20, array $filters = []): array
     {
         try {
-            $total = $this->marketplaceRepository->countFilteredUserListings($userId, $filters);
+            $total = $this->marketplaceRepository->getFilteredUserListingsCount($userId, $filters);
             $listings = $this->marketplaceRepository->getFilteredUserListings($userId, $offset, $limit, $filters);
 
             return [

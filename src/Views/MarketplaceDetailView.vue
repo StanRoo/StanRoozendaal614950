@@ -181,7 +181,7 @@ const buyNow = async () => {
   }
 
   try {
-    await axios.post('/marketplace/buyNow', 
+    await axios.post('/marketplace/buy-now', 
       { listing_id: listingInfo.value.listing_id }, 
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -209,7 +209,7 @@ const placeBid = async () => {
   }
 
   try {
-    await axios.post('/bid/place',
+    await axios.post('/bids',
       {
         listing_id: listingInfo.value.listing_id,
         amount: parseFloat(bidAmount.value),

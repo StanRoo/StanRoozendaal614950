@@ -40,8 +40,8 @@ $headers = @{
 }
 
 # Call the 'finalize-expired' endpoint
-Write-Output "Calling the 'finalizeExpired' endpoint..."
-$finalizeResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/marketplace/finalizeExpired" `
+Write-Output "Calling the 'finalize-expired' endpoint..."
+$finalizeResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/marketplace/finalize-expired" `
     -Method POST `
     -Headers $headers
 

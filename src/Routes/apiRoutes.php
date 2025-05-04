@@ -29,22 +29,16 @@ switch (true) {
         $userController->getUserById($decodedUser->id); 
         break;
 
-    // Get all users (Admin only)
-    case $requestUri === '/api/users' && $requestMethod === 'GET':
-        $decodedUser = $authMiddleware->verifyToken();
-        $userController->getAllUsers($decodedUser);
-        break;
-
-    // Get a user's inventory
-    case $requestUri === '/api/user/inventory' && $requestMethod === 'GET':
-        $decodedUser = $authMiddleware->verifyToken();
-        $transactionController->getUserInventory($decodedUser->id);
-        break;
-
     // Get current user balance and last claim
     case $requestUri === '/api/user/balance' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $userController->getUserBalance($decodedUser->id);
+        break;
+
+    // Get all cards owned by the user
+    case $requestUri === '/api/user/cards' && $requestMethod === 'GET':
+        $decodedUser = $authMiddleware->verifyToken();
+        $cardController->getUserCards($decodedUser->id);
         break;
 
     // Update user by ID (Admin)
@@ -61,7 +55,7 @@ switch (true) {
         break;
 
     // Update profile picture
-    case $requestUri === '/api/user/upload-profile-picture' && $requestMethod === 'POST':
+    case $requestUri === '/api/user/profile-picture' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $userController->updateProfilePicture($decodedUser->id);
         break;
@@ -99,12 +93,6 @@ switch (true) {
         $cardController->getAllCards();
         break;
 
-    // Get all cards owned by the user
-    case $requestUri === '/api/cards/user' && $requestMethod === 'GET':
-        $decodedUser = $authMiddleware->verifyToken();
-        $cardController->getUserCards($decodedUser->id);
-        break;
-
     // Get a specific card by ID
     case preg_match('/\/api\/cards\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
         $cardId = $matches[1];
@@ -126,13 +114,13 @@ switch (true) {
     // -----------Marketplace Routes--------------
     
     // Get all cards on the marketplace (except user listed cards)
-    case $requestUri === '/api/marketplace/list' && $requestMethod === 'GET':
+    case $requestUri === '/api/marketplace' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $marketplaceController->getMarketplaceCards($decodedUser->id);
         break;
 
     // Get user's marketplace listings
-    case $requestUri === '/api/marketplace/userListings' && $requestMethod === 'GET':
+    case $requestUri === '/api/marketplace/user-listings' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $marketplaceController->getUserListings($decodedUser->id);
         break;
@@ -143,12 +131,6 @@ switch (true) {
         $marketplaceController->getMarketplaceCard($cardId);
         break;
 
-    // Get a specific card's marketplace listing details
-    case preg_match('/\/api\/marketplace\/(\d+)/', $requestUri, $matches) && $requestMethod === 'GET':
-        $cardId = $matches[1];
-        $marketplaceController->getMarketplaceCardDetails($cardId);
-        break;
-
     // Update card price in the marketplace
     case preg_match('/\/api\/marketplace\/(\d+)\/price/', $requestUri, $matches) && $requestMethod === 'PUT':
         $decodedUser = $authMiddleware->verifyToken();
@@ -157,20 +139,20 @@ switch (true) {
         break;
 
     // List a card on the marketplace
-    case $requestUri === '/api/marketplace/list' && $requestMethod === 'POST':
+    case $requestUri === '/api/marketplace' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $marketplaceController->listCard($decodedUser->id);
         break;
 
     // Finalize expired listings
-    case $requestUri === '/api/marketplace/finalizeExpired' && $requestMethod === 'POST':
+    case $requestUri === '/api/marketplace/finalize-expired' && $requestMethod === 'POST':
         $marketplaceController->finalizeExpiredListings();
         break;
 
     // ---------------- Bid Routes --------------------
 
     // Get bids for a specific listing
-    case $requestUri === '/api/bid/listing' && $requestMethod === 'GET':
+    case $requestUri === '/api/bids/listing' && $requestMethod === 'GET':
         $bidController->getBidsForListing();
         break;
 
@@ -181,13 +163,13 @@ switch (true) {
         break;
 
     // Place a bid on a listing
-    case $requestUri === '/api/bid/place' && $requestMethod === 'POST':
+    case $requestUri === '/api/bids' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $bidController->placeBid($decodedUser->id);
         break;
 
     // Buy a Pokémon card
-    case $requestUri === '/api/marketplace/buyNow' && $requestMethod === 'POST':
+    case $requestUri === '/api/marketplace/buy-now' && $requestMethod === 'POST':
         $decodedUser = $authMiddleware->verifyToken();
         $requestBody = json_decode(file_get_contents("php://input"), true);
         if (!isset($requestBody['listing_id'])) {
@@ -202,7 +184,7 @@ switch (true) {
     // ---------------- Admin Routes --------------------
 
     // Get all users (Admin only)
-    case $requestUri === '/api/admin/users' && $requestMethod === 'GET':
+    case $requestUri === '/api/users' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();
         $userController->getAllUsers($decodedUser);
         break;

@@ -169,6 +169,10 @@ class UserController {
 
     public function deleteUser($id): void {
         $decodedUser = $this->authMiddleware->verifyToken();
+        if ($decodedUser->role !== 'admin') {
+            ResponseHelper::error('Access denied. Admins only.', 403);
+            return;
+        }
 
         $result = $this->userService->deleteUser($id, $decodedUser);
 

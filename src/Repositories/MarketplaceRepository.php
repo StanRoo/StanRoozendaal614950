@@ -193,7 +193,7 @@ class MarketplaceRepository {
         return array_map(fn($row) => new \App\Models\MarketplaceListingModel($row), $results);
     }
 
-    public function countFilteredListings(int $userId, array $filters = []): int
+    public function getFilteredListingsCount(int $userId, array $filters = []): int
     {
         $sql = "SELECT COUNT(*) 
                 FROM marketplace_listings 
@@ -295,7 +295,7 @@ class MarketplaceRepository {
         return array_map(fn($row) => new \App\Models\MarketplaceListingModel($row), $results);
     }
 
-    public function countFilteredUserListings(int $userId, array $filters = []): int
+    public function getFilteredUserListingsCount(int $userId, array $filters = []): int
     {
         $sql = "SELECT COUNT(*) 
                 FROM marketplace_listings 

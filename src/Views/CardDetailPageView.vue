@@ -109,7 +109,7 @@ const listOnMarketplace = async () => {
     if (!token) {
       router.push("/");
     }
-    await axios.post('/marketplace/list', {
+    await axios.post('/marketplace', {
       card_id: card.value.id,
       price: price.value,
       min_bid_price: minBidPrice.value,

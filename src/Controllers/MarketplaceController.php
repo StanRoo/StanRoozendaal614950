@@ -173,6 +173,11 @@ class MarketplaceController
     public function finalizeExpiredListings()
     {
         try {
+            $decodedUser = $this->authMiddleware->verifyToken();
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
             $results = $this->marketplaceService->finalizeExpiredListings();
             ResponseHelper::success([
                 'processed' => count($results),

@@ -22,7 +22,6 @@ class BidController {
     public function getAllBids(): void {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
-    
             if ($decodedUser->role !== 'admin') {
                 ResponseHelper::error('Access denied. Admins only.', 403);
                 return;
@@ -134,6 +133,11 @@ class BidController {
 
     public function deleteBid(int $id): void {
         try {
+            $decodedUser = $this->authMiddleware->verifyToken();
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
             $this->bidService->deleteBid($id);
             ResponseHelper::success(null, 'Bid deleted successfully.');
         } catch (\Throwable $e) {

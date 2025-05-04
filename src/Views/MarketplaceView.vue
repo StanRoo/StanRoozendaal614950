@@ -144,7 +144,7 @@ const fetchMarketplaceCards = async () => {
       limit,
     };
 
-    const response = await axios.get('/marketplace/list', {
+    const response = await axios.get('/marketplace', {
       headers: { Authorization: `Bearer ${token}` },
       params,
     });

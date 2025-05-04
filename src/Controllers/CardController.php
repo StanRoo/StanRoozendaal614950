@@ -169,6 +169,11 @@ class CardController {
     
     public function adminDeleteCard($id): void {
         try {
+            $decodedUser = $this->authMiddleware->verifyToken();
+            if ($decodedUser->role !== 'admin') {
+                ResponseHelper::error('Access denied. Admins only.', 403);
+                return;
+            }
             $this->cardService->deleteCard($id);
 
             ResponseHelper::success(null, 'Card deleted successfully.');

@@ -130,7 +130,7 @@ const fetchCards = async () => {
       limit
     }
 
-    const response = await axios.get(`/cards/user`, {
+    const response = await axios.get(`/user/cards`, {
       headers: { Authorization: `Bearer ${token}` },
       params
     })

@@ -82,7 +82,7 @@
       </div>
     </div>
   </div>
-  
+
   <!--Loading State-->
   <div v-else class="loading">Loading profile details...</div>
 </template>
@@ -194,7 +194,7 @@ export default {
       }
 
       try {
-        const response = await axios.post("/user/upload-profile-picture", payload, { headers });
+        const response = await axios.post("/user/profile-picture", payload, { headers });
         if (response.status === 200) {
           const updatedProfilePicture = this.previewImage || this.user.profile_picture_url;
           useUserStore().updateProfilePicture(updatedProfilePicture);

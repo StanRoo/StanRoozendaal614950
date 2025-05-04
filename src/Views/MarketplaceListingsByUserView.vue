@@ -159,7 +159,7 @@
         router.push("/");
       }
 
-      const response = await axios.get('/marketplace/userListings', {
+      const response = await axios.get('/marketplace/user-listings', {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           offset: offset.value,
