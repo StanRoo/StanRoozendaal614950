@@ -90,7 +90,8 @@ class AuthService {
             $data['email'],
             $hashedPassword,
             "I love Pokémon :)",
-            "/images/profile.png"
+            "/images/profile.png",
+            2000.00
         );
     
         if (!$newUser) {
