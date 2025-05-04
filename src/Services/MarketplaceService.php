@@ -8,6 +8,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\BidRepository;
 use App\Models\MarketplaceListingModel;
 use App\Models\BidModel;
+use App\Models\UserModel;
 
 class MarketplaceService
 {
@@ -141,15 +142,19 @@ class MarketplaceService
         }
 
         $seller = $this->userRepository->getUserById($listing->getSellerId());
-
         return [
-            'card' => $card->toArray(),
-            'price' => $listing->getPrice(),
-            'listing_id' => $listing->getId(),
-            'listed_at' => $listing->getListedAt(),
-            'seller_id' => $listing->getSellerId(),
-            'seller_username' => $seller ? $seller->getUsername() : 'Unknown',
-            'min_bid_price' => $listing->getMinBidPrice()
+            'success' => true,
+            'message' => 'Card details retrieved successfully.',
+            'data' => [
+                'card' => $card->toArray(),
+                'price' => $listing->getPrice(),
+                'listing_id' => $listing->getId(),
+                'listed_at' => $listing->getListedAt(),
+                'expires_at' => $listing->getExpiresAt(),
+                'seller_id' => $listing->getSellerId(),
+                'seller_username' => $seller ? $seller->getUsername() : 'Unknown',
+                'min_bid_price' => $listing->getMinBidPrice()
+            ]
         ];
     }
 
@@ -161,8 +166,31 @@ class MarketplaceService
         return $this->marketplaceRepository->markListingAsSold($listingId);
     }
 
-    public function getHighestBidForListing(int $listingId): ?BidModel {
-        return $this->bidRepository->getHighestBidByListingId($listingId);
+    public function getHighestBidForListing(int $listingId): ?array {
+        $bid = $this->bidRepository->getHighestBidByListingId($listingId);
+
+        if (!$bid) {
+            return [
+                'success' => true,
+                'message' => 'No bids found.',
+                'data' => null,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Highest bid retrieved successfully.',
+            'data' => [
+                'listing_id' => $bid->getListingId(),
+                'bidder_id' => $bid->getBidderId(),
+                'bid_amount' => $bid->getBidAmount(),
+                'created_at' => $bid->getCreatedAt(),
+            ]
+        ];
+    }
+
+    public function getHighestBidder(int $userId): ?UserModel {
+        return $this->userRepository->getUserById($userId);
     }
 
     public function finalizeExpiredListings(): array {

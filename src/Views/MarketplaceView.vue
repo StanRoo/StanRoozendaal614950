@@ -84,7 +84,7 @@
     </section>
 
     <p v-else class="empty-message">No cards listed on the marketplace yet.</p>
-    <p v-if="loading" class="text-muted">Loading more cards...</p>
+    <p v-if="isLoading" class="text-muted">Loading more cards...</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
   <div v-else class="loading">Loading marketplace details...</div>

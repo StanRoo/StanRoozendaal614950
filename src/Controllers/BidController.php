@@ -54,7 +54,7 @@ class BidController {
 
             $result = $this->bidService->placeBid($bid, $minimumBid);
 
-            if (isset($result['error'])) {
+            if (!$result['success']) {
                 ResponseHelper::error($result['message'], 400);
             } else {
                 ResponseHelper::success($result, 'Bid placed successfully.');

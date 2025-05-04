@@ -35,7 +35,7 @@ class BidService {
             return ['success' => false, 'message' => 'Listing is not available.'];
         }
 
-        if ($listing->user_id === $bid->getBidderId()) {
+        if ($listing->seller_id === $bid->getBidderId()) {
             return ['success' => false, 'message' => 'You cannot bid on your own listing.'];
         }
 

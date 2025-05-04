@@ -15,10 +15,8 @@
             {{ listingInfo.price }}
           </template>
         </button>
-        <div class="feedback">
-          <p v-if="successMessageBuyNow" class="success">{{ successMessageBuyNow }}</p>
-          <p v-if="errorMessageBuyNow" class="error">{{ errorMessageBuyNow }}</p>
-        </div>
+        <p v-if="successMessageBuyNow" class="succes">{{ successMessageBuyNow }}</p>
+        <p v-if="errorMessageBuyNow" class="error">{{ errorMessageBuyNow }}</p>
       </div>
 
       <div class="right-column">
@@ -26,6 +24,7 @@
           <h3>Seller Info</h3>
           <p><strong>Seller:</strong> {{ listingInfo.seller_username }}</p>
           <p><strong>Listed At:</strong> {{ formatDate(listingInfo.listed_at) }}</p>
+          <p><strong>Expires At:</strong> {{ formatDate(listingInfo.expires_at) }}</p>
           <p><strong>Price:</strong><img src="@/assets/icons/coin.png" class="coin-icon" /> {{ listingInfo.price }} </p>
         </div>
 
@@ -34,14 +33,18 @@
 
           <p>
             <strong>Current Highest Bid: </strong>
-            <span v-if="listingInfo.highest_bid !== null">{{ formatPrice(listingInfo.highest_bid.bid_amount) }}</span>
+            <span v-if="listingInfo.highest_bid !== null"><img src="@/assets/icons/coin.png" class="coin-icon" /> {{ formatPrice(listingInfo.highest_bid.bid_amount) }}</span>
             <span v-else>No bids yet</span>
-            <img src="@/assets/icons/coin.png" class="coin-icon" />
+          </p>
+          <p>
+            <strong>Current Highest Bidder: </strong>
+            <span v-if="listingInfo.highest_bid_username !== null">{{ formatPrice(listingInfo.highest_bid_username) }}</span>
+            <span v-else>No bids yet</span>
           </p>
           <p>
             <strong>Minimum Bid:</strong>
-            {{ formatPrice(listingInfo.min_bid_price) }}
             <img src="@/assets/icons/coin.png" class="coin-icon" />
+            {{ formatPrice(listingInfo.min_bid_price) }}
           </p>
 
           <form @submit.prevent="placeBid">
@@ -58,8 +61,8 @@
             </button>
           </form>
 
-          <p v-if="bidMessage" class="success">{{ bidMessage }}</p>
-          <p v-if="bidError" class="error">{{ bidError }}</p>
+          <p v-if="successMessageBid" class="succes">{{ successMessageBid }}</p>
+          <p v-if="errorMessageBid" class="error">{{ errorMessageBid }}</p>
         </div>
 
         <div class="info-card bid-section" v-if="listingInfo && isOwnListing">
@@ -122,9 +125,11 @@ const fetchCardDetails = async () => {
       seller_id: response.data.seller_id,
       seller_username: response.data.seller_username,
       listed_at: response.data.listed_at,
+      expires_at: response.data.expires_at,
       listing_id: response.data.listing_id,
       min_bid_price: response.data.min_bid_price,
       highest_bid: response.data.highest_bid,
+      highest_bid_username: response.data.highest_bid_username,
     };
     const userId = userStore.user?.id;
     if (userId && response.data.seller_id === userId) {
@@ -200,9 +205,9 @@ const placeBid = async () => {
     );
 
     successMessageBid.value = 'Bid placed successfully!';
-    bidAmount.value = '';
-    await fetchCardDetails();
     setTimeout(() => (successMessageBid.value = ''), 3000);
+    bidAmount.value = '';
+    await fetchCardDetails(); 
   } catch (error) {
     errorMessageBid.value = error.response?.data?.message || error.message || "Something went wrong.";
     setTimeout(() => (errorMessageBid.value = ''), 3000);
@@ -344,8 +349,8 @@ const isOwnListing = computed(() => {
 }
 
 .bid-button {
-  background-color: #ffc107;
-  color: #000;
+  background-color: #007bff;
+  color: #fff;
   padding: 0.8vw 1.5vw;
   border: none;
   border-radius: 0.5rem;
@@ -355,18 +360,18 @@ const isOwnListing = computed(() => {
 }
 
 .bid-button:hover {
-  background-color: #e0a800;
+  background-color: #0056b3;
 }
 
-.success {
+.succes {
   text-align: center;
-  color: green;
+  color: green !important;
   margin-top: 5px;
 }
 
 .error {
   text-align: center;
-  color: red;
+  color: red !important;
   margin-top: 5px;
 }
 

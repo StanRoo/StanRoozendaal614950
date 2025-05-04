@@ -120,25 +120,30 @@ class MarketplaceController
     {
         try {
             $decodedUser = $this->authMiddleware->verifyToken();
-            $cardWithListing = $this->marketplaceService->getCardWithListing($cardId);
-
+            $result = $this->marketplaceService->getCardWithListing($cardId);
+            $cardWithListing = $result['data'];
             if (!$cardWithListing) {
                 ResponseHelper::error("Listing not found for card ID: $cardId", 404);
                 return;
             }
-
-            $highestBid = $this->marketplaceService->getHighestBidForListing($cardWithListing['listing_id']);
-
+            $highestBidResult = $this->marketplaceService->getHighestBidForListing($cardWithListing['listing_id']);
+            $highestBid = $highestBidResult['data'];
+            $highestBidder = null;
+            if ($highestBid) {
+                $highestBidder = $this->marketplaceService->getHighestBidder($highestBid['bidder_id']);
+            }
             ResponseHelper::success([
                 'card' => $cardWithListing['card'],
                 'price' => $cardWithListing['price'],
                 'listing_id' => $cardWithListing['listing_id'],
                 'listed_at' => $cardWithListing['listed_at'],
+                'expires_at' => $cardWithListing['expires_at'],
                 'seller_id' => $cardWithListing['seller_id'],
                 'seller_username' => $cardWithListing['seller_username'],
                 'min_bid_price' => $cardWithListing['min_bid_price'],
-                'highest_bid' => $highestBid
-            ]);
+                'highest_bid' => $highestBid,
+                'highest_bid_username' => $highestBidder ? $highestBidder->getUsername() : null,
+            ], 'Card details retrieved successfully.');
         } catch (\Exception $e) {
             ResponseHelper::error($e->getMessage(), 500);
         }
