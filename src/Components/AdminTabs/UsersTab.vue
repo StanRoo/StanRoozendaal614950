@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-panel">
+  <div class="admin-panel" v-if="users">
 
     <div class="filters">
       <input v-model="filters.id" placeholder="Filter by ID" @input="onFilterChange" type="number" class="filter-input" />
@@ -53,13 +53,13 @@
           <td>{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>
-            <select v-model="user.role" @change="updateUser(user)">
+            <select v-model="user.role" @change="updateUser(user)" :disabled="user.role === 'admin' && user.id !== currentUser.id">
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </td>
           <td>
-            <select v-model="user.status" @change="updateUser(user)">
+            <select v-model="user.status" @change="updateUser(user)" :disabled="user.role === 'admin' && user.id !== currentUser.id">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="banned">Banned</option>
@@ -70,11 +70,11 @@
           <td>{{ user.updated_at }}</td>
           <td>{{ user.last_login }}</td>
           <td>
-            <input v-model="user.balance" @blur="updateUser(user)" type="number" step="0.01" min="0" />
+            <input v-model="user.balance" @blur="updateUser(user)" type="number" step="0.01" min="0" :disabled="user.role === 'admin' && user.id !== currentUser.id"/>
           </td>
           <td>{{ user.last_daily_claim }}</td>
           <td>
-            <button class="delete-btn" @click="deleteUser(user.id)">❌ Delete</button>
+            <button class="delete-btn" @click="deleteUser(user)" :disabled="user.role === 'admin' && user.id !== currentUser.id">❌ Delete</button>
           </td>
         </tr>
       </tbody>
@@ -98,19 +98,21 @@
       </button>
     </div>
 
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="successMessage" class="succes">{{ successMessage }}</p>
   </div>
+  <div v-else class="loading">Loading admin details...</div>
 </template>
 
 <script>
 import axios from 'axios'
-import { handleApiError } from '@/Utils/errorHandler'
+import { useUserStore } from '@/Store/UserStore';
 
 export default {
   data() {
     return {
       users: [],
+      currentUser: { ...useUserStore().user },
       page: 1,
       limit: 10,
       totalPages: 1,
@@ -154,7 +156,8 @@ export default {
         this.users = users
         this.totalPages = pagination.totalPages
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     onFilterChange() {
@@ -175,11 +178,13 @@ export default {
           headers: { Authorization: `Bearer ${token}` },
         })
         this.successMessage = 'User updated successfully!'
+        setTimeout(() => { this.successMessage = ''; }, 3000);
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
-    async deleteUser(userId) {
+    async deleteUser(user) {
       if (!confirm('Are you sure you want to delete this user?')) return
 
       try {
@@ -187,14 +192,16 @@ export default {
         if (!token) {
           this.$router.push("/");
         }
-        await axios.delete(`/users/${userId}`, {
+        await axios.delete(`/users/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
         this.successMessage = 'User deleted successfully!'
+        setTimeout(() => { this.successMessage = ''; }, 3000);
         this.users = this.users.filter(user => user.id !== userId)
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     changePage(newPage) {
@@ -299,14 +306,21 @@ input {
   cursor: not-allowed;
 }
 
-.error-message {
+.error {
+  text-align: center;
   color: red;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
-.success-message {
+.succes {
+  text-align: center;
   color: green;
-  margin-top: 10px;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 768px) {

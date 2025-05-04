@@ -31,15 +31,15 @@
             </button>
           </div>
 
-          <p v-if="listMessage" class="success">{{ listMessage }}</p>
-          <p v-if="listError" class="error">{{ listError }}</p>
+          <p v-if="successMessageList" class="succes">{{ successMessageList }}</p>
+          <p v-if="errorMessageList" class="error">{{ errorMessageList }}</p>
         </div>
 
         <button @click="confirmDelete" class="danger delete-button">Delete Card</button>
 
         <div class="feedback">
-          <p v-if="deleteMessage" class="success">{{ deleteMessage }}</p>
-          <p v-if="deleteError" class="error">{{ deleteError }}</p>
+          <p v-if="successMessageDelete" class="succes">{{ successMessageDelete }}</p>
+          <p v-if="errorMessageDelete" class="error">{{ errorMessageDelete }}</p>
         </div>
 
         <div v-if="showConfirmDelete" class="popup-overlay">
@@ -56,6 +56,7 @@
   </div>
 
   <div v-else class="loading">Loading card details...</div>
+  <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 </template>
 
 <script setup>
@@ -70,14 +71,14 @@ const card = ref(null);
 const price = ref(null);
 const minBidPrice = ref(null);
 const expiryDate = ref('');
-
-const listMessage = ref('');
-const listError = ref('');
 const listingComplete = ref(false);
-
-const deleteMessage = ref('');
-const deleteError = ref('');
 const showConfirmDelete = ref(false);
+
+const successMessageList = ref('');
+const errorMessageList = ref('');
+const successMessageDelete = ref('');
+const errorMessageDelete = ref('');
+const errorMessage = ref('');
 
 onMounted(async () => {
   const token = localStorage.getItem('token');
@@ -92,22 +93,11 @@ onMounted(async () => {
     });
     card.value = response.data.card;
   } catch (error) {
-    console.error(error);
+    this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
   }
 });
 
 const listOnMarketplace = async () => {
-  listMessage.value = '';
-  listError.value = '';
-
-  if (!price.value || !minBidPrice.value || !expiryDate.value) {
-    listError.value = 'Buy Now Price, Minimum Bid Price, and Expiry Date are required.';
-    setTimeout(() => {
-      listError.value = '';
-    }, 4000);
-    return;
-  }
-
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -125,22 +115,16 @@ const listOnMarketplace = async () => {
       }
     });
 
-    listMessage.value = 'Card listed on the marketplace!';
+    successMessageList.value = 'Card listed on the marketplace!';
     listingComplete.value = true;
-    setTimeout(() => {
-      listMessage.value = '';
-    }, 4000);
+    setTimeout(() => { successMessageList.value = ''; }, 3000);
   } catch (error) {
-    listError.value = error.response?.data?.message || 'Failed to list card.';
-    setTimeout(() => {
-      listError.value = '';
-    }, 4000);
+    errorMessageList.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => { errorMessageList.value = ''; }, 3000);
   }
 };
 
 const confirmDelete = () => {
-  deleteMessage.value = '';
-  deleteError.value = '';
   showConfirmDelete.value = true;
 };
 
@@ -154,10 +138,12 @@ const deleteCard = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    deleteMessage.value = 'Card deleted successfully!';
+    successMessageDelete.value = 'Card deleted successfully!';
+    setTimeout(() => { successMessageDelete.value = ''; }, 3000);
     router.push('/inventory');
   } catch (error) {
-    deleteError.value = 'Failed to delete card.';
+    errorMessageDelete.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => { errorMessageDelete.value = ''; }, 3000);
   } finally {
     showConfirmDelete.value = false;
   }
@@ -169,6 +155,12 @@ const goBack = () => {
 </script>
 
 <style scoped>
+.banner {
+  width: 100%;
+  height: 11vh;
+  margin-top: 0.6rem;
+}
+
 .card-detail-container {
   padding: 6vh 2vw 2vw 2vw;
   display: flex;
@@ -297,13 +289,6 @@ const goBack = () => {
   font-weight: bold;
 }
 
-.success {
-  color: green;
-}
-.error {
-  color: red;
-}
-
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -378,15 +363,21 @@ const goBack = () => {
   }
 }
 
+.succes {
+  text-align: center;
+  color: green;
+  margin-top: 5px;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
+}
+
 .loading {
   font-size: 1.5rem;
   color: gray;
-}
-
-.banner {
-  width: 100%;
-  height: 11vh;
-  margin-top: 0.6rem;
 }
 
 @media (max-width: 768px) {

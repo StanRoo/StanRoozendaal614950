@@ -134,11 +134,11 @@
                 <input v-model="speed" type="number" placeholder="Speed" class="input-small" min="1" max="350" @input="validateStat('speed')" />
               </div>
             </div>
-            <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance" class="create-button">
-              Create Card
+            <button @click="createCard" :disabled="!cardName || !cardType || !cardImage || !enoughBalance || isSubmitting" class="create-button">
+              {{ isSubmitting ? "Creating Card..." : "Create Card" }}
             </button>
-            <p v-if="successMessage" class="succesmessage">{{ successMessage }}</p>
-            <p v-if="errorMessage" class="errormessage">{{ errorMessage }}</p>
+            <p v-if="successMessage" class="succes">{{ successMessage }}</p>
+            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
           </div>
         </div>
       </div>
@@ -166,6 +166,7 @@
   const defense = ref(10);
   const speed = ref(10);
   const userBalance = computed(() => userStore.user?.balance ?? 0);
+  const isSubmitting = ref(false);
   const successMessage = ref("");
   const errorMessage = ref("");
 
@@ -306,9 +307,10 @@
   });
 
   const createCard = async () => {
-    if (!enoughBalance.value) {
+    if (!enoughBalance.value || isSubmitting.value) {
       return;
     }
+    isSubmitting.value = true
     const fileInput = document.querySelector('input[type="file"]');
     const file = fileInput.files[0];
 
@@ -339,15 +341,13 @@
         const newBalance = userBalance.value - requiredBalance.value;
         userStore.updateBalance(newBalance);
         successMessage.value = "Card created successfully! It was added to your inventory.";
-        setTimeout(() => {
-          successMessage.value = "";
-        }, 5000);
+        setTimeout(() => { successMessage.value = "";}, 3000);
       }
     } catch (error) {
-      errorMessage.value = "Something went wrong.";
-      setTimeout(() => {
-          errorMessage.value = "";
-        }, 5000);
+      this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+      setTimeout(() => { errorMessage.value = "";}, 3000);
+    } finally {
+      isSubmitting.value = false;
     }
   };
 </script>
@@ -647,14 +647,16 @@ p {
   cursor: not-allowed;
 }
 
-.succesmessage {
+.succes {
   text-align: center;
   color: green;
+  margin-top: 5px;
 }
 
-.errormessage {
+.error {
   text-align: center;
   color: red;
+  margin-top: 5px;
 }
 
 @media (max-width: 1024px) {

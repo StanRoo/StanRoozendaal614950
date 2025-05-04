@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-panel">
+  <div class="admin-panel" v-if="listings">
     <div class="filters">
       <input v-model="filters.card_id" placeholder="Filter by Card ID" @input="onFilterChange" class="filter-input" />
       <input v-model="filters.seller_id" placeholder="Filter by Seller ID" @input="onFilterChange" class="filter-input" />
@@ -67,14 +67,14 @@
       <button :disabled="page === totalPages" @click="changePage(page + 1)">Next</button>
     </div>
 
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="successMessage" class="succes">{{ successMessage }}</p>
   </div>
+  <div v-else class="loading">Loading admin details...</div>
 </template>
 
 <script>
 import axios from 'axios'
-import { handleApiError } from '@/Utils/errorHandler'
 
 export default {
   data() {
@@ -121,7 +121,8 @@ export default {
         this.listings = listings
         this.totalPages = pagination.totalPages
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     onFilterChange() {
@@ -140,8 +141,10 @@ export default {
           headers: { Authorization: `Bearer ${token}` }
         })
         this.successMessage = 'Listing updated successfully!'
+        setTimeout(() => { this.successMessage = ''; }, 3000);
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     async deleteListing(listingId) {
@@ -157,9 +160,11 @@ export default {
         })
 
         this.successMessage = 'Listing deleted successfully!'
+        setTimeout(() => { this.successMessage = ''; }, 3000);
         this.fetchListings()
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     formatDate(dateStr) {
@@ -255,14 +260,21 @@ select {
   cursor: not-allowed;
 }
 
-.error-message {
+.error {
+  text-align: center;
   color: red;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
-.success-message {
+.succes {
+  text-align: center;
   color: green;
-  margin-top: 10px;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 768px) {

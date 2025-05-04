@@ -3,7 +3,7 @@
     <img class="banner" :src="ProfileBanner" alt="Profile Banner"/>
   </header>
   
-  <div class="container profile-container">
+  <div class="container profile-container" v-if="user">
     <div class="profile-grid">
       <div class="card-wrapper">
         <!-- Profile Picture Section -->
@@ -30,11 +30,14 @@
             <input type="file" class="form-control" @change="previewFile" />
 
             <div class="profile-actions">
-              <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3">Save Profile Picture</button>
+              <button @click="updateProfilePicture" class="btn btn-primary w-100 mt-3" :disabled="isSubmittingPFP">
+                {{ isSubmittingPFP ? "Saving Profile Picture..." : "Save Profile Picture" }}
+              </button>
             </div>
 
             <div class="profile-feedback">
-              <p v-if="messagePicture" :class="messagePictureClass">{{ messagePicture }}</p>
+              <p v-if="errorMessagePicture" class="error">{{ errorMessagePicture }}</p>
+              <p v-if="successMessagePicture" class="succes">{{ successMessagePicture }}</p>
             </div>
           </div>
         </div>
@@ -61,11 +64,14 @@
               <textarea class="form-control" v-model="user.bio"></textarea>
 
               <div class="profile-actions">
-                <button type="submit" class="btn btn-primary w-100 mt-3">Save Profile Info</button>
+                <button type="submit" class="btn btn-primary w-100 mt-3" :disabled="isSubmittingInfo">
+                  {{ isSubmittingInfo ? "Saving Profile Information..." : "Save Profile Information" }}
+                </button>
               </div>
 
               <div class="profile-feedback">
-                <p v-if="messageInfo" :class="messageInfoClass">{{ messageInfo }}</p>
+                <p v-if="errorMessageProfile" class="error">{{ errorMessageProfile }}</p>
+                <p v-if="successMessageProfile" class="succes">{{ successMessageProfile }}</p>
               </div>
             </form>
           </div>
@@ -73,12 +79,12 @@
       </div>
     </div>
   </div>
+  <div v-else class="loading">Loading profile details...</div>
 </template>
 
 <script>
 import { useUserStore } from '@/Store/UserStore';
 import axios from "axios";
-import { handleApiError } from "@/Utils/errorHandler";
 import ProfileBanner from '@/assets/images/Profile_Banner.png'
 
 export default {
@@ -111,10 +117,12 @@ export default {
         "/uploads/Defaults/Scizor_PFP.png",
         "/uploads/Defaults/Rayquaza_PFP.png"
       ],
-      messagePicture: "",
-      messageInfo: "",
-      messagePictureClass: "",
-      messageInfoClass: "",
+      isSubmittingPFP: false,
+      isSubmittingInfo: false,
+      successMessagePicture: "",
+      errorMessagePicture: "",
+      successMessageProfile: "",
+      errorMessageProfile: "",
     };
   },
   computed: {
@@ -138,7 +146,8 @@ export default {
         });
         this.user = response.data.user;
       } catch (error) {
-        this.messageInfo = handleApiError(error);
+        this.errorMessageProfile = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessageProfile = ''; }, 3000);
       }
     },
 
@@ -159,6 +168,8 @@ export default {
     },
 
     async updateProfilePicture() {
+      if (this.isSubmittingPFP) return;
+      this.isSubmittingPFP = true;
       const token = localStorage.getItem("token");
       if (!token) {
         this.$router.push("/");
@@ -181,16 +192,23 @@ export default {
           const updatedProfilePicture = this.previewImage || this.user.profile_picture_url;
           useUserStore().updateProfilePicture(updatedProfilePicture);
           this.$emit("profileUpdated", updatedProfilePicture);
-          this.showMessage("Profile picture updated successfully!", "success", "messagePicture");
+          this.successMessagePicture = response.data.message;
+          setTimeout(() => { this.successMessagePicture = ''; }, 3000);
         } else {
-          this.showMessage("Unexpected response. Please try again.", "error", "messagePicture");
+          this.errorMessagePicture = response.data.message;
+          setTimeout(() => { this.errorMessagePicture = ''; }, 3000);
         }
       } catch (error) {
-        this.showMessage(handleApiError(error), "error", "messagePicture");
+        this.errorMessagePicture = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessagePicture = ''; }, 3000);
+      } finally {
+        this.isSubmittingPFP = false;
       }
     },
 
     async updateProfileInfo() {
+      if (this.isSubmittingInfo) return;
+      this.isSubmittingInfo = true;
       const token = localStorage.getItem("token");
       if (!token) {
         this.$router.push("/");
@@ -204,21 +222,14 @@ export default {
           }
         });
  
-        this.showMessage("Profile updated successfully!", "success", "messageInfo");
+        this.successMessageProfile = response.data.message;
+        setTimeout(() => { this.successMessageProfile = ''; }, 3000);
       } catch (error) {
-        this.handleError(error, "messageInfo");
+        this.errorMessageProfile = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessageProfile = ''; }, 3000);
+      } finally {
+        this.isSubmittingInfo = false;
       }
-    },
-
-    showMessage(message, type, field) {
-      this[field] = message;
-      this[field + "Class"] = type === "success" ? "alert alert-success" : "alert alert-danger";
-      setTimeout(() => (this[field] = ""), 1000);
-    },
-
-    handleError(error, field) {
-      this[field] = error.response?.data?.error || "An error occurred.";
-      this[field + "Class"] = "alert alert-danger";
     },
   }
 };
@@ -318,6 +329,18 @@ export default {
 
 .profile-feedback {
   min-height: 1.5rem;
+}
+
+.succes {
+  text-align: center;
+  color: green;
+  margin-top: 5px;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
 }
 
 @media (max-width: 1050px) {

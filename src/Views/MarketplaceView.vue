@@ -67,7 +67,7 @@
     </button>
   </div>
 
-  <div class="marketplace-container">
+  <div class="marketplace-container" v-if="cards">
     <section v-if="cards.length > 0" class="marketplace-grid">
       <div
         v-for="card in cards"
@@ -85,7 +85,9 @@
 
     <p v-else class="empty-message">No cards listed on the marketplace yet.</p>
     <p v-if="loading" class="text-muted">Loading more cards...</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
+  <div v-else class="loading">Loading marketplace details...</div>
 </template>
 
 <script setup>
@@ -102,11 +104,12 @@ const cards = ref([]);
 const offset = ref(0);
 const limit = 20;
 const hasMore = ref(true);
-const loading = ref(false);
+const isLoading = ref(false);
 const searchQuery = ref('');
 const selectedRarity = ref('');
 const selectedType = ref('');
 const sortOption = ref('name_asc');
+const errorMessage = ref('');
 
 onMounted(() => {
   fetchMarketplaceCards();
@@ -114,8 +117,8 @@ onMounted(() => {
 });
 
 const fetchMarketplaceCards = async () => {
-  if (loading.value || !hasMore.value) return;
-  loading.value = true;
+  if (isLoading.value || !hasMore.value) return;
+  isLoading.value = true;
 
   try {
     const token = localStorage.getItem('token');
@@ -159,9 +162,10 @@ const fetchMarketplaceCards = async () => {
       hasMore.value = false;
     }
   } catch (error) {
-    console.error('Error fetching marketplace cards:', error.response?.data || error);
+    this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => { this.errorMessage.value = ''; }, 3000);
   } finally {
-    loading.value = false;
+    isLoading.value = false;
   }
 };
 
@@ -274,6 +278,17 @@ const goToMyListings = () => {
   color: black;
   border: 1px solid #ccc;
   font-size: 1rem;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 1024px) {

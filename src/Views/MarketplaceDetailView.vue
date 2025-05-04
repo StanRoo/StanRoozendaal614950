@@ -5,10 +5,19 @@
     <div class="main-content">
       <div class="left-column">
         <CardDisplay :card="card" />
-        <button @click="buyNow" class="buy-now-button">Buy Now: <img src="@/assets/icons/coin.png" class="coin-icon" /> {{ listingInfo.price }}</button>
+        <button @click="buyNow" class="buy-now-button" :disabled="isBuyingNow || isOwner">
+          <template v-if="isBuyingNow">
+            Buying...
+          </template>
+          <template v-else>
+            Buy Now:
+            <img src="@/assets/icons/coin.png" class="coin-icon" />
+            {{ listingInfo.price }}
+          </template>
+        </button>
         <div class="feedback">
-          <p v-if="successMessage" class="success">{{ successMessage }}</p>
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+          <p v-if="successMessageBuyNow" class="success">{{ successMessageBuyNow }}</p>
+          <p v-if="errorMessageBuyNow" class="error">{{ errorMessageBuyNow }}</p>
         </div>
       </div>
 
@@ -44,7 +53,9 @@
               required
               placeholder="Enter bid amount"
             />
-            <button type="submit" class="bid-button">Submit Bid</button>
+            <button type="submit" class="bid-button" :disabled="isSubmitting">
+              {{ isSubmitting ? "Submitting Bid..." : "Submit Bid" }}
+            </button>
           </form>
 
           <p v-if="bidMessage" class="success">{{ bidMessage }}</p>
@@ -60,6 +71,7 @@
   </div>
 
   <div v-else class="loading-message">Loading card details...</div>
+  <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 </template>
 
 <script setup>
@@ -76,11 +88,17 @@ const router = useRouter();
 const userStore = useUserStore();
 const card = ref(null);
 const listingInfo = ref(null);
-const successMessage = ref('');
-const errorMessage = ref('');
 const bidAmount = ref('');
-const bidMessage = ref('');
-const bidError = ref('');
+
+const isOwner = ref(false);
+const isBuyingNow = ref(false);
+const isSubmitting = ref(false);
+
+const successMessageBuyNow = ref('');
+const errorMessageBuyNow = ref('');
+const successMessageBid = ref('');
+const errorMessageBid = ref('');
+const errorMessage = ref('');
 
 onMounted(() => {
   fetchCardDetails();
@@ -108,8 +126,13 @@ const fetchCardDetails = async () => {
       min_bid_price: response.data.min_bid_price,
       highest_bid: response.data.highest_bid,
     };
+    const userId = userStore.user?.id;
+    if (userId && response.data.seller_id === userId) {
+      isOwner.value = true;
+    }
   } catch (error) {
-    console.error('Error fetching card details:', error.response?.data || error);
+    this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => (this.errorMessage.value = ''), 3000);
   }
 };
 
@@ -128,13 +151,12 @@ const goBack = () => {
 };
 
 const buyNow = async () => {
+  if (isBuyingNow.value) return;
+  isBuyingNow.value = true;
   const token = localStorage.getItem('token');
   if (!token) {
     router.push("/");
   }
-
-  successMessage.value = '';
-  errorMessage.value = '';
 
   try {
     await axios.post('/marketplace/buyNow', 
@@ -146,22 +168,23 @@ const buyNow = async () => {
     const newBalance = currentBalance - listingInfo.value.price;
     userStore.updateBalance(newBalance);
 
-    successMessage.value = 'Purchase successful!';
-    setTimeout(() => (successMessage.value = ''), 4000);
+    successMessageBuyNow.value = 'Purchase successful!';
+    setTimeout(() => (successMessageBuyNow.value = ''), 3000);
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'Purchase failed.';
-    setTimeout(() => (errorMessage.value = ''), 4000);
+    errorMessageBuyNow.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => (errorMessageBuyNow.value = ''), 3000);
+  } finally {
+    isBuyingNow.value = false;
   }
 };
 
 const placeBid = async () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
   const token = localStorage.getItem('token');
   if (!token) {
     router.push("/");
   }
-
-  bidMessage.value = '';
-  bidError.value = '';
 
   try {
     await axios.post('/bid/place',
@@ -176,13 +199,15 @@ const placeBid = async () => {
       }
     );
 
-    bidMessage.value = 'Bid placed successfully!';
+    successMessageBid.value = 'Bid placed successfully!';
     bidAmount.value = '';
     await fetchCardDetails();
-    setTimeout(() => (bidMessage.value = ''), 3000);
-  } catch (err) {
-    bidError.value = err.response?.data?.message || 'Failed to place bid.';
-    setTimeout(() => (bidError.value = ''), 3000);
+    setTimeout(() => (successMessageBid.value = ''), 3000);
+  } catch (error) {
+    errorMessageBid.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => (errorMessageBid.value = ''), 3000);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -257,6 +282,10 @@ const isOwnListing = computed(() => {
   background-color: #218838;
 }
 
+.buy-now-button:disabled {
+  background-color: gray;
+}
+
 .right-column {
   width: 48%;
 }
@@ -290,14 +319,6 @@ const isOwnListing = computed(() => {
 .loading-message {
   font-size: 1.5vw;
   color: gray;
-}
-
-.success {
-  color: green;
-}
-
-.error {
-  color: red;
 }
 
 .bid-section {
@@ -335,6 +356,23 @@ const isOwnListing = computed(() => {
 
 .bid-button:hover {
   background-color: #e0a800;
+}
+
+.success {
+  text-align: center;
+  color: green;
+  margin-top: 5px;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 1024px) {

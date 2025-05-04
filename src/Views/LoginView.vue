@@ -36,7 +36,9 @@
           <label class="form-check-label" for="rememberMe">Remember me</label>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
+          {{ isSubmitting ? "Logging in..." : "Login" }}
+        </button>
 
         <div v-if="errorMessage" class="error-container">
           <p class="error">{{ errorMessage }}</p>
@@ -54,7 +56,6 @@
 <script>
 import axios from "axios";
 import { useUserStore } from "@/Store/UserStore";
-import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -63,6 +64,7 @@ export default {
       password: "",
       rememberMe: false,
       errorMessage: "",
+      isSubmitting: false,
     };
   },
   mounted() {
@@ -78,7 +80,8 @@ export default {
   },
   methods: {
     async login() {
-      this.errorMessage = "";
+      if (this.isSubmitting) return;
+      this.isSubmitting = true;
       try {
         const response = await axios.post("/login", {
           username: this.username,
@@ -101,10 +104,14 @@ export default {
 
           this.$router.push("/home");
         } else {
-          this.errorMessage = "Login failed. Invalid response from server.";
+          this.errorMessage = response?.message || 'Something went wrong.';
+          setTimeout(() => (this.errorMessage = ''), 3000);
         }
       } catch (error) {
-        this.errorMessage = handleApiError(error);
+        this.errorMessage = error.response?.data?.message || error.message || "An error occurred during login.";
+        setTimeout(() => (this.errorMessage = ''), 3000);
+      } finally {
+        this.isSubmitting = false;
       }
     }
   }
@@ -175,9 +182,11 @@ input.form-control:focus {
   margin-top: 0.5rem;
   text-align: center;
 }
+
 .error {
+  text-align: center;
   color: red;
-  font-size: 0.9rem;
+  margin-top: 5px;
 }
 
 .links a {

@@ -3,7 +3,7 @@
   <img class="banner" :src="BalanceBanner" alt="Balance Banner" />
 </header>
 
-  <div class="balance-page">
+  <div class="balance-page" v-if="balance">
     <div class="balance-card">
       <div class="balance-header">
       </div>
@@ -12,20 +12,17 @@
 
       <button
         class="claim-button"
-        :disabled="hasClaimedToday || isLoading"
+        :disabled="hasClaimedToday || isSubmitting"
         @click="claimDaily"
       >
         {{ hasClaimedToday ? '✅ Claimed Today' : '🎁 Claim 500 Daily' }}
       </button>
 
-      <transition name="fade">
-        <p v-if="successMessage" class="success">{{ successMessage }}</p>
-      </transition>
-      <transition name="fade">
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-      </transition>
+      <p v-if="successMessage" class="succes">{{ successMessage }}</p>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </div>
+  <div v-else class="loading">Loading balance details...</div>
 </template>
 
 <script setup>
@@ -38,12 +35,12 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const userStore = useUserStore();
 
-const balance = ref(0)
+const balance = ref()
 const animatedBalance = ref(0)
 const hasClaimedToday = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
-const isLoading = ref(false)
+const isSubmitting = ref(false)
 
 defineEmits(['profileUpdated'])
 
@@ -59,14 +56,13 @@ const fetchBalance = async () => {
     balance.value = response.data.balance.balance
     hasClaimedToday.value = response.data.balance.claimed_today
   } catch (error) {
-    errorMessage.value = 'Failed to load balance.'
+    errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => { errorMessage.value = ''; }, 3000);
   }
 }
 
 const claimDaily = async () => {
-  isLoading.value = true
-  successMessage.value = ''
-  errorMessage.value = ''
+  isSubmitting.value = true
 
   try {
     const token = localStorage.getItem('token')
@@ -76,16 +72,17 @@ const claimDaily = async () => {
     const response = await axios.post('/user/claim-daily', {}, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log(response.data)
     balance.value = response.data.balance;
     hasClaimedToday.value = response.data.claimed_today;
     userStore.updateBalance(response.data.balance);
     animateBalance();
     successMessage.value = 'You claimed 500 CuboCoins!'
+    setTimeout(() => { successMessage.value = ''; }, 3000);
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'Something went wrong.'
+    errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => { errorMessage.value = ''; }, 3000);
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
   }
 }
 
@@ -199,27 +196,21 @@ watch(balance, () => {
   box-shadow: none;
 }
 
-.success,
-.error {
-  font-size: 1rem;
-  margin-top: 1rem;
-}
-
-.success {
+.succes {
+  text-align: center;
   color: green;
+  margin-top: 5px;
 }
 
 .error {
+  text-align: center;
   color: red;
+  margin-top: 5px;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 1024px) {

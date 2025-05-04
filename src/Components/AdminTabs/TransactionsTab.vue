@@ -1,5 +1,5 @@
 <template>
-  <div class="transactions-tab">
+  <div class="transactions-tab" v-if="transactions">
     <div class="filters">
       <input v-model="filters.buyer" placeholder="Filter by Buyer" @input="onFilterChange" class="filter-input" />
       <input v-model="filters.seller" placeholder="Filter by Seller" @input="onFilterChange" class="filter-input" />
@@ -68,14 +68,14 @@
       </button>
     </div>
 
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="successMessage" class="succes">{{ successMessage }}</p>
   </div>
+  <div v-else class="loading">Loading admin details...</div>
 </template>
 
 <script>
 import axios from 'axios'
-import { handleApiError } from '@/Utils/errorHandler'
 
 export default {
   data() {
@@ -120,7 +120,8 @@ export default {
         this.transactions = transactions
         this.totalPages = pagination.totalPages
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     onFilterChange() {
@@ -140,9 +141,11 @@ export default {
         })
 
         this.successMessage = 'Transaction deleted successfully!'
+        setTimeout(() => { this.successMessage = ''; }, 3000);
         this.transactions = this.transactions.filter(txn => txn.id !== transactionId)
       } catch (error) {
-        this.errorMessage = handleApiError(error)
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = ''; }, 3000);
       }
     },
     changePage(newPage) {
@@ -265,14 +268,21 @@ th {
   cursor: not-allowed;
 }
 
-.error-message {
+.error {
+  text-align: center;
   color: red;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
-.success-message {
+.succes {
+  text-align: center;
   color: green;
-  margin-top: 10px;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 768px) {

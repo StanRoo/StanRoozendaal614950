@@ -23,12 +23,12 @@ class AuthController {
 
             $username = $data['username'];
             $password = $data['password'];
-            $rememberMe = isset($data['rememberMe']) ? (bool)$data['rememberMe'] : false;
+            $rememberMe = isset($data['remember']) ? (bool)$data['remember'] : false;
     
             $result = $this->authService->login($username, $password, $rememberMe);
 
-            if (isset($result['error'])) {
-                ResponseHelper::error($result['message'], 401);
+            if (!$result['success']) {
+                ResponseHelper::error($result['message'], 400);
             } else {
                 ResponseHelper::success([
                     'token' => $result['data']['token'],

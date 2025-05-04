@@ -18,10 +18,6 @@
           />
         </div>
 
-        <div v-if="feedbackMessage" :class="feedbackMessageType" class="feedback-message">
-          {{ feedbackMessage }}
-        </div>
-
         <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
           {{ isSubmitting ? 'Sending Reset Link...' : 'Send Reset Link' }}
         </button>
@@ -30,6 +26,8 @@
           <router-link to="/" class="small">Back to Login</router-link>
         </div>
       </form>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="succes">{{ successMessage }}</p>
     </div>
   </div>
 </template>
@@ -42,8 +40,8 @@ export default {
   data() {
     return {
       email: "",
-      feedbackMessage: "",
-      feedbackMessageType: "",
+      errorMessage: "",
+      successMessage: "",
       isSubmitting: false,
     };
   },
@@ -51,8 +49,6 @@ export default {
     async handleForgotPassword() {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
-      this.feedbackMessage = "";
-      this.feedbackMessageType = "";
 
       try {
         const response = await axios.post("/api/forgot-password", {
@@ -60,17 +56,16 @@ export default {
         });
 
         if (response.status === 200) {
-          this.feedbackMessage = "A password reset link has been sent to your email address.";
-          this.feedbackMessageType = "text-success";
+          this.successMessage = "A password reset link has been sent to your email address.";
+          setTimeout(() => (this.successMessage = ''), 3000);
           this.email = "";
         } else {
-          this.feedbackMessage = response.data.message || "Failed to send reset link. Please try again.";
-          this.feedbackMessageType = "text-danger";
+          this.errorMessage = response.data.message || "Failed to send reset link. Please try again.";
+          setTimeout(() => (this.errorMessage = ''), 3000);
         }
       } catch (error) {
-        console.error("Error sending reset link:", error);
-        this.feedbackMessage = "An error occurred. Please try again later.";
-        this.feedbackMessageType = "text-danger";
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => (this.errorMessage = ''), 3000);
       } finally {
         this.isSubmitting = false;
       }
@@ -141,13 +136,20 @@ input.form-control:focus {
   outline: none;
 }
 
-.feedback-message {
-  margin-top: 1rem;
-  font-size: 1rem;
-}
-
 .text-center {
   text-align: center;
+}
+
+.succes {
+  text-align: center;
+  color: green;
+  margin-top: 5px;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
 }
 
 @media (max-width: 768px) {

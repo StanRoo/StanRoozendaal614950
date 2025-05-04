@@ -63,18 +63,14 @@
           <router-link to="/" class="small">Back to Login</router-link>
         </div>
       </form>
-
-      <div class="user-feedback">
-        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
-      </div>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="succes">{{ successMessage }}</p>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import { handleApiError } from "@/Utils/errorHandler";
 
 export default {
   data() {
@@ -92,8 +88,6 @@ export default {
     async handleCreateAccount() {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
-      this.errorMessage = "";
-      this.successMessage = "";
 
       try {
         const response = await axios.post("/register", {
@@ -108,11 +102,13 @@ export default {
           setTimeout(() => {
             this.$router.push("/");
           }, 2000);
-          return;
+        } else {
+          this.errorMessage = response.data.message || "Failed to create account.";
+          setTimeout(() => { this.errorMessage = "";}, 3000);
         }
-        this.errorMessage = response.data.message || "Failed to create account.";
       } catch (error) {
-        this.errorMessage = handleApiError(error);
+        this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
+        setTimeout(() => { this.errorMessage = "";}, 3000);
       } finally {
         this.isSubmitting = false;
       }
@@ -191,17 +187,16 @@ input.form-control:focus {
   color: #6c757d;
 }
 
-.user-feedback {
-  margin-top: 1rem;
+.error {
   text-align: center;
-}
-.error-message {
   color: red;
-  font-size: 0.9rem;
+  margin-top: 5px;
 }
-.success-message {
+
+.succes {
+  text-align: center;
   color: green;
-  font-size: 0.9rem;
+  margin-top: 5px;
 }
 
 @media (max-width: 768px) {

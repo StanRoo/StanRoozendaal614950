@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  <div class="my-listings-container">
+  <div class="my-listings-container" v-if="filteredCards">
     <section v-if="cards.length > 0" class="marketplace-grid">
       <div
         v-for="card in filteredCards"
@@ -94,7 +94,9 @@
       </div>
     </section>
     <p v-else class="empty-message">You haven't listed any cards yet.</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
+  <div v-else class="loading">Loading marketplace details...</div>
 </template>
   
 <script setup>
@@ -119,6 +121,7 @@
   const minPrice = ref(null);
   const maxPrice = ref(null);
   const sortOption = ref('name_asc');
+  const errorMessage = ref('');
   
   onMounted(() => {
     fetchMyMarketplaceCards();
@@ -188,7 +191,8 @@
       hasMore.value = cardsWithDetails.length === limit.value;
 
     } catch (error) {
-      console.error('Error fetching your listings:', error.response?.data || error);
+      this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+      setTimeout(() => { this.errorMessage.value = ''; }, 3000);
     } finally {
       isLoading.value = false;
     }
@@ -335,6 +339,17 @@
   border-radius: 0.5rem;
   border: 1px solid #ccc;
   font-size: 1rem;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 1024px) {

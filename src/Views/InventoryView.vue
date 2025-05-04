@@ -59,7 +59,7 @@
     </div>
   </div>
 
-  <div class="inventory-container">
+  <div class="inventory-container" v-if="cards">
     <section v-if="cards.length > 0" class="inventory-grid">
       <CardDisplay 
         v-for="card in cards" 
@@ -70,8 +70,10 @@
       />
     </section>
     <p v-else class="empty-message">You haven't created any cards yet.</p>
-    <p v-if="loading" class="text-muted">Loading more cards...</p>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="isLoading" class="text-muted">Loading more cards...</p>
   </div>
+  <div v-else class="loading">Loading inventory details...</div>
 </template>
 
 <script setup>
@@ -89,11 +91,12 @@ const cards = ref([]);
 const offset = ref(0)
 const limit = 20
 const hasMore = ref(true)
-const loading = ref(false)
+const isLoading = ref(false)
 const selectedCard = ref(null);
 const searchQuery = ref('');
 const selectedRarity = ref('');
 const selectedType = ref('');
+const errorMessage = ref('');
 const sortOption = ref('name_asc');
 
 onMounted(() => {
@@ -102,8 +105,8 @@ onMounted(() => {
 })
 
 const fetchCards = async () => {
-  if (loading.value || !hasMore.value) return
-  loading.value = true
+  if (isLoading.value || !hasMore.value) return
+  isLoading.value = true
 
   try {
     const token = localStorage.getItem('token')
@@ -130,10 +133,11 @@ const fetchCards = async () => {
     if (newCards.length < limit) {
       hasMore.value = false
     }
-  } catch (err) {
-    console.error('Failed to load cards:', err.response?.data || err)
+  } catch (error) {
+    this.errorMessage.value = error.response?.data?.message || error.message || "Something went wrong.";
+    setTimeout(() => (this.errorMessage.value = ''), 3000);
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
@@ -212,6 +216,17 @@ const selectCard = (card) => {
   color: black;
   border: 1px solid #ccc;
   font-size: 0.95rem;
+}
+
+.error {
+  text-align: center;
+  color: red;
+  margin-top: 5px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: gray;
 }
 
 @media (max-width: 1024px) {
