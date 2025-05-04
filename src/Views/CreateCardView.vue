@@ -30,7 +30,7 @@
                 HP {{ hp }}
               </p>
 
-              <img :src="cardImage" alt="Card Image" class="card-image" />
+              <img :src="cardImage || DefaultCardImage" alt="Card Image" class="card-image" />
 
               <div class="card-info">
                 <p :style="{ color: typeColors.text }">
@@ -152,6 +152,7 @@
   import { useUserStore } from '@/Store/UserStore';
   import CreateCardBanner from '@/assets/images/Create_Card_Banner.png';
   import { useRouter } from 'vue-router';
+  import DefaultCardImage from '/images/DefaultPokemon.png';
 
   defineEmits(['profileUpdated'])
   const router = useRouter();
@@ -503,13 +504,13 @@ p {
   margin: 0 auto;
 }
 
-.preview-card-content img {
-  width: 14rem;
-  height: 15rem;
-  min-height: 17rem;
+.card-image {
+  width: 80%;
+  height: auto;
   object-fit: cover;
-  border-radius: 0.625rem;
-  margin-bottom: 0.5rem;
+  border-radius: 0.6rem;
+  margin-bottom: 0.6rem;
+  flex-shrink: 1;
 }
 
 .preview-card-content h4,
@@ -741,7 +742,7 @@ p {
   }
 
   .preview-card-content img {
-    width: 100%;
+    width: 80%;
     height: auto;
   }
 
