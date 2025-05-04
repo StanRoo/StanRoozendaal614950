@@ -10,7 +10,7 @@
         <div class="card shadow-sm">
           <div class="card-body text-center">
             <img
-              :src="previewImage || user.profile_picture_url"
+              :src="previewImage || user.profile_picture_url || DefaultPFP"
               alt="Profile Picture"
               class="rounded-circle profile-picture"
             />
@@ -86,6 +86,7 @@
 import { useUserStore } from '@/Store/UserStore';
 import axios from "axios";
 import ProfileBanner from '@/assets/images/Profile_Banner.png'
+import DefaultPFP from '/images/profile.png'
 
 export default {
   emits: ['profileUpdated'],
@@ -95,6 +96,7 @@ export default {
       ProfileBanner,
       selectedFile: null,
       previewImage: null,
+      DefaultPFP,
       defaultPictures: [
         "/uploads/Defaults/Bulbasaur_PFP.png",
         "/uploads/Defaults/Charmander_PFP.png",
