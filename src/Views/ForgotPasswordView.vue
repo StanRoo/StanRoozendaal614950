@@ -58,7 +58,7 @@ export default {
       this.isSubmitting = true;
 
       try {
-        const response = await axios.post("/api/forgot-password", {
+        const response = await axios.post("/forgot-password", {
           email: this.email,
         });
 

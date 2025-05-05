@@ -29,6 +29,16 @@ switch (true) {
         $userController->getUserById($decodedUser->id); 
         break;
 
+    // Get user by username
+    case $requestUri === '/api/user/username' && $requestMethod === 'GET':     
+        $userController->checkUsername(); 
+        break;
+
+    // Get user by email
+    case $requestUri === '/api/user/email' && $requestMethod === 'GET':     
+        $userController->checkEmail(); 
+        break;
+
     // Get current user balance and last claim
     case $requestUri === '/api/user/balance' && $requestMethod === 'GET':
         $decodedUser = $authMiddleware->verifyToken();

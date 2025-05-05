@@ -20,7 +20,9 @@
             class="form-control"
             placeholder="Enter your username"
             required
+            @blur="checkUsernameAvailability"
           />
+          <span v-if="usernameError" class="error">{{ usernameError }}</span>
         </div>
 
         <div class="form-group">
@@ -32,7 +34,9 @@
             class="form-control"
             placeholder="Enter your email"
             required
+            @blur="checkEmailAvailability"
           />
+          <span v-if="emailError" class="error">{{ emailError }}</span>
         </div>
 
         <div class="form-group">
@@ -60,7 +64,7 @@
           />
         </div>
 
-        <button class="btn btn-primary w-100" :disabled="isSubmitting">
+        <button class="btn btn-primary w-100" :disabled="isSubmitting || usernameTaken || emailTaken">
           {{ isSubmitting ? "Creating Account..." : "Create Account" }}
         </button>
 
@@ -86,14 +90,40 @@ export default {
       email: "",
       password: "",
       confirmPassword: "",
+      usernameError: "",
+      emailError: "",
       errorMessage: "",
       successMessage: "",
       isSubmitting: false,
+      usernameTaken: false,
+      emailTaken: false,
     };
   },
   methods: {
+    async checkUsernameAvailability() {
+      if (!this.username) return;
+      try {
+        const response = await axios.get(`/user/username?username=${this.username}`);
+        this.usernameTaken = response.data.exists;
+        this.usernameError = this.usernameTaken ? "Username is already taken" : "";
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
+    async checkEmailAvailability() {
+      if (!this.email) return;
+      try {
+        const response = await axios.get(`/user/email?email=${this.email}`);
+        this.emailTaken = response.data.exists;
+        this.emailError = this.emailTaken ? "Email is already registered" : "";
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
     async handleCreateAccount() {
-      if (this.isSubmitting) return;
+      if (this.isSubmitting || this.usernameError || this.emailError) return;
       this.isSubmitting = true;
 
       if (this.password !== this.confirmPassword) {
@@ -118,11 +148,11 @@ export default {
           }, 2000);
         } else {
           this.errorMessage = response.data.message || "Failed to create account.";
-          setTimeout(() => { this.errorMessage = "";}, 3000);
+          setTimeout(() => { this.errorMessage = ""; }, 3000);
         }
       } catch (error) {
         this.errorMessage = error.response?.data?.message || error.message || "Something went wrong.";
-        setTimeout(() => { this.errorMessage = "";}, 3000);
+        setTimeout(() => { this.errorMessage = ""; }, 3000);
       } finally {
         this.isSubmitting = false;
       }

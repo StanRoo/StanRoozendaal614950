@@ -1,6 +1,6 @@
 {
     "name": "cubocard/site",
-    "description": "A dynamic marketplace for buying, selling, and trading Pokémon cards.",
+    "description": "A dynamic marketplace for buying, selling, and creating Pokémon cards.",
     "type": "project",
     "license": "MIT",
     "minimum-stability": "stable",
@@ -16,8 +16,5 @@
             "App\\Repositories\\": "src/Repositories/",
             "App\\Utils\\": "src/Utils/"
         }
-    },
-    "config": {
-        "secure-http": false
     }
 }

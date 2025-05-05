@@ -130,6 +130,8 @@ export default {
       errorMessagePicture: "",
       successMessageProfile: "",
       errorMessageProfile: "",
+      isUsernameValid: true,
+      isEmailValid: true,
     };
   },
   computed: {
@@ -144,7 +146,7 @@ export default {
     async fetchUserProfile() {
       const token = localStorage.getItem("token");
       if (!token) {
-        this.$router.push("/");
+        this.$router.push("/login");
       }
 
       try {
@@ -174,43 +176,14 @@ export default {
       this.selectedFile = null;
     },
 
-    async updateProfilePicture() {
-      if (this.isSubmittingPFP) return;
-      this.isSubmittingPFP = true;
-      const token = localStorage.getItem("token");
-      if (!token) {
-        this.$router.push("/");
-      }
-      const headers = { Authorization: `Bearer ${token}` };
-      let payload;
+    async validateUsername() {
+      const response = await axios.get(`/user/username?username=${this.user.username}`);
+      return response.data.exists;
+    },
 
-      if (this.selectedFile) {
-        payload = new FormData();
-        payload.append("profile_picture", this.selectedFile);
-        headers["Content-Type"] = "multipart/form-data";
-      } else {
-        payload = { profile_picture_url: this.user.profile_picture_url };
-        headers["Content-Type"] = "application/json";
-      }
-
-      try {
-        const response = await axios.post("/user/profile-picture", payload, { headers });
-        if (response.status === 200) {
-          const updatedProfilePicture = this.previewImage || this.user.profile_picture_url;
-          useUserStore().updateProfilePicture(updatedProfilePicture);
-          this.$emit("profileUpdated", updatedProfilePicture);
-          this.successMessagePicture = response.data.message;
-          setTimeout(() => { this.successMessagePicture = ''; }, 3000);
-        } else {
-          this.errorMessagePicture = response.data.message;
-          setTimeout(() => { this.errorMessagePicture = ''; }, 3000);
-        }
-      } catch (error) {
-        this.errorMessagePicture = error.response?.data?.message || error.message || "Something went wrong.";
-        setTimeout(() => { this.errorMessagePicture = ''; }, 3000);
-      } finally {
-        this.isSubmittingPFP = false;
-      }
+    async validateEmail() {
+      const response = await axios.get(`/user/email?email=${this.user.email}`);
+      return response.data.exists;
     },
 
     async updateProfileInfo() {
@@ -218,19 +191,35 @@ export default {
       this.isSubmittingInfo = true;
       const token = localStorage.getItem("token");
       if (!token) {
-        this.$router.push("/");
+        this.$router.push("/login");
       }
- 
+
       try {
-        const response = await axios.put("/user", this.user, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
-        });
- 
-        this.successMessageProfile = response.data.message;
-        setTimeout(() => { this.successMessageProfile = ''; }, 3000);
+        let usernameChanged = this.user.username !== useUserStore().user.username;
+        let emailChanged = this.user.email !== useUserStore().user.email;
+
+        if (usernameChanged) {
+          this.isUsernameValid = !(await this.validateUsername());
+        }
+
+        if (emailChanged) {
+          this.isEmailValid = !(await this.validateEmail());
+        }
+
+        if ((!usernameChanged || this.isUsernameValid) && (!emailChanged || this.isEmailValid)) {
+          const response = await axios.put("/user", this.user, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          this.successMessageProfile = response.data.message;
+          setTimeout(() => { this.successMessageProfile = ''; }, 3000);
+        } else {
+          this.errorMessageProfile = "Username or email already exists.";
+          setTimeout(() => { this.errorMessageProfile = ''; }, 3000);
+        }
       } catch (error) {
         this.errorMessageProfile = error.response?.data?.message || error.message || "Something went wrong.";
         setTimeout(() => { this.errorMessageProfile = ''; }, 3000);
@@ -334,19 +323,15 @@ export default {
   text-align: center;
 }
 
-.profile-feedback {
-  min-height: 1.5rem;
-}
-
 .succes {
   text-align: center;
-  color: green;
+  color: green !important;
   margin-top: 5px;
 }
 
 .error {
   text-align: center;
-  color: red;
+  color: red !important;
   margin-top: 5px;
 }
 

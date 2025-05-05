@@ -80,6 +80,38 @@ class UserController {
         ResponseHelper::success(['balance' => $balance], 'Balance fetched successfully.');
     }
 
+    public function checkUsername() {
+        if (!isset($_GET['username'])) {
+            ResponseHelper::error('Username is required.', 400);
+            return;
+        }
+    
+        $username = $_GET['username'];
+    
+        $userExists = $this->userService->getUserByUsername($username);
+    
+        if ($userExists) {
+            ResponseHelper::success(['exists' => true], "Username is already taken.");
+        } else {
+            ResponseHelper::success(['exists' => false], "Username is available.");
+        }
+    }
+    
+    public function checkEmail() {
+        if (!isset($_GET['email'])) {
+            ResponseHelper::error('Email is required.', 400);
+            return;
+        }
+    
+        $email = $_GET['email'];
+    
+        if ($this->userService->getUserByEmail($email)) {
+            ResponseHelper::success(['exists' => true], "Email is already registered.");
+        } else {
+            ResponseHelper::success(['exists' => false], "Email is available.");
+        }
+    }
+
     public function updateUser($userId): void {
         $decodedUser = $this->authMiddleware->verifyToken();
         $data = json_decode(file_get_contents("php://input"), true);

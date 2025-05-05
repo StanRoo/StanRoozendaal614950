@@ -159,7 +159,7 @@ class UserRepository {
     }
 
     public function getResetToken($token) {
-        $stmt = $this->db->prepare("SELECT * FROM password_resets WHERE token = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM password_resets WHERE token = ?");
         $stmt->execute([$token]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }  
@@ -209,7 +209,7 @@ class UserRepository {
     }
 
     public function updatePasswordByEmail($email, $hashedPassword) {
-        $stmt = $this->db->prepare("UPDATE users SET password = ? WHERE email = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET password = ? WHERE email = ?");
         $stmt->execute([$hashedPassword, $email]);
     }
 
@@ -226,7 +226,7 @@ class UserRepository {
     }
     
     public function storeResetToken($email, $token, $expiresAt) {
-        $stmt = $this->db->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+        $stmt = $this->pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
         $stmt->execute([$email, $token, $expiresAt]);
     }
 
@@ -238,7 +238,7 @@ class UserRepository {
     }
     
     public function deleteResetToken($token) {
-        $stmt = $this->db->prepare("DELETE FROM password_resets WHERE token = ?");
+        $stmt = $this->pdo->prepare("DELETE FROM password_resets WHERE token = ?");
         $stmt->execute([$token]);
     }
 }

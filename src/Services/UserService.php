@@ -21,6 +21,14 @@ class UserService {
         return ['success' => true, 'message' => 'User retrieved successfully.', 'data' => $user];
     }
 
+    public function getUserByUsername($username) {
+        return $this->userRepository->getUserByUsername($username);
+    }
+    
+    public function getUserByEmail($email) {
+        return $this->userRepository->getUserByEmail($email);
+    }
+
     public function getAllUsers($decodedUser, int $page = 1, int $limit = 10, array $filters = []): array
     {
         if (!isset($decodedUser->role) || $decodedUser->role !== 'admin') {
