@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watchEffect, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useUserStore } from "@/Store/UserStore";
 import { useRoute, useRouter } from "vue-router";
 import NavigationBar from "@/Components/NavigationBar.vue";
@@ -8,6 +8,10 @@ const userStore = useUserStore();
 const route = useRoute();
 const router = useRouter();
 
+const sessionRestored = ref(false);
+
+const publicRoutes = ["Login", "ForgotPassword", "CreateAccount", "ResetPassword"];
+
 const profilePicture = computed(() => userStore.user?.profile_picture_url || "/images/profile.png");
 
 function updateProfilePicture(newPicture) {
@@ -15,20 +19,24 @@ function updateProfilePicture(newPicture) {
 }
 
 const showHeaderAndFooter = computed(() => {
-  const hiddenRoutes = ["Login", "ForgotPassword", "CreateAccount"];
+  const hiddenRoutes = publicRoutes;
   return !hiddenRoutes.includes(route.name);
 });
 
-onMounted(() => {
-  userStore.restoreSession();
+onMounted(async () => {
+  await userStore.restoreSession();
+  sessionRestored.value = true;
+});
 
-  watchEffect(() => {
-    const publicRoutes = ["Login", "ForgotPassword", "CreateAccount"];
-    if (!userStore.isAuthenticated && !publicRoutes.includes(route.name)) {
+watch(
+  () => route.name,
+  (name) => {
+    if (!sessionRestored.value) return;
+    if (!userStore.isAuthenticated && !publicRoutes.includes(name)) {
       router.push("/");
     }
-  });
-});
+  }
+);
 </script>
 
 <template>

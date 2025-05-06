@@ -112,7 +112,7 @@ class AuthService {
 
         $this->userRepository->storeResetToken($email, $token, $expiresAt);
 
-        $resetLink = "http://localhost:8000/reset-password?token=$token";
+        $resetLink = "http://localhost:5173/reset-password?token=$token";
         $subject = 'Reset your password';
         $body = "Hi {$user->getUsername()},<br><br>"
             . "Click the link below to reset your password:<br>"

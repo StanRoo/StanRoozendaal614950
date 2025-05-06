@@ -17,13 +17,20 @@ class MailService {
 
         try {
             $mail->isSMTP();
-            $mail->Host = gethostbyname($config['smtp_host']);
+            $mail->Host = $config['smtp_host'];
             $mail->SMTPAuth   = true;
             $mail->Username   = $config['smtp_user'];
             $mail->Password   = $config['smtp_pass'];
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->SMTPSecure = 'ssl';
             $mail->Port       = $config['smtp_port'];
-            $mail->SMTPAutoTLS = false;
+
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ]
+            ];
 
             $mail->setFrom($config['from_email'], $config['from_name']);
             $mail->addAddress($to, $name);
@@ -31,19 +38,6 @@ class MailService {
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $body;
-
-            $mail->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer' => true,
-                    'verify_peer_name' => true,
-                    'allow_self_signed' => false,
-                    'cafile' => 'C:/php/cacert.pem'
-                ]
-            ];
-            $mail->SMTPDebug = 4;
-            $mail->Debugoutput = function($str, $level) {
-                error_log("SMTP Debug [$level]: $str");
-            };
             $mail->send();
             return ['success' => true];
         } catch (Exception $e) {

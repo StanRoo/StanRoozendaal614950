@@ -13,6 +13,7 @@ import ForgotPasswordView from '@/Views/ForgotPasswordView.vue'
 import CreateAccountView from '@/Views/CreateAccountView.vue'
 import AdminView from '@/Views/AdminView.vue'
 import CardDetailPageView from '@/Views/CardDetailPageView.vue';
+import ResetPasswordView from '@/Views/ResetPasswordView.vue';
 import ErrorView from '@/Views/ErrorView.vue';
 
 const routes = [
@@ -28,6 +29,7 @@ const routes = [
   { path: '/card/:id', name: 'CardDetail', component: CardDetailPageView, props: true },
   { path: '/marketplace/detail/:id', name: 'MarketplaceDetail', component: MarketplaceDetailView, props: true },
   { path: '/myMarketplaceListings', name: 'MyMarketplaceListings', component: MarketplaceListingsByUserView },
+  { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
   {
     path: "/admin",
     component: AdminView,
