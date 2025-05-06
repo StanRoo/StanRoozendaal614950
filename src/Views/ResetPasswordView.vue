@@ -57,38 +57,39 @@ const submit = async () => {
         <!--Form-->
         <form @submit.prevent="submit">
             <div class="form-group">
-            <label for="password">New Password</label>
-            <input
-                type="password"
-                id="password"
-                class="form-control"
-                v-model="password"
-                placeholder="Enter your new password"
-                required
-            />
+                <label for="password">New Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    class="form-control"
+                    v-model="password"
+                    placeholder="Enter your new password"
+                    required
+                />
             </div>
 
             <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input
-                type="password"
-                id="confirmPassword"
-                class="form-control"
-                v-model="confirmPassword"
-                placeholder="Confirm your new password"
-                required
-            />
+                <label for="confirmPassword">Confirm Password</label>
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    class="form-control"
+                    v-model="confirmPassword"
+                    placeholder="Confirm your new password"
+                    required
+                />
             </div>
 
             <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
             {{ isSubmitting ? "Resetting..." : "Reset Password" }}
             </button>
 
+            <!--User Feedback-->
             <div v-if="error" class="error-container">
-            <p class="error">{{ error }}</p>
+                <p class="error">{{ error }}</p>
             </div>
             <div v-if="success" class="success-container">
-            <p class="success">{{ success }}</p>
+                <p class="success">{{ success }}</p>
             </div>
         </form>
     </div>
