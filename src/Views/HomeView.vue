@@ -12,13 +12,21 @@ const goToCreateCard = () => {
  <main>
     <img class="banner" :src="CuboCardBanner" alt="CuboCard Banner"/>
     <div class="container">
-      <h1>Welcome to CuboCard</h1>
+      <h1>Welcome to CuboCard – Design and Trade Your Own Pokémon Cards!</h1>
       <div class="HomeText">
-        Discover the ultimate marketplace for Pokémon card enthusiasts! At CuboCard, we bring together collectors, traders, and fans to buy, sell, and exchange their favorite Pokémon cards. Whether you're hunting for rare treasures or looking to share your duplicates, our platform is designed to make trading fun, secure, and hassle-free.
+        CuboCard is the ultimate online marketplace for fans who dream of creating and trading their own Pokémon-inspired cards. Whether you're a collector, an artist, or just a passionate fan, CuboCard gives you the tools to bring your card ideas to life.
+        <br><br>
+        Using our intuitive card editor, you can upload your favourite Pokémon images, set the card’s rarity, and choose its type. Want to make a Legendary Shiny Psyduck or a custom Fire-type Eevee? Go for it! Each card you create is fully personalized, yet stays true to the Pokémon world.
+        <br><br>
+        Once your card is ready, you can list it on the marketplace and trade it with other fans across the platform. All trading is done using CuboCoins, our exclusive in-platform currency designed to keep things fair, fun, and safe.
+        <br><br>
+        Join a community of fellow creators and collectors, explore unique fan-made cards, and build a collection that’s truly your own.
+        <br><br>
+        <strong>CuboCard</strong> – where your imagination meets the world of Pokémon.
         <br><br>
         Join the CuboCard community today and take your Pokémon collection to the next level!
         <br>
-        Start by creating your own card for your favorite Pokémon!
+        Start by creating your own card for your favourite Pokémon!
         <br><br>
         <button @click="goToCreateCard" class="btn btn-primary create-card-btn">
           Create Card Now
@@ -44,7 +52,7 @@ main {
 
 .container {
   width: 100%;
-  max-width: 50rem;
+  max-width: 90rem;
   padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
